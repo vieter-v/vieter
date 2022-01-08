@@ -1,0 +1,11 @@
+pipeline:
+  lint:
+    image: 'thevlang/vlang:latest'
+    commands:
+      - v fmt -verify pieter
+
+  build:
+    image: 'thevlang/vlang:latest'
+    commands:
+      - v pieter
+
