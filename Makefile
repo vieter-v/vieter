@@ -1,6 +1,6 @@
 .PHONY: run
 run:
-	API_KEY=test REPO_DIR=data v run vieter
+	API_KEY=test REPO_DIR=data v watch run vieter
 
 .PHONY: fmt
 fmt:
