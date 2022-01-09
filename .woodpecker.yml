@@ -2,10 +2,10 @@ pipeline:
   lint:
     image: 'thevlang/vlang:latest'
     commands:
-      - v fmt -verify pieter
+      - v fmt -verify vieter
 
   build:
     image: 'thevlang/vlang:latest'
     commands:
-      - v pieter
+      - v vieter
 
