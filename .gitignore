@@ -4,3 +4,5 @@ vieter/vieter
 
 # Ignore testing files
 *.pkg*
+
+vieter.log
