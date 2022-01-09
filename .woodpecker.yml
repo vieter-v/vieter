@@ -3,7 +3,7 @@ pipeline:
     image: 'alpine:latest'
     commands:
       - apk update
-      - apk add --no-cache git make
+      - apk add --no-cache git make gcc
       - make customv
 
   lint:
