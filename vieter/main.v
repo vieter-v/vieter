@@ -4,10 +4,13 @@ import web
 import os
 import log
 import io
+import repo
 
 const port = 8000
 
 const buf_size = 1_000_000
+
+const db_name = 'pieter.db.tar.gz'
 
 struct App {
 	web.Context
@@ -43,7 +46,6 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 		for to_write > 0 {
 			// TODO don't just loop infinitely here
 			bytes_written := file.write(buf[bytes_read - to_write..bytes_read]) or { continue }
-			println(bytes_written)
 
 			to_write = to_write - bytes_written
 		}
@@ -66,7 +68,13 @@ fn (mut app App) put_package(pkg string) web.Result {
 		return app.text("Content-Type header isn't set.")
 	}
 
-	return app.text('just stop')
+	repo.add_package(os.join_path_single(app.repo_dir, db_name), full_path) or {
+		os.rm(full_path) or { println('Failed to remove $full_path') }
+
+		return app.text('Failed to add package to repo.')
+	}
+
+	return app.text('Package added successfully.')
 }
 
 // ['/publish'; post]
