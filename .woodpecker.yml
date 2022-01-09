@@ -9,7 +9,7 @@ pipeline:
   lint:
     image: 'alpine:latest'
     commands:
-      - jjr-v/v lint
+      - jjr-v/v fmt -verify vieter
 
   build:
     image: 'alpine:latest'
