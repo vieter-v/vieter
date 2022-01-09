@@ -1,4 +1,4 @@
-module vweb
+module web
 
 import net.urllib
 import net.http

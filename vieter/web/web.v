@@ -1,7 +1,7 @@
 // Copyright (c) 2019-2022 Alexander Medvednikov. All rights reserved.
 // Use of this source code is governed by an MIT license
 // that can be found in the LICENSE file.
-module vweb
+module web
 
 import os
 import io
@@ -148,11 +148,11 @@ pub:
 	// TODO Response
 pub mut:
 	done bool
-	// time.ticks() from start of vweb connection handle.
+	// time.ticks() from start of web connection handle.
 	// You can use it to determine how much time is spent on your request.
 	page_gen_start i64
 	// TCP connection to client.
-	// But beware, do not store it for further use, after request processing vweb will close connection.
+	// But beware, do not store it for further use, after request processing web will close connection.
 	conn              &net.TcpConn
 	static_files      map[string]string
 	static_mime_types map[string]string
@@ -167,6 +167,8 @@ pub mut:
 	header http.Header // response headers
 	// ? It doesn't seem to be used anywhere
 	form_error string
+	// Allows reading the request body
+	reader io.BufferedReader
 }
 
 struct FileData {
@@ -201,7 +203,7 @@ pub struct Cookie {
 	http_only bool
 }
 
-// vweb intern function
+// web intern function
 [manualfree]
 pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bool {
 	if ctx.done {
@@ -216,7 +218,7 @@ pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bo
 	}).join(ctx.header)
 
 	mut resp := http.Response{
-		header: header.join(vweb.headers_close)
+		header: header.join(web.headers_close)
 		text: res
 	}
 	resp.set_version(.v1_1)
@@ -259,7 +261,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 		ctx.server_error(500)
 		return Result{}
 	}
-	content_type := vweb.mime_types[ext]
+	content_type := web.mime_types[ext]
 	if content_type == '' {
 		eprintln('no MIME type found for extension $ext')
 		ctx.server_error(500)
@@ -283,7 +285,7 @@ pub fn (mut ctx Context) server_error(ecode int) Result {
 	if ctx.done {
 		return Result{}
 	}
-	send_string(mut ctx.conn, vweb.http_500.bytestr()) or {}
+	send_string(mut ctx.conn, web.http_500.bytestr()) or {}
 	return Result{}
 }
 
@@ -293,7 +295,7 @@ pub fn (mut ctx Context) redirect(url string) Result {
 		return Result{}
 	}
 	ctx.done = true
-	mut resp := vweb.http_302
+	mut resp := web.http_302
 	resp.header = resp.header.join(ctx.header)
 	resp.header.add(.location, url)
 	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
@@ -306,7 +308,7 @@ pub fn (mut ctx Context) not_found() Result {
 		return Result{}
 	}
 	ctx.done = true
-	send_string(mut ctx.conn, vweb.http_404.bytestr()) or {}
+	send_string(mut ctx.conn, web.http_404.bytestr()) or {}
 	return Result{}
 }
 
@@ -379,7 +381,6 @@ interface DbInterface {
 // run_app
 [manualfree]
 pub fn run<T>(global_app &T, port int) {
-	println("sup neef")
 	mut l := net.listen_tcp(.ip6, ':$port') or { panic('failed to listen $err.code $err') }
 
 	// Parsing methods attributes
@@ -402,10 +403,10 @@ pub fn run<T>(global_app &T, port int) {
 		$if T is DbInterface {
 			request_app.db = global_app.db
 		} $else {
-			// println('vweb no db')
+			// println('web no db')
 		}
 		$for field in T.fields {
-			if 'vweb_global' in field.attrs || field.is_shared {
+			if 'web_global' in field.attrs || field.is_shared {
 				request_app.$(field.name) = global_app.$(field.name)
 			}
 		}
@@ -438,16 +439,24 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	page_gen_start := time.ticks()
 
 	// Request parse
-	req := http.parse_request(mut reader) or {
+	head := http.parse_request_head(mut reader) or {
 		// Prevents errors from being thrown when BufferedReader is empty
 		if '$err' != 'none' {
-			eprintln('error parsing request: $err')
+			eprintln('error parsing request head: $err')
 		}
 		return
 	}
 
+// 	req := http.parse_request(mut reader) or {
+// 		// Prevents errors from being thrown when BufferedReader is empty
+// 		if '$err' != 'none' {
+// 			eprintln('error parsing request: $err')
+// 		}
+// 		return
+// 	}
+
 	// URL Parse
-	url := urllib.parse(req.url) or {
+	url := urllib.parse(head.url) or {
 		eprintln('error parsing path: $err')
 		return
 	}
@@ -456,22 +465,24 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	query := parse_query_from_url(url)
 	url_words := url.path.split('/').filter(it != '')
 
+	// TODO re-add form parsing
 	// Form parse
-	form, files := parse_form_from_request(req) or {
-		// Bad request
-		conn.write(vweb.http_400.bytes()) or {}
-		return
-	}
+	// form, files := parse_form_from_request(req) or {
+	// 	// Bad request
+	// 	conn.write(web.http_400.bytes()) or {}
+	// 	return
+	// }
 
 	app.Context = Context{
-		req: req
+		req: head
 		page_gen_start: page_gen_start
 		conn: conn
 		query: query
-		form: form
-		files: files
+		// form: form
+		// files: files
 		static_files: app.static_files
 		static_mime_types: app.static_mime_types
+		reader: reader
 	}
 
 	// Calling middleware...
@@ -492,7 +503,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 			}
 
 			// Skip if the HTTP request method does not match the attributes
-			if req.method in route.methods {
+			if head.method in route.methods {
 				// Used for route matching
 				route_words := route.path.split('/').filter(it != '')
 
@@ -501,13 +512,14 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 				// should be called first.
 				if !route.path.contains('/:') && url_words == route_words {
 					// We found a match
-					if req.method == .post && method.args.len > 0 {
+					if head.method == .post && method.args.len > 0 {
+						// TODO implement POST requests
 						// Populate method args with form values
-						mut args := []string{cap: method.args.len}
-						for param in method.args {
-							args << form[param.name]
-						}
-						app.$method(args)
+						// mut args := []string{cap: method.args.len}
+						// for param in method.args {
+						// 	args << form[param.name]
+						// }
+						// app.$method(args)
 					} else {
 						app.$method()
 					}
@@ -522,7 +534,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 				if params := route_matches(url_words, route_words) {
 					method_args := params.clone()
 					if method_args.len != method.args.len {
-						eprintln('warning: uneven parameters count ($method.args.len) in `$method.name`, compared to the vweb route `$method.attrs` ($method_args.len)')
+						eprintln('warning: uneven parameters count ($method.args.len) in `$method.name`, compared to the web route `$method.attrs` ($method_args.len)')
 					}
 					app.$method(method_args)
 					return
@@ -531,7 +543,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		}
 	}
 	// Route not found
-	conn.write(vweb.http_404.bytes()) or {}
+	conn.write(web.http_404.bytes()) or {}
 }
 
 fn route_matches(url_words []string, route_words []string) ?[]string {
@@ -587,7 +599,7 @@ fn serve_if_static<T>(mut app T, url urllib.URL) bool {
 		return false
 	}
 	data := os.read_file(static_file) or {
-		send_string(mut app.conn, vweb.http_404.bytestr()) or {}
+		send_string(mut app.conn, web.http_404.bytestr()) or {}
 		return true
 	}
 	app.send_response_to_client(mime_type, data)
@@ -606,7 +618,7 @@ fn (mut ctx Context) scan_static_directory(directory_path string, mount_path str
 				ext := os.file_ext(file)
 				// Rudimentary guard against adding files not in mime_types.
 				// Use serve_static directly to add non-standard mime types.
-				if ext in vweb.mime_types {
+				if ext in web.mime_types {
 					ctx.serve_static(mount_path + '/' + file, full_path)
 				}
 			}
@@ -649,7 +661,7 @@ pub fn (mut ctx Context) serve_static(url string, file_path string) {
 	ctx.static_files[url] = file_path
 	// ctx.static_mime_types[url] = mime_type
 	ext := os.file_ext(file_path)
-	ctx.static_mime_types[url] = vweb.mime_types[ext]
+	ctx.static_mime_types[url] = web.mime_types[ext]
 }
 
 // Returns the ip address from the current user
@@ -670,7 +682,7 @@ pub fn (ctx &Context) ip() string {
 
 // Set s to the form error
 pub fn (mut ctx Context) error(s string) {
-	println('vweb error: $s')
+	println('web error: $s')
 	ctx.form_error = s
 }
 
@@ -684,7 +696,7 @@ fn send_string(mut conn net.TcpConn, s string) ? {
 }
 
 // Do not delete.
-// It used by `vlib/v/gen/c/str_intp.v:130` for string interpolation inside vweb templates
+// It used by `vlib/v/gen/c/str_intp.v:130` for string interpolation inside web templates
 // TODO: move it to template render
 fn filter(s string) string {
 	return s.replace_each([
