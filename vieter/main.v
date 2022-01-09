@@ -6,6 +6,7 @@ import log
 import io
 
 const port = 8000
+
 const buf_size = 1_000_000
 
 struct App {
@@ -21,7 +22,7 @@ fn exit_with_message(code int, msg string) {
 	exit(code)
 }
 
-fn reader_to_file(mut reader io.BufferedReader, path string) ? {
+fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 	// Open up a file for writing to
 	mut file := os.create(path) ?
 	defer {
@@ -29,36 +30,27 @@ fn reader_to_file(mut reader io.BufferedReader, path string) ? {
 	}
 
 	mut buf := []byte{len: buf_size}
+	mut bytes_left := length
 
 	// Repeat as long as the stream still has data
-	for {
-		// TODO don't just endlessly loop if reading keeps failing
-		println('heey')
+	for bytes_left > 0 {
 		// TODO check if just breaking here is safe
-		bytes_read := reader.read(mut &buf) or {
-			println('youre here')
-			break
-		}
-		println(bytes_read)
+		bytes_read := reader.read(mut buf) or { break }
+		bytes_left -= bytes_read
 
 		mut to_write := bytes_read
 
 		for to_write > 0 {
 			// TODO don't just loop infinitely here
-			bytes_written := file.write(buf[bytes_read - to_write..bytes_read]) or {
-				println("$err.msg")
-				continue
-			}
+			bytes_written := file.write(buf[bytes_read - to_write..bytes_read]) or { continue }
 			println(bytes_written)
 
 			to_write = to_write - bytes_written
 		}
 	}
-
-	println('File complete!')
 }
 
-[put; '/pkgs/:pkg']
+['/pkgs/:pkg'; put]
 fn (mut app App) put_package(pkg string) web.Result {
 	full_path := os.join_path_single(app.repo_dir, pkg)
 
@@ -66,8 +58,12 @@ fn (mut app App) put_package(pkg string) web.Result {
 		return app.text('File already exists.')
 	}
 
-	reader_to_file(mut app.reader, full_path) or {
-		return app.text('Failed to upload file.')
+	if length := app.req.header.get(.content_length) {
+		reader_to_file(mut app.reader, length.int(), full_path) or {
+			return app.text('Failed to upload file.')
+		}
+	} else {
+		return app.text("Content-Type header isn't set.")
 	}
 
 	return app.text('just stop')

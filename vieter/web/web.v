@@ -447,13 +447,13 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		return
 	}
 
-// 	req := http.parse_request(mut reader) or {
-// 		// Prevents errors from being thrown when BufferedReader is empty
-// 		if '$err' != 'none' {
-// 			eprintln('error parsing request: $err')
-// 		}
-// 		return
-// 	}
+	// 	req := http.parse_request(mut reader) or {
+	// 		// Prevents errors from being thrown when BufferedReader is empty
+	// 		if '$err' != 'none' {
+	// 			eprintln('error parsing request: $err')
+	// 		}
+	// 		return
+	// 	}
 
 	// URL Parse
 	url := urllib.parse(head.url) or {
