@@ -9,3 +9,13 @@ watch:
 .PHONY: fmt
 fmt:
 	v fmt -w vieter
+
+# Pulls & builds my personal build of the v compiler, required for this project to function
+.PHONY: customv
+customv:
+	rm -rf v-jjr
+	git clone \
+		-b vweb-streaming \
+		--single-branch \
+		https://github.com/ChewingBever/v jjr-v
+	make -C jjr-v

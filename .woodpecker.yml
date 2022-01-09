@@ -1,11 +1,16 @@
 pipeline:
-  lint:
-    image: 'thevlang/vlang:latest'
+  install-v:
+    image: 'alpine:latest'
     commands:
-      - v fmt -verify vieter
+      - make customv
+
+  lint:
+    image: 'alpine:latest'
+    commands:
+      - jjr-v/v lint
 
   build:
-    image: 'thevlang/vlang:latest'
+    image: 'alpine:latest'
     commands:
-      - v vieter
+      - jjr-v/v vieter
 
