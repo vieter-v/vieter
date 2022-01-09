@@ -2,6 +2,8 @@ pipeline:
   install-v:
     image: 'alpine:latest'
     commands:
+      - apk update
+      - apk add --no-cache git make
       - make customv
 
   lint:
