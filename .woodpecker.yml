@@ -7,5 +7,6 @@ pipeline:
   build:
     image: 'chewingbever/vlang:latest'
     commands:
+      - apt-get install -y --no-install-recommends openssl
       - v vieter
 
