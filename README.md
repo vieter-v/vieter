@@ -13,6 +13,13 @@ a while now. I wanted a fast language that I could code while relaxing, without
 having to exert too much mental effort & V seemed like the right choice for
 that.
 
+### Custom Compiler
+
+Currently, this program only works with a very slightly modified version of the
+V standard library, and therefore the compiler. The code for this can be found
+[here](https://github.com/ChewingBever/v). For CI purposes & ease of use, you
+can also clone & build that repo locally by running `make customv`.
+
 ## Features
 
 The project will consist of a server-agent model, where one or more builder

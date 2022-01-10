@@ -1,12 +1,17 @@
-FROM thevlang/vlang:alpine-dev AS builder
+FROM archlinux:latest AS builder
 
 WORKDIR /src
 COPY vieter ./vieter
+COPY Makefile ./
 
-RUN v -prod vieter
+RUN pacman \
+        -Syu --noconfirm --needed \
+        gcc git openssl make && \
+    make customv && \
+    jjr-v/v -prod vieter
 
 
-FROM alpine:3.15.0
+FROM archlinux:latest
 
 ENV REPO_DIR=/data
 
