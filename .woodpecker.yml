@@ -1,18 +1,11 @@
 pipeline:
-  install-v:
-    image: 'alpine:latest'
-    commands:
-      - apk update
-      - apk add --no-cache git make build-base
-      - make customv
-
   lint:
-    image: 'alpine:latest'
+    image: 'chewingbever/vlang:latest'
     commands:
-      - jjr-v/v fmt -verify vieter
+      - v fmt -verify vieter
 
   build:
-    image: 'alpine:latest'
+    image: 'chewingbever/vlang:latest'
     commands:
-      - jjr-v/v vieter
+      - v vieter
 
