@@ -4,7 +4,6 @@ import web
 import os
 import log
 import io
-import repo
 
 const port = 8000
 
@@ -51,40 +50,6 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 	}
 }
 
-['/pkgs/:pkg'; put]
-fn (mut app App) put_package(pkg string) web.Result {
-	full_path := os.join_path_single(app.repo_dir, pkg)
-
-	if os.exists(full_path) {
-		app.lwarn("Tried to upload duplicate package '$pkg'")
-
-		return app.text('File already exists.')
-	}
-
-	if length := app.req.header.get(.content_length) {
-		reader_to_file(mut app.reader, length.int(), full_path) or {
-			app.lwarn("Failed to upload package '$pkg'")
-
-			return app.text('Failed to upload file.')
-		}
-	} else {
-		app.lwarn("Tried to upload package '$pkg' without specifying a Content-Length.")
-		return app.text("Content-Type header isn't set.")
-	}
-
-	repo.add_package(os.join_path_single(app.repo_dir, db_name), full_path) or {
-		app.linfo("Failed to add package '$pkg' to database.")
-
-		os.rm(full_path) or { println('Failed to remove $full_path') }
-
-		return app.text('Failed to add package to repo.')
-	}
-
-	app.linfo("Uploaded package '$pkg'.")
-
-	return app.text('Package added successfully.')
-}
-
 fn main() {
 	// Configure logger
 	log_level_str := os.getenv_opt('LOG_LEVEL') or { 'WARN' }
@@ -99,9 +64,6 @@ fn main() {
 
 	logger.set_full_logpath(log_file)
 	logger.log_to_console_too()
-	// logger.set
-	logger.debug('Logger set up.')
-	logger.flush()
 
 	defer {
 		logger.info('Flushing log file')
@@ -121,7 +83,7 @@ fn main() {
 			exit_with_message(2, "Failed to create repo directory '$repo_dir'.")
 		}
 
-		println("Repo directory '$repo_dir' created.")
+		logger.info("Created repo directory '$repo_dir'")
 	}
 
 	web.run(&App{
