@@ -7,6 +7,7 @@ const pkgs_subpath = 'pkgs'
 // Handles management of a repository. Package files are stored in '$dir/pkgs'
 // & moved there if necessary.
 pub struct Repo {
+mut:
 	mutex shared int = 0
 pub:
 	dir string [required]
@@ -14,20 +15,20 @@ pub:
 }
 
 // Returns path to the given package, prepended with the repo's path.
-pub fn (r Repo) pkg_path(pkg string) string {
+pub fn (r &Repo) pkg_path(pkg string) string {
 	return os.join_path(r.dir, pkgs_subpath, pkg)
 }
 
-pub fn (r Repo) exists(pkg string) bool {
+pub fn (r &Repo) exists(pkg string) bool {
 	return os.exists(r.pkg_path(pkg))
 }
 
 // Returns the full path to the database file
-pub fn (r Repo) db_path() string {
+pub fn (r &Repo) db_path() string {
 	return os.join_path_single(r.dir, '${r.name}.tar.gz')
 }
 
-pub fn (r Repo) add_package(pkg_path string) ? {
+pub fn (r &Repo) add_package(pkg_path string) ? {
 	mut res := os.Result{}
 
 	lock r.mutex {
