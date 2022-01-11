@@ -38,6 +38,10 @@ fn (mut app App) get_root(filename string) web.Result {
 
 ['/pkgs/:pkg'; put]
 fn (mut app App) put_package(pkg string) web.Result {
+	if !app.is_authorized() {
+		return app.text('Unauthorized.')
+	}
+
 	if !is_pkg_name(pkg) {
 		app.lwarn("Invalid package name '$pkg'.")
 
