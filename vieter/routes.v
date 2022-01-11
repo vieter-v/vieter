@@ -19,8 +19,31 @@ fn pretty_bytes(bytes int) string {
 	return '${n:.2}${prefixes[i]}'
 }
 
+fn is_pkg_name(s string) bool {
+	return s.contains('.pkg')
+}
+
+['/:filename'; get]
+fn (mut app App) get_root(filename string) web.Result {
+	mut full_path := ''
+
+	if is_pkg_name(filename) {
+		full_path = os.join_path_single(app.repo.pkg_dir(), filename)
+	} else {
+		full_path = os.join_path_single(app.repo.dir, filename)
+	}
+
+	return app.file(full_path)
+}
+
 ['/pkgs/:pkg'; put]
 fn (mut app App) put_package(pkg string) web.Result {
+	if !is_pkg_name(pkg) {
+		app.lwarn("Invalid package name '$pkg'.")
+
+		return app.text('Invalid filename.')
+	}
+
 	if app.repo.exists(pkg) {
 		app.lwarn("Duplicate package '$pkg'")
 
@@ -33,7 +56,7 @@ fn (mut app App) put_package(pkg string) web.Result {
 		app.ldebug("Uploading $length (${pretty_bytes(length.int())}) bytes to package '$pkg'.")
 
 		// This is used to time how long it takes to upload a file
-		mut sw := time.new_stopwatch(time.StopWatchOptions{auto_start: true})
+		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })
 
 		reader_to_file(mut app.reader, length.int(), pkg_path) or {
 			app.lwarn("Failed to upload package '$pkg'")
@@ -43,7 +66,6 @@ fn (mut app App) put_package(pkg string) web.Result {
 
 		sw.stop()
 		app.ldebug("Upload of package '$pkg' completed in ${sw.elapsed().seconds():.3}s.")
-
 	} else {
 		app.lwarn("Tried to upload package '$pkg' without specifying a Content-Length.")
 		return app.text("Content-Type header isn't set.")

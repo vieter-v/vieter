@@ -257,20 +257,75 @@ pub fn (mut ctx Context) json_pretty<T>(j T) Result {
 }
 
 // Response HTTP_OK with file as payload
+// This function manually implements responses because it needs to stream the file contents
 pub fn (mut ctx Context) file(f_path string) Result {
+	if ctx.done {
+		return Result{}
+	}
+	ctx.done = true
+
+	if !os.is_file(f_path) {
+		return ctx.not_found()
+	}
+
 	ext := os.file_ext(f_path)
-	data := os.read_file(f_path) or {
-		eprint(err.msg)
+	// data := os.read_file(f_path) or {
+	// 	eprint(err.msg)
+	// 	ctx.server_error(500)
+	// 	return Result{}
+	// }
+	// content_type := web.mime_types[ext]
+	// if content_type == '' {
+	// 	eprintln('no MIME type found for extension $ext')
+	// 	ctx.server_error(500)
+
+	// 	return Result{}
+	// }
+
+	// First, we return the headers for the request
+
+	// We open the file before sending the headers in case reading fails
+	file_size := os.file_size(f_path)
+
+	file := os.open(f_path) or {
+		eprintln(err.msg)
 		ctx.server_error(500)
 		return Result{}
 	}
-	content_type := web.mime_types[ext]
-	if content_type == '' {
-		eprintln('no MIME type found for extension $ext')
-		ctx.server_error(500)
-	} else {
-		ctx.send_response_to_client(content_type, data)
+
+	// build header
+	header := http.new_header_from_map({
+		// http.CommonHeader.content_type:   content_type
+		http.CommonHeader.content_length: file_size.str()
+	}).join(ctx.header)
+
+	mut resp := http.Response{
+		header: header.join(web.headers_close)
 	}
+	resp.set_version(.v1_1)
+	resp.set_status(http.status_from_int(ctx.status.int()))
+	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
+
+	mut buf := []byte{len: 1_000_000}
+	mut bytes_left := file_size
+
+	// Repeat as long as the stream still has data
+	for bytes_left > 0 {
+		// TODO check if just breaking here is safe
+		bytes_read := file.read(mut buf) or { break }
+		bytes_left -= u64(bytes_read)
+
+		mut to_write := bytes_read
+
+		for to_write > 0 {
+			// TODO don't just loop infinitely here
+			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { continue }
+
+			to_write = to_write - bytes_written
+		}
+	}
+
+	ctx.done = true
 	return Result{}
 }
 

@@ -15,9 +15,9 @@ const db_name = 'pieter.db.tar.gz'
 struct App {
 	web.Context
 pub:
-	api_key  string           [required; web_global]
+	api_key string [required; web_global]
 pub mut:
-	repo     repo.Repo [required; web_global]
+	repo repo.Repo [required; web_global]
 }
 
 [noreturn]
@@ -81,9 +81,9 @@ fn main() {
 	}
 
 	repo := repo.Repo{
-			dir: repo_dir
-			name: db_name
-		}
+		dir: repo_dir
+		name: db_name
+	}
 
 	// We create the upload directory during startup
 	if !os.is_dir(repo.pkg_dir()) {
