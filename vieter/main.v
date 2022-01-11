@@ -8,7 +8,7 @@ import repo
 
 const port = 8000
 
-const buf_size = 100_000
+const buf_size = 1_000_000
 
 const db_name = 'pieter.db.tar.gz'
 
@@ -80,21 +80,23 @@ fn main() {
 		exit_with_message(1, 'No repo directory was configured.')
 	}
 
-	// We create the upload directory during startup
-	if !os.is_dir(repo_dir) {
-		os.mkdir_all(repo_dir) or {
-			exit_with_message(2, "Failed to create repo directory '$repo_dir'.")
+	repo := repo.Repo{
+			dir: repo_dir
+			name: db_name
 		}
 
-		logger.info("Created repo directory '$repo_dir'")
+	// We create the upload directory during startup
+	if !os.is_dir(repo.pkg_dir()) {
+		os.mkdir_all(repo.pkg_dir()) or {
+			exit_with_message(2, "Failed to create repo directory '$repo.pkg_dir()'.")
+		}
+
+		logger.info("Created package directory '$repo.pkg_dir()'.")
 	}
 
 	web.run(&App{
 		logger: logger
 		api_key: key
-		repo: repo.Repo{
-			dir: repo_dir
-			name: db_name
-		}
+		repo: repo
 	}, port)
 }

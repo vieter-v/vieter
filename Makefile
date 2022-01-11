@@ -2,6 +2,10 @@
 run:
 	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v -cg run vieter
 
+.PHONY: run-prod
+run-prod:
+	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v -prod run vieter
+
 .PHONY: watch
 watch:
 	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v watch run vieter

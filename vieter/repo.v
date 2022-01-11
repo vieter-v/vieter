@@ -4,14 +4,22 @@ import os
 
 const pkgs_subpath = 'pkgs'
 
+// Dummy struct to work around the fact that you can only share structs, maps &
+// arrays
+pub struct Dummy { x int }
+
 // Handles management of a repository. Package files are stored in '$dir/pkgs'
 // & moved there if necessary.
 pub struct Repo {
 mut:
-	mutex shared int = 0
+	mutex shared Dummy
 pub:
 	dir string [required]
 	name string [required]
+}
+
+pub fn (r &Repo) pkg_dir() string {
+	return os.join_path_single(r.dir, pkgs_subpath)
 }
 
 // Returns path to the given package, prepended with the repo's path.
