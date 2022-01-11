@@ -14,9 +14,10 @@ const db_name = 'pieter.db.tar.gz'
 
 struct App {
 	web.Context
+pub:
 	api_key  string           [required; web_global]
-	repo_dir string           [required; web_global]
-	repo     shared repo.Repo [required]
+pub mut:
+	repo     repo.Repo [required; web_global]
 }
 
 [noreturn]
@@ -91,9 +92,9 @@ fn main() {
 	web.run(&App{
 		logger: logger
 		api_key: key
-		repo_dir: repo_dir
 		repo: repo.Repo{
-			path: os.join_path_single(repo_dir, db_name)
+			dir: repo_dir
+			name: db_name
 		}
 	}, port)
 }

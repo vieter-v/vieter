@@ -1,6 +1,6 @@
 .PHONY: run
 run:
-	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v run vieter
+	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v -cg run vieter
 
 .PHONY: watch
 watch:
