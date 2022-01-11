@@ -26,16 +26,19 @@ fn (mut app App) put_package(pkg string) web.Result {
 		return app.text("Content-Type header isn't set.")
 	}
 
-	repo.add_package(os.join_path_single(app.repo_dir, db_name), full_path) or {
-		app.linfo("Failed to add package '$pkg' to database.")
+	lock app.repo {
+		app.repo.add_package(full_path) or {
+			app.linfo("Failed to add package '$pkg' to database.")
 
-		os.rm(full_path) or { println('Failed to remove $full_path') }
+			os.rm(full_path) or { println('Failed to remove $full_path') }
 
-		return app.text('Failed to add package to repo.')
+			return app.text('Failed to add package to repo.')
+		}
+
+		app.linfo("Added '$pkg' to repository.")
 	}
 
 	app.linfo("Uploaded package '$pkg'.")
 
 	return app.text('Package added successfully.')
 }
-

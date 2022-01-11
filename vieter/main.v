@@ -4,6 +4,7 @@ import web
 import os
 import log
 import io
+import repo
 
 const port = 8000
 
@@ -13,8 +14,9 @@ const db_name = 'pieter.db.tar.gz'
 
 struct App {
 	web.Context
-	api_key  string [required; web_global]
-	repo_dir string [required; web_global]
+	api_key  string           [required; web_global]
+	repo_dir string           [required; web_global]
+	repo     shared repo.Repo [required]
 }
 
 [noreturn]
@@ -87,8 +89,11 @@ fn main() {
 	}
 
 	web.run(&App{
+		logger: logger
 		api_key: key
 		repo_dir: repo_dir
-		logger: logger
+		repo: repo.Repo{
+			path: os.join_path_single(repo_dir, db_name)
+		}
 	}, port)
 }

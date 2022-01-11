@@ -2,8 +2,12 @@ module repo
 
 import os
 
-pub fn add_package(db_path string, pkg_path string) ? {
-	res := os.execute("repo-add '$db_path' '$pkg_path'")
+pub struct Repo {
+	path string
+}
+
+pub fn (r Repo) add_package(pkg_path string) ? {
+	res := os.execute("repo-add '$r.path' '$pkg_path'")
 
 	if res.exit_code != 0 {
 		println(res.output)
