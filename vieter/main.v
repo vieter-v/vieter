@@ -8,15 +8,14 @@ import repo
 
 const port = 8000
 
-const buf_size = 1_000_000
+const buf_size = 100_000
 
 const db_name = 'pieter.db.tar.gz'
 
 struct App {
 	web.Context
-	api_key  string  [required; web_global]
-	repo_dir string  [required; web_global]
-	logger   log.Log [required; web_global]
+	api_key  string [required; web_global]
+	repo_dir string [required; web_global]
 }
 
 [noreturn]
@@ -57,44 +56,34 @@ fn (mut app App) put_package(pkg string) web.Result {
 	full_path := os.join_path_single(app.repo_dir, pkg)
 
 	if os.exists(full_path) {
+		app.lwarn("Tried to upload duplicate package '$pkg'")
+
 		return app.text('File already exists.')
 	}
 
 	if length := app.req.header.get(.content_length) {
 		reader_to_file(mut app.reader, length.int(), full_path) or {
+			app.lwarn("Failed to upload package '$pkg'")
+
 			return app.text('Failed to upload file.')
 		}
 	} else {
+		app.lwarn("Tried to upload package '$pkg' without specifying a Content-Length.")
 		return app.text("Content-Type header isn't set.")
 	}
 
 	repo.add_package(os.join_path_single(app.repo_dir, db_name), full_path) or {
+		app.linfo("Failed to add package '$pkg' to database.")
+
 		os.rm(full_path) or { println('Failed to remove $full_path') }
 
 		return app.text('Failed to add package to repo.')
 	}
 
+	app.linfo("Uploaded package '$pkg'.")
+
 	return app.text('Package added successfully.')
 }
-
-// ['/publish'; post]
-// fn (mut app App) put_package(filename string) web.Result {
-// 	for _, files in app.files {
-// 		for file in files {
-// 			filepath := os.join_path_single(app.repo_dir, file.filename)
-
-// 			if os.exists(filepath) {
-// 				return app.text('File already exists.')
-// 			}
-
-// 			os.write_file(filepath, file.data) or { return app.text('Failed to upload file.') }
-
-// 			return app.text('yeet')
-// 		}
-// 	}
-
-// 	return app.text('done')
-// }
 
 fn main() {
 	// Configure logger
@@ -107,16 +96,18 @@ fn main() {
 	mut logger := log.Log{
 		level: log_level
 	}
+
 	logger.set_full_logpath(log_file)
 	logger.log_to_console_too()
+	// logger.set
+	logger.debug('Logger set up.')
+	logger.flush()
+
 	defer {
 		logger.info('Flushing log file')
 		logger.flush()
 		logger.close()
 	}
-	// logger.set
-	logger.info('Logger set up.')
-	logger.flush()
 
 	// Configure web server
 	key := os.getenv_opt('API_KEY') or { exit_with_message(1, 'No API key was provided.') }

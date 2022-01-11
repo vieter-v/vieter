@@ -10,6 +10,7 @@ import net.http
 import net.urllib
 import time
 import json
+import log
 
 // A type which don't get filtered inside templates
 pub type RawHtml = string
@@ -169,6 +170,8 @@ pub mut:
 	form_error string
 	// Allows reading the request body
 	reader io.BufferedReader
+	// Gives access to a shared logger object
+	logger shared log.Log
 }
 
 struct FileData {
@@ -424,8 +427,14 @@ pub fn run<T>(global_app &T, port int) {
 fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	conn.set_read_timeout(30 * time.second)
 	conn.set_write_timeout(30 * time.second)
+
 	defer {
 		conn.close() or {}
+
+		lock app.logger {
+			app.logger.flush()
+		}
+
 		unsafe {
 			free(app)
 		}
@@ -445,6 +454,10 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 			eprintln('error parsing request head: $err')
 		}
 		return
+	}
+
+	lock app.logger {
+		app.logger.debug('$head.method $head.url $head.version')
 	}
 
 	// 	req := http.parse_request(mut reader) or {
@@ -483,6 +496,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		static_files: app.static_files
 		static_mime_types: app.static_mime_types
 		reader: reader
+		logger: app.logger
 	}
 
 	// Calling middleware...
