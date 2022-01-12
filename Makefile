@@ -26,8 +26,12 @@ vieter-prod: $(SOURCES)
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
 .PHONY: run
-run: vieter
+run: debug
 	 API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG ./vieter
+
+.PHONY: run-prod
+run-prod: prod
+	 API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG ./vieter-prod
 
 # Same as run, but restart when the source code changes
 .PHONY: watch

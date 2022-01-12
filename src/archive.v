@@ -16,5 +16,5 @@ pub fn list_filenames() {
 	a := C.archive_read_new()
 	C.archive_read_support_filter_all(a)
 	C.archive_read_support_format_all(a)
-	println(a)
+	// println(a)
 }
