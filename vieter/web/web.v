@@ -268,7 +268,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 		return ctx.not_found()
 	}
 
-	ext := os.file_ext(f_path)
+	// ext := os.file_ext(f_path)
 	// data := os.read_file(f_path) or {
 	// 	eprint(err.msg)
 	// 	ctx.server_error(500)

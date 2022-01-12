@@ -10,7 +10,7 @@ const port = 8000
 
 const buf_size = 1_000_000
 
-const db_name = 'pieter.db.tar.gz'
+const db_name = 'pieter.db'
 
 struct App {
 	web.Context
