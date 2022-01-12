@@ -95,7 +95,9 @@ fn main() {
 		logger.info("Created package directory '$repo.pkg_dir()'.")
 	}
 
-	archive.list_filenames()
+	archive.get_pkg_info('test/homebank-5.5.1-1-x86_64.pkg.tar.zst') or {
+		eprintln(err.msg)
+	}
 	web.run(&App{
 		logger: logger
 		api_key: key
