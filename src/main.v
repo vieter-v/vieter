@@ -5,6 +5,7 @@ import os
 import log
 import io
 import repo
+import archive
 
 const port = 8000
 
@@ -94,6 +95,7 @@ fn main() {
 		logger.info("Created package directory '$repo.pkg_dir()'.")
 	}
 
+	archive.list_filenames()
 	web.run(&App{
 		logger: logger
 		api_key: key
