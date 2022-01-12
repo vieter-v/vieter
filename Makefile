@@ -22,6 +22,10 @@ prod: vieter-prod
 vieter-prod: $(SOURCES)
 	$(V) -o vieter-prod -prod $(SRC_DIR)
 
+.PHONY: c
+c:
+	$(V) -o vieter.c $(SRC_DIR)
+
 
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
