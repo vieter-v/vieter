@@ -1,6 +1,7 @@
 *.c
 data/
-vieter/vieter
+vieter.exe
+vieter-prod.exe
 
 # Ignore testing files
 *.pkg*

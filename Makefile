@@ -4,8 +4,20 @@ LARCHIVE_DIR := libarchive-$(LARCHIVE_VER)
 LARCHIVE_LIB := $(LARCHIVE_DIR)/.libs/libarchive.a
 
 # Custom V command for linking libarchive
-V := LD_FLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags -I$(PWD)/$(LARCHIVE_DIR)
+V := LDFLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags -I$(PWD)/$(LARCHIVE_DIR)
 
+
+# =====COMPILATION=====
+.PHONY: vieter
+vieter:
+	$(V) -cg -o vieter.exe vieter
+
+.PHONY: prod
+prod:
+	$(V) -o vieter-prod.exe -prod vieter
+
+
+# =====EXECUTION=====
 # Run the server in the default 'data' directory
 .PHONY: run
 run: libarchive
@@ -16,6 +28,8 @@ run: libarchive
 watch: libarchive
 	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG $(V) watch run vieter
 
+
+# =====OTHER=====
 # Format the V codebase
 .PHONY: fmt
 fmt:
@@ -31,6 +45,8 @@ customv:
 		https://github.com/ChewingBever/v jjr-v
 	'$(MAKE)' -C jjr-v
 
+
+# =====LIBARCHIVE=====
 .PHONY: libarchive
 libarchive: $(LARCHIVE_LIB)
 $(LARCHIVE_LIB):
