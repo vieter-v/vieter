@@ -47,20 +47,22 @@ pub fn get_pkg_info(pkg_path string) ?string {
 	C.archive_read_support_format_all(a)
 
 	// TODO find out where does this 10240 come from
+	println('1')
 	r = C.archive_read_open_filename(a, &char(pkg_path.str), 10240)
 
 	if r != C.ARCHIVE_OK {
 		return error('Failed to open package.')
 	}
 
+	println('2')
 	// We iterate over every header in search of the .PKGINFO one
-	mut pkg_info := ''
+	mut buf := []byte{}
 	for C.archive_read_next_header(a, &entry) == C.ARCHIVE_OK {
 		// TODO possibly avoid this cstring_to_vstring
 		if cstring_to_vstring(C.archive_entry_pathname(entry)) == '.PKGINFO' {
 			size := C.archive_entry_size(entry)
 
-			mut buf := []byte{len: size}
+			buf = []byte{len: size}
 			C.archive_read_data(a, voidptr(&buf), size)
 			break
 		}else{
@@ -69,5 +71,5 @@ pub fn get_pkg_info(pkg_path string) ?string {
 	}
 
 	r = C.archive_read_free(a)  // Note 3
-	return ''
+	return buf.bytestr()
 }
