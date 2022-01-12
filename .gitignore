@@ -6,3 +6,6 @@ vieter/vieter
 *.pkg*
 
 vieter.log
+
+# External lib; gets added by Makefile
+libarchive-*

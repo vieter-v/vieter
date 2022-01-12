@@ -1,15 +1,22 @@
+# =====CONFIG=====
+LARCHIVE_VER := 3.5.2
+LARCHIVE_DIR := libarchive-$(LARCHIVE_VER)
+LARCHIVE_LIB := $(LARCHIVE_DIR)/.libs/libarchive.a
+
+# Custom V command for linking libarchive
+V := LD_FLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags -I$(PWD)/$(LARCHIVE_DIR)
+
+# Run the server in the default 'data' directory
 .PHONY: run
-run:
-	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v -cg run vieter
+run: libarchive
+	 API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG $(V) run vieter
 
-.PHONY: run-prod
-run-prod:
-	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v -prod run vieter
-
+# Same as run, but restart when the source code changes
 .PHONY: watch
-watch:
-	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG v watch run vieter
+watch: libarchive
+	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG $(V) watch run vieter
 
+# Format the V codebase
 .PHONY: fmt
 fmt:
 	v fmt -w vieter
@@ -23,3 +30,13 @@ customv:
 		--single-branch \
 		https://github.com/ChewingBever/v jjr-v
 	'$(MAKE)' -C jjr-v
+
+.PHONY: libarchive
+libarchive: $(LARCHIVE_LIB)
+$(LARCHIVE_LIB):
+	curl -o - "https://libarchive.org/downloads/libarchive-${LARCHIVE_VER}.tar.gz" | tar xzf -
+	cd "libarchive-${LARCHIVE_VER}" && ./configure --disable-bsdtar --disable-bsdcpio
+	'$(MAKE)' -C "libarchive-${LARCHIVE_VER}"
+
+clean:
+	rm -rf '$(LARCHIVE_DIR)' 'data'

@@ -2,6 +2,10 @@ module repo
 
 import os
 
+#include "libarchive/archive.h"
+
+struct C.archive {}
+
 const pkgs_subpath = 'pkgs'
 
 // Dummy struct to work around the fact that you can only share structs, maps &
