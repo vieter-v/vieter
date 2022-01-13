@@ -51,10 +51,14 @@ watch:
 
 
 # =====OTHER=====
+.PHONY: lint
+lint:
+	$(V) fmt -verify $(SRC_DIR)
+
 # Format the V codebase
 .PHONY: fmt
 fmt:
-	v fmt -w $(SRC_DIR)
+	$(V) fmt -w $(SRC_DIR)
 
 # Pulls & builds my personal build of the v compiler, required for this project to function
 .PHONY: customv
