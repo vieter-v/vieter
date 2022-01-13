@@ -17,6 +17,7 @@ pipeline:
       tag:
         - latest
         - $CI_COMMIT_TAG
+      mtu: 1300
     when:
       event: tag
       branch: main
