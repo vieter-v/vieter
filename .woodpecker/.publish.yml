@@ -1,0 +1,22 @@
+pipeline:
+  dev:
+    image: plugins/docker
+    secrets: [ docker_username, docker_password ]
+    settings:
+      repo: chewingbever/vieter
+      tag: dev
+    when:
+      event: push
+      branch: dev
+
+  release:
+    image: plugins/docker
+    secrets: [ docker_username, docker_password ]
+    settings:
+      repo: chewingbever/vieter
+      tag:
+        - latest
+        - $CI_COMMIT_TAG
+    when:
+      event: tag
+      branch: main

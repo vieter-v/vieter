@@ -1,20 +1,21 @@
-FROM archlinux:latest AS builder
+FROM chewingbever/vlang:latest AS builder
 
-WORKDIR /src
-COPY vieter ./vieter
+WORKDIR /app
+
+# Copy over source code & build production binary
+COPY src ./src
 COPY Makefile ./
-
-RUN pacman \
-        -Syu --noconfirm --needed \
-        gcc git openssl make && \
-    make customv && \
-    jjr-v/v -prod vieter
+RUN make prod
 
 
-FROM archlinux:latest
+FROM alpine:3.15
 
 ENV REPO_DIR=/data
 
-COPY --from=builder /src/vieter/vieter /usr/local/bin/
+RUN apk update && \
+    apk add --no-cache \
+        libarchive
+
+COPY --from=builder /app/pvieter /usr/local/bin/vieter
 
 ENTRYPOINT [ "/usr/local/bin/vieter" ]
