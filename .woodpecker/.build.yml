@@ -1,0 +1,18 @@
+pipeline:
+  vieter:
+    image: 'chewingbever/vlang:latest'
+    group: 'build'
+    commands:
+      - make vieter
+
+  debug:
+    image: 'chewingbever/vlang:latest'
+    group: 'build'
+    commands:
+      - make debug
+
+  prod:
+    image: 'chewingbever/vlang:latest'
+    group: 'build'
+    commands:
+      - make prod

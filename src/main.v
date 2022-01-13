@@ -5,6 +5,7 @@ import os
 import log
 import io
 import repo
+import archive
 
 const port = 8000
 
@@ -100,3 +101,12 @@ fn main() {
 		repo: repo
 	}, port)
 }
+
+// fn main() {
+// 	// archive.list_filenames()
+// 	info := archive.get_pkg_info('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
+// 		eprintln(err.msg)
+// 		return
+// 	}
+// 	println(info)
+// }

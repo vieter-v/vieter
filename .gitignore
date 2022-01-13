@@ -1,8 +1,16 @@
 *.c
 data/
-vieter/vieter
+
+# Build artifacts
+vieter
+dvieter
+pvieter
+vieter.c
 
 # Ignore testing files
 *.pkg*
 
 vieter.log
+
+# External lib; gets added by Makefile
+libarchive-*
