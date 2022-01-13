@@ -1,0 +1,5 @@
+pipeline:
+  lint:
+    image: 'chewingbever/vlang:latest'
+    commands:
+      - make fmt
