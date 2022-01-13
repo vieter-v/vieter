@@ -1,3 +1,5 @@
+branches: [main, dev]
+
 pipeline:
   dev:
     image: plugins/docker
@@ -21,9 +23,3 @@ pipeline:
     when:
       event: tag
       branch: main
-
-branches: [main, dev]
-
-depends_on:
-  - lint
-  - build
