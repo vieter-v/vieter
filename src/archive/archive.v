@@ -31,8 +31,11 @@ pub fn pkg_info(pkg_path string) ?(string, []string) {
 	for C.archive_read_next_header(a, &entry) == C.ARCHIVE_OK {
 		pathname := C.archive_entry_pathname(entry)
 
-		unsafe {
-			files << cstring_to_vstring(pathname)
+		ignored_names := [c'.BUILDINFO', c'.INSTALL', c'.MTREE', c'.PKGINFO', c'.CHANGELOG']
+		if ignored_names.all(C.strcmp(it, pathname) != 0) {
+			unsafe {
+				files << cstring_to_vstring(pathname)
+			}
 		}
 
 		if C.strcmp(pathname, c'.PKGINFO') == 0 {
