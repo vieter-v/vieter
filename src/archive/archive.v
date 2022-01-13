@@ -2,7 +2,7 @@ module archive
 
 import os
 
-pub fn get_pkg_info(pkg_path string) ?string {
+pub fn pkg_info_string(pkg_path string) ?string {
 	if !os.is_file(pkg_path) {
 		return error("'$pkg_path' doesn't exist or isn't a file.")
 	}

@@ -1,6 +1,7 @@
 module repo
 
 import os
+import archive
 
 const pkgs_subpath = 'pkgs'
 
