@@ -1,4 +1,4 @@
-branch: [main, dev]
+branches: [main, dev]
 
 pipeline:
   dev:
