@@ -1,3 +1,7 @@
+# These checks already get performed on the feature branches
+branches:
+  exclude: [ main, dev ]
+
 pipeline:
   lint:
     image: 'chewingbever/vlang:latest'
