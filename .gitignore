@@ -1,7 +1,11 @@
 *.c
 data/
+
+# Build artifacts
 vieter
-vieter-prod
+dvieter
+pvieter
+vieter.c
 
 # Ignore testing files
 *.pkg*

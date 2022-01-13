@@ -54,7 +54,7 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 	}
 }
 
-fn main() {
+fn main2() {
 	// Configure logger
 	log_level_str := os.getenv_opt('LOG_LEVEL') or { 'WARN' }
 	log_level := log.level_from_tag(log_level_str) or {
@@ -95,12 +95,18 @@ fn main() {
 		logger.info("Created package directory '$repo.pkg_dir()'.")
 	}
 
-	archive.get_pkg_info('test/homebank-5.5.1-1-x86_64.pkg.tar.zst') or {
-		eprintln(err.msg)
-	}
 	web.run(&App{
 		logger: logger
 		api_key: key
 		repo: repo
 	}, port)
+}
+
+fn main() {
+	// archive.list_filenames()
+	info := archive.get_pkg_info('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
+		eprintln(err.msg)
+		return
+	}
+	println(info)
 }

@@ -10,17 +10,24 @@ LARCHIVE_LIB := $(LARCHIVE_DIR)/libarchive/libarchive.so
 # V := LDFLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags '-I$(PWD)/$(LARCHIVE_DIR) -I $(PWD)/$(LARCHIVE_DIR)'
 V := v
 
+all: vieter
 
 # =====COMPILATION=====
-.PHONY: debug
-debug: vieter
+# Regular binary
 vieter: $(SOURCES)
-	$(V) -cg -o vieter $(SRC_DIR)
+	$(V) -g -o vieter $(SRC_DIR)
 
+# Debug build using gcc
+.PHONY: debug
+debug: dvieter
+dvieter: $(SOURCES)
+	$(V) -keepc -cg -cc gcc -o dvieter $(SRC_DIR)
+
+# Optimised production build
 .PHONY: prod
-prod: vieter-prod
-vieter-prod: $(SOURCES)
-	$(V) -o vieter-prod -prod $(SRC_DIR)
+prod: pvieter
+pvieter: $(SOURCES)
+	$(V) -o pvieter -prod $(SRC_DIR)
 
 .PHONY: c
 c:
@@ -30,7 +37,7 @@ c:
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
 .PHONY: run
-run: debug
+run: vieter
 	 API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG ./vieter
 
 .PHONY: run-prod
@@ -69,4 +76,4 @@ $(LARCHIVE_LIB):
 	'$(MAKE)' -C "libarchive-${LARCHIVE_VER}"
 
 clean:
-	rm -rf '$(LARCHIVE_DIR)' 'data' 'vieter' 'vieter-prod'
+	rm -rf '$(LARCHIVE_DIR)' 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c'
