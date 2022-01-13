@@ -4,8 +4,9 @@ import web
 import os
 import log
 import io
-import repo
+import pkg
 import archive
+import repo
 
 const port = 8000
 
@@ -54,59 +55,62 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 	}
 }
 
-fn main2() {
-	// Configure logger
-	log_level_str := os.getenv_opt('LOG_LEVEL') or { 'WARN' }
-	log_level := log.level_from_tag(log_level_str) or {
-		exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
-	}
-	log_file := os.getenv_opt('LOG_FILE') or { 'vieter.log' }
+// fn main2() {
+// 	// Configure logger
+// 	log_level_str := os.getenv_opt('LOG_LEVEL') or { 'WARN' }
+// 	log_level := log.level_from_tag(log_level_str) or {
+// 		exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
+// 	}
+// 	log_file := os.getenv_opt('LOG_FILE') or { 'vieter.log' }
 
-	mut logger := log.Log{
-		level: log_level
-	}
+// 	mut logger := log.Log{
+// 		level: log_level
+// 	}
 
-	logger.set_full_logpath(log_file)
-	logger.log_to_console_too()
+// 	logger.set_full_logpath(log_file)
+// 	logger.log_to_console_too()
 
-	defer {
-		logger.info('Flushing log file')
-		logger.flush()
-		logger.close()
-	}
+// 	defer {
+// 		logger.info('Flushing log file')
+// 		logger.flush()
+// 		logger.close()
+// 	}
 
-	// Configure web server
-	key := os.getenv_opt('API_KEY') or { exit_with_message(1, 'No API key was provided.') }
-	repo_dir := os.getenv_opt('REPO_DIR') or {
-		exit_with_message(1, 'No repo directory was configured.')
-	}
+// 	// Configure web server
+// 	key := os.getenv_opt('API_KEY') or { exit_with_message(1, 'No API key was provided.') }
+// 	repo_dir := os.getenv_opt('REPO_DIR') or {
+// 		exit_with_message(1, 'No repo directory was configured.')
+// 	}
 
-	repo := repo.Repo{
-		dir: repo_dir
-		name: db_name
-	}
+// 	repo := repo.Repo{
+// 		dir: repo_dir
+// 		name: db_name
+// 	}
 
-	// We create the upload directory during startup
-	if !os.is_dir(repo.pkg_dir()) {
-		os.mkdir_all(repo.pkg_dir()) or {
-			exit_with_message(2, "Failed to create repo directory '$repo.pkg_dir()'.")
-		}
+// 	// We create the upload directory during startup
+// 	if !os.is_dir(repo.pkg_dir()) {
+// 		os.mkdir_all(repo.pkg_dir()) or {
+// 			exit_with_message(2, "Failed to create repo directory '$repo.pkg_dir()'.")
+// 		}
 
-		logger.info("Created package directory '$repo.pkg_dir()'.")
-	}
+// 		logger.info("Created package directory '$repo.pkg_dir()'.")
+// 	}
 
-	web.run(&App{
-		logger: logger
-		api_key: key
-		repo: repo
-	}, port)
-}
+// 	web.run(&App{
+// 		logger: logger
+// 		api_key: key
+// 		repo: repo
+// 	}, port)
+// }
 
 fn main() {
 	// archive.list_filenames()
-	info := repo.get_pkg_info('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
+	res := pkg.read_pkg('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
 		eprintln(err.msg)
 		return
 	}
-	println(info)
+	// println(info)
+	println(res.info)
+	print(res.files)
+	println(res.info.to_desc())
 }

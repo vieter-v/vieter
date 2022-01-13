@@ -1,44 +1,45 @@
-module repo
+module pkg
 
 import archive
 import time
 
+struct Pkg {
+pub:
+	info  PkgInfo  [required]
+	files []string [required]
+}
+
 struct PkgInfo {
 mut:
 	// Single values
-	name string
-	base string
-	version string
+	name        string
+	base        string
+	version     string
 	description string
-	size i64
-	csize i64
-	url string
-	arch string
-	build_date i64
-	packager string
-	md5sum string
-	sha256sum string
-	pgpsig string
-	pgpsigsize i64
-
+	size        i64
+	csize       i64
+	url         string
+	arch        string
+	build_date  i64
+	packager    string
+	md5sum      string
+	sha256sum   string
+	pgpsig      string
+	pgpsigsize  i64
 	// Array values
-	groups []string
-	licenses []string
-	replaces []string
-	depends []string
-	conflicts []string
-	provides []string
-	optdepends []string
-	makedepends []string
+	groups       []string
+	licenses     []string
+	replaces     []string
+	depends      []string
+	conflicts    []string
+	provides     []string
+	optdepends   []string
+	makedepends  []string
 	checkdepends []string
 }
 
-pub fn get_pkg_info(pkg_path string) ?PkgInfo {
-	pkg_info_str := archive.pkg_info_string(pkg_path) ?
+fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 	mut pkg_info := PkgInfo{}
-
-	mut i := 0
-	mut j := 0
 
 	// Iterate over the entire string
 	for line in pkg_info_str.split_into_lines() {
@@ -71,7 +72,6 @@ pub fn get_pkg_info(pkg_path string) ?PkgInfo {
 			'sha256sum' { pkg_info.sha256sum = value }
 			'pgpsig' { pkg_info.pgpsig = value }
 			'pgpsigsize' { pkg_info.pgpsigsize = value.int() }
-
 			// Array values
 			'group' { pkg_info.groups << value }
 			'license' { pkg_info.licenses << value }
@@ -87,4 +87,22 @@ pub fn get_pkg_info(pkg_path string) ?PkgInfo {
 	}
 
 	return pkg_info
+}
+
+pub fn read_pkg(pkg_path string) ?Pkg {
+	pkg_info_str, files := archive.pkg_info(pkg_path) ?
+	pkg_info := parse_pkg_info_string(pkg_info_str) ?
+
+	return Pkg{
+		info: pkg_info
+		files: files
+	}
+}
+
+// Represent a PkgInfo struct as a desc file
+pub fn (p &PkgInfo) to_desc() string {
+	// TODO calculate md5 & sha256 instead of believing the file
+	mut desc := ''
+
+	return desc
 }

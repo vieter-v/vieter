@@ -2,7 +2,8 @@ module archive
 
 import os
 
-pub fn pkg_info_string(pkg_path string) ?string {
+// Returns the .PKGINFO file's contents & the list of files.
+pub fn pkg_info(pkg_path string) ?(string, []string) {
 	if !os.is_file(pkg_path) {
 		return error("'$pkg_path' doesn't exist or isn't a file.")
 	}
@@ -26,18 +27,24 @@ pub fn pkg_info_string(pkg_path string) ?string {
 
 	// We iterate over every header in search of the .PKGINFO one
 	mut buf := voidptr(0)
+	mut files := []string{}
 	for C.archive_read_next_header(a, &entry) == C.ARCHIVE_OK {
-		if C.strcmp(C.archive_entry_pathname(entry), c'.PKGINFO') == 0 {
+		pathname := C.archive_entry_pathname(entry)
+
+		unsafe {
+			files << cstring_to_vstring(pathname)
+		}
+
+		if C.strcmp(pathname, c'.PKGINFO') == 0 {
 			size := C.archive_entry_size(entry)
 
 			// TODO can this unsafe block be avoided?
 			buf = unsafe { malloc(size) }
 			C.archive_read_data(a, voidptr(buf), size)
-			break
 		} else {
 			C.archive_read_data_skip(a)
 		}
 	}
 
-	return unsafe { cstring_to_vstring(&char(buf)) }
+	return unsafe { cstring_to_vstring(&char(buf)) }, files
 }
