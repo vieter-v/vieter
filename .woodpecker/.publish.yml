@@ -26,4 +26,4 @@ pipeline:
       branch: main
 
 depends_on:
-  builder
+  - builder
