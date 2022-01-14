@@ -24,4 +24,4 @@ pipeline:
     commands:
       - make prod
       # Make sure the binary is actually static
-      - [ "$(readelf -d pvieter) | grep NEEDED | wc -l" = 0 ]
+      - '[ "$(readelf -d pvieter) | grep NEEDED | wc -l" = 0 ]'
