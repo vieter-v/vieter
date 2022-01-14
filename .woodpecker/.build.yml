@@ -25,4 +25,5 @@ pipeline:
       - make prod
       # Make sure the binary is actually static
       - readelf -d pvieter
+      - du -h pvieter
       - '[ "$(readelf -d pvieter | grep NEEDED | wc -l)" = 0 ]'

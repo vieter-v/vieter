@@ -12,8 +12,10 @@ pub fn pkg_info(pkg_path string) ?(string, []string) {
 	entry := C.archive_entry_new()
 	mut r := 0
 
-	C.archive_read_support_filter_all(a)
-	C.archive_read_support_format_all(a)
+	// Sinds 2020, all newly built Arch packages use zstd
+	C.archive_read_support_filter_zstd(a)
+	// The content should always be a tarball
+	C.archive_read_support_format_tar(a)
 
 	// TODO find out where does this 10240 come from
 	r = C.archive_read_open_filename(a, &char(pkg_path.str), 10240)

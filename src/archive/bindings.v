@@ -8,8 +8,10 @@ struct C.archive {}
 
 // Create a new archive struct
 fn C.archive_read_new() &C.archive
-fn C.archive_read_support_filter_all(&C.archive)
-fn C.archive_read_support_format_all(&C.archive)
+// Configure the archive to work with zstd compression
+fn C.archive_read_support_filter_zstd(&C.archive)
+// Configure the archive to work with a tarball content 
+fn C.archive_read_support_format_tar(&C.archive)
 
 // Open an archive for reading
 fn C.archive_read_open_filename(&C.archive, &char, int) int
