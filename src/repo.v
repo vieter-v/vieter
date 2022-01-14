@@ -1,6 +1,7 @@
 module repo
 
 import os
+import archive
 
 const pkgs_subpath = 'pkgs'
 
@@ -10,23 +11,35 @@ pub struct Dummy {
 	x int
 }
 
-// Handles management of a repository. Package files are stored in '$dir/pkgs'
-// & moved there if necessary.
+// This struct manages a single repository.
 pub struct Repo {
 mut:
 	mutex shared Dummy
 pub:
-	dir  string [required]
-	name string [required]
+	// Where to store repository files; should exist
+	repo_dir string [required]
+	// Where to find packages; packages are expected to all be in the same directory
+	pkg_dir string [required]
 }
 
-pub fn (r &Repo) pkg_dir() string {
-	return os.join_path_single(r.dir, repo.pkgs_subpath)
+// Returns whether the repository contains the given package.
+pub fn (r &Repo) contains(pkg string) bool {
+	return os.exists(os.join_path(r.repo_dir, 'files', pkg))
+}
+
+// Adds the given package to the repo. If false, the package was already
+// present in the repository.
+pub fn (r &Repo) add(pkg string) ?bool {
+	return false
+}
+
+// Re-generate the db & files archives.
+fn (r &Repo) genenerate() ? {
 }
 
 // Returns path to the given package, prepended with the repo's path.
 pub fn (r &Repo) pkg_path(pkg string) string {
-	return os.join_path(r.dir, repo.pkgs_subpath, pkg)
+	return os.join_path_single(r.pkg_dir, pkg)
 }
 
 pub fn (r &Repo) exists(pkg string) bool {
@@ -35,7 +48,7 @@ pub fn (r &Repo) exists(pkg string) bool {
 
 // Returns the full path to the database file
 pub fn (r &Repo) db_path() string {
-	return os.join_path_single(r.dir, '${r.name}.tar.gz')
+	return os.join_path_single(r.repo_dir, 'repo.tar.gz')
 }
 
 pub fn (r &Repo) add_package(pkg_path string) ? {
