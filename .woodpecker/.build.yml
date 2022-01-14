@@ -8,7 +8,7 @@ pipeline:
     pull: true
     group: 'build'
     environment:
-      - LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
+      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     commands:
       - make vieter
 
@@ -16,7 +16,7 @@ pipeline:
     image: 'chewingbever/vlang:latest'
     pull: true
     environment:
-      - LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
+      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     group: 'build'
     commands:
       - make debug
@@ -25,7 +25,7 @@ pipeline:
     image: 'chewingbever/vlang:latest'
     pull: true
     environment:
-      - LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
+      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     group: 'build'
     commands:
       - make prod
