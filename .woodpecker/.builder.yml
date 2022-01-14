@@ -9,5 +9,4 @@ pipeline:
       tag: latest
     when:
       event: push
-      branch: dev
       path: Dockerfile.builder
