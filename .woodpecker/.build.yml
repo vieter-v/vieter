@@ -5,25 +5,18 @@ branches:
 pipeline:
   vieter:
     image: 'chewingbever/vlang:latest'
-    pull: true
     group: 'build'
-    environment:
-      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     commands:
       - make vieter
 
   debug:
     image: 'chewingbever/vlang:latest'
-    pull: true
-    environment:
-      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     group: 'build'
     commands:
       - make debug
 
   prod:
     image: 'chewingbever/vlang:latest'
-    pull: true
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     group: 'build'
