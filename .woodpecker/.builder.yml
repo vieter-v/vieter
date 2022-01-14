@@ -1,4 +1,5 @@
 branches: dev
+event: push
 
 pipeline:
   publish:
