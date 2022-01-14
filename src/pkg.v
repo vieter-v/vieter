@@ -89,6 +89,7 @@ mut:
 	checkdepends []string
 }
 
+// parse_pkg_info_string parses a PkgInfo object from a string
 fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 	mut pkg_info := PkgInfo{}
 
@@ -140,7 +141,7 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 	return pkg_info
 }
 
-// Extracts the file list & .PKGINFO contents from an archive
+// read_pkg extracts the file list & .PKGINFO contents from an archive
 // NOTE: this command currently only supports zstd-compressed tarballs
 pub fn read_pkg(pkg_path string) ?Pkg {
 	if !os.is_file(pkg_path) {
@@ -166,9 +167,9 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 		return error('Failed to open package.')
 	}
 
-	// We iterate over every header in search of the .PKGINFO one
 	mut buf := voidptr(0)
 	mut files := []string{}
+
 	for C.archive_read_next_header(a, &entry) == C.ARCHIVE_OK {
 		pathname := C.archive_entry_pathname(entry)
 
@@ -198,7 +199,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 	}
 }
 
-// Represent a PkgInfo struct as a desc file
+// to_desc returns a desc file valid string representation
 pub fn (p &PkgInfo) to_desc() string {
 	// TODO calculate md5 & sha256 instead of believing the file
 	mut desc := ''

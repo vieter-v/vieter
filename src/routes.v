@@ -7,6 +7,7 @@ import time
 
 const prefixes = ['B', 'KB', 'MB', 'GB']
 
+// pretty_bytes converts a byte count to human-readable version
 fn pretty_bytes(bytes int) string {
 	mut i := 0
 	mut n := f32(bytes)
@@ -23,6 +24,7 @@ fn is_pkg_name(s string) bool {
 	return s.contains('.pkg')
 }
 
+// get_root handles a GET request for a file on the root
 ['/:filename'; get]
 fn (mut app App) get_root(filename string) web.Result {
 	mut full_path := ''
@@ -88,6 +90,7 @@ fn (mut app App) get_root(filename string) web.Result {
 // 	return app.text('Package added successfully.')
 // }
 
+// add_package PUT a new package to the server
 ['/add'; put]
 pub fn (mut app App) add_package() web.Result {
 	return app.text('')

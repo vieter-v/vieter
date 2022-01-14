@@ -5,7 +5,6 @@ import os
 import log
 import io
 import pkg
-import archive
 import repo
 
 const port = 8000
@@ -110,7 +109,5 @@ fn main() {
 		return
 	}
 	// println(info)
-	println(res.info)
-	print(res.files)
-	println(res.info.to_desc())
+	print(res)
 }
