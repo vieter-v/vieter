@@ -24,3 +24,6 @@ pipeline:
     when:
       event: tag
       branch: main
+
+depends_on:
+  builder
