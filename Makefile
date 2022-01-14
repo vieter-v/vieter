@@ -60,6 +60,10 @@ lint:
 fmt:
 	$(V) fmt -w $(SRC_DIR)
 
+.PHONY: vet
+vet:
+	$(V) vet -W $(SRC_DIR)
+
 # Pulls & builds my personal build of the v compiler, required for this project to function
 .PHONY: customv
 customv:
