@@ -19,7 +19,6 @@ RUN apk --no-cache add \
   libarchive-static libarchive-dev \
   diffutils
 
-## RUN apk --no-cache add --virtual sdl2deps sdl2-dev sdl2_ttf-dev sdl2_mixer-dev sdl2_image-dev
 COPY . /vlang-local
 
 RUN git clone \

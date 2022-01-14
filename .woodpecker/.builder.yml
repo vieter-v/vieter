@@ -4,7 +4,6 @@ pipeline:
   publish:
     image: plugins/docker
     secrets: [ docker_username, docker_password ]
-
     settings:
       repo: chewingbever/vlang
       tag: latest
