@@ -11,7 +11,7 @@ ENV VFLAGS -cc gcc
 RUN mkdir -p /opt/vlang && \
   ln -s /opt/vlang/v /usr/bin/v && \
   apk --no-cache add \
-    git make gcc bash \
+    git make gcc \
     musl-dev \
     openssl-libs-static openssl-dev \
     zlib-static bzip2-static xz-dev expat-static zstd-static lz4-static \
