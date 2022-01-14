@@ -1,14 +1,65 @@
 module pkg
 
-import archive
 import time
+import os
 
+#flag -larchive
+
+#include "archive.h"
+
+struct C.archive {}
+
+// Create a new archive struct
+fn C.archive_read_new() &C.archive
+
+// Configure the archive to work with zstd compression
+fn C.archive_read_support_filter_zstd(&C.archive)
+
+// Configure the archive to work with a tarball content
+fn C.archive_read_support_format_tar(&C.archive)
+
+// Open an archive for reading
+fn C.archive_read_open_filename(&C.archive, &char, int) int
+
+// Go to next entry header in archive
+fn C.archive_read_next_header(&C.archive, &&C.archive_entry) int
+
+// Skip reading the current entry
+fn C.archive_read_data_skip(&C.archive)
+
+// Free an archive
+fn C.archive_read_free(&C.archive) int
+
+// Read an archive entry's contents into a pointer
+fn C.archive_read_data(&C.archive, voidptr, int)
+
+#include "archive_entry.h"
+
+struct C.archive_entry {}
+
+// Create a new archive_entry struct
+fn C.archive_entry_new() &C.archive_entry
+
+// Get the filename of the given entry
+fn C.archive_entry_pathname(&C.archive_entry) &char
+
+// Get an entry's file size
+// Note: this function actually returns an i64, but as this can't be used as an arugment to malloc, we'll just roll with it & assume an entry is never bigger than 4 gigs
+fn C.archive_entry_size(&C.archive_entry) int
+
+#include <string.h>
+
+// Compare two C strings; 0 means they're equal
+fn C.strcmp(&char, &char) int
+
+// Represents a read archive
 struct Pkg {
 pub:
 	info  PkgInfo  [required]
 	files []string [required]
 }
 
+// Represents the contents of a .PKGINFO file
 struct PkgInfo {
 mut:
 	// Single values
@@ -89,9 +140,57 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 	return pkg_info
 }
 
+// Extracts the file list & .PKGINFO contents from an archive
+// NOTE: this command currently only supports zstd-compressed tarballs
 pub fn read_pkg(pkg_path string) ?Pkg {
-	pkg_info_str, files := archive.pkg_info(pkg_path) ?
-	pkg_info := parse_pkg_info_string(pkg_info_str) ?
+	if !os.is_file(pkg_path) {
+		return error("'$pkg_path' doesn't exist or isn't a file.")
+	}
+
+	a := C.archive_read_new()
+	entry := C.archive_entry_new()
+	mut r := 0
+
+	// Sinds 2020, all newly built Arch packages use zstd
+	C.archive_read_support_filter_zstd(a)
+	// The content should always be a tarball
+	C.archive_read_support_format_tar(a)
+
+	// TODO find out where does this 10240 come from
+	r = C.archive_read_open_filename(a, &char(pkg_path.str), 10240)
+	defer {
+		C.archive_read_free(a)
+	}
+
+	if r != C.ARCHIVE_OK {
+		return error('Failed to open package.')
+	}
+
+	// We iterate over every header in search of the .PKGINFO one
+	mut buf := voidptr(0)
+	mut files := []string{}
+	for C.archive_read_next_header(a, &entry) == C.ARCHIVE_OK {
+		pathname := C.archive_entry_pathname(entry)
+
+		ignored_names := [c'.BUILDINFO', c'.INSTALL', c'.MTREE', c'.PKGINFO', c'.CHANGELOG']
+		if ignored_names.all(C.strcmp(it, pathname) != 0) {
+			unsafe {
+				files << cstring_to_vstring(pathname)
+			}
+		}
+
+		if C.strcmp(pathname, c'.PKGINFO') == 0 {
+			size := C.archive_entry_size(entry)
+
+			// TODO can this unsafe block be avoided?
+			buf = unsafe { malloc(size) }
+			C.archive_read_data(a, voidptr(buf), size)
+		} else {
+			C.archive_read_data_skip(a)
+		}
+	}
+
+	pkg_info := parse_pkg_info_string(unsafe { cstring_to_vstring(&char(buf)) }) ?
 
 	return Pkg{
 		info: pkg_info
