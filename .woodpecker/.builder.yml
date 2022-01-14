@@ -1,5 +1,4 @@
 branches: dev
-event: push
 
 pipeline:
   publish:
@@ -8,6 +7,7 @@ pipeline:
     settings:
       repo: chewingbever/vlang
       tag: latest
+      dockerfile: Dockerfile.builder
     when:
       event: push
       path: Dockerfile.builder
