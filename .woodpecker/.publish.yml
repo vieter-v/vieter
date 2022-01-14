@@ -1,4 +1,5 @@
 branches: [main, dev]
+platform: linux/amd64
 
 pipeline:
   dev:
@@ -23,3 +24,6 @@ pipeline:
     when:
       event: tag
       branch: main
+
+depends_on:
+  - builder

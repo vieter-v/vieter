@@ -1,7 +1,7 @@
 # These checks already get performed on the feature branches
 branches:
   exclude: [ main, dev ]
-platform: linux/amd64
+platform: linux/arm64
 
 pipeline:
   vieter:
