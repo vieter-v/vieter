@@ -42,7 +42,7 @@ run: vieter
 
 .PHONY: run-prod
 run-prod: prod
-	 API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG ./vieter-prod
+	 API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG ./pvieter
 
 # Same as run, but restart when the source code changes
 .PHONY: watch

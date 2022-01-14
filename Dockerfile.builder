@@ -14,6 +14,7 @@ RUN apk --no-cache add \
   git make upx gcc bash \
   musl-dev \
   openssl-libs-static openssl-dev \
+  zlib-static bzip2-static xz-dev expat-static zstd-static lz4-static \
   sqlite-static sqlite-dev \
   libx11-dev glfw-dev freetype-dev \
   libarchive-static libarchive-dev \

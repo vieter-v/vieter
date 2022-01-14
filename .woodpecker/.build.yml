@@ -6,17 +6,23 @@ pipeline:
   vieter:
     image: 'chewingbever/vlang:latest'
     group: 'build'
+    environment:
+      - LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
     commands:
       - make vieter
 
   debug:
     image: 'chewingbever/vlang:latest'
+    environment:
+      - LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
     group: 'build'
     commands:
       - make debug
 
   prod:
     image: 'chewingbever/vlang:latest'
+    environment:
+      - LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
     group: 'build'
     commands:
       - make prod
