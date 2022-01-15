@@ -8,7 +8,7 @@ LARCHIVE_LIB := $(LARCHIVE_DIR)/libarchive/libarchive.so
 
 # Custom V command for linking libarchive
 # V := LDFLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags '-I$(PWD)/$(LARCHIVE_DIR) -I $(PWD)/$(LARCHIVE_DIR)'
-V := v
+V := v -showcc
 
 all: vieter
 
