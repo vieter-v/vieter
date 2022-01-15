@@ -1,13 +1,14 @@
-branches: [main, dev]
+# branches: [main, dev]
 platform: linux/amd64
 
 pipeline:
   dev:
-    image: plugins/docker
+    image: woodpeckerci/plugin-docker-buildx
     secrets: [ docker_username, docker_password ]
     settings:
       repo: chewingbever/vieter
       tag: dev
+      platforms: [ linux/arm/v7, linux/arm64/v8, linux/amd64 ]
     when:
       event: push
       branch: dev
@@ -25,5 +26,5 @@ pipeline:
       event: tag
       branch: main
 
-depends_on:
-  - builder
+# depends_on:
+#   - builder

@@ -5,16 +5,13 @@ WORKDIR /app
 # Copy over source code & build production binary
 COPY src ./src
 COPY Makefile ./
-RUN make prod
+RUN LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static' \
+    make prod
 
 
 FROM alpine:3.15
 
 ENV REPO_DIR=/data
-
-RUN apk update && \
-    apk add --no-cache \
-        libarchive
 
 COPY --from=builder /app/pvieter /usr/local/bin/vieter
 
