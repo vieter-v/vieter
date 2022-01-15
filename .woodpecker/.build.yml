@@ -10,12 +10,7 @@ branches:
 platform: ${PLATFORM}
 
 pipeline:
-  vieter:
-    image: 'chewingbever/vlang:latest'
-    group: 'build'
-    commands:
-      - make vieter
-
+  # The default build isn't needed, as alpine switches to gcc for the compiler anyways
   debug:
     image: 'chewingbever/vlang:latest'
     group: 'build'
