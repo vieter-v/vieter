@@ -1,4 +1,4 @@
-# branches: [main, dev]
+branches: [main, dev]
 platform: linux/amd64
 
 pipeline:
@@ -11,20 +11,20 @@ pipeline:
       platforms: [ linux/arm64/v8, linux/amd64 ]
     when:
       event: push
-      # branch: dev
+      branch: dev
 
   release:
-    image: plugins/docker
+    image: woodpeckerci/plugin-docker-buildx
     secrets: [ docker_username, docker_password ]
     settings:
       repo: chewingbever/vieter
       tag:
         - latest
         - $CI_COMMIT_TAG
-      mtu: 1000
+      platforms: [ linux/arm64/v8, linux/amd64 ]
     when:
       event: tag
       branch: main
 
-# depends_on:
-#   - builder
+depends_on:
+  - builder
