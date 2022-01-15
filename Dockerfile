@@ -7,7 +7,7 @@ COPY src ./src
 COPY Makefile ./
 
 ENV LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
-RUN v -o pvieter -clags "-O3" src
+RUN v -o pvieter -cflags "-O3" src
 
 
 FROM alpine:3.15
