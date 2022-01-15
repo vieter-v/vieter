@@ -5,8 +5,9 @@ WORKDIR /app
 # Copy over source code & build production binary
 COPY src ./src
 COPY Makefile ./
-RUN LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static' \
-    make prod
+
+ENV LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static'
+RUN make prod
 
 
 FROM alpine:3.15
