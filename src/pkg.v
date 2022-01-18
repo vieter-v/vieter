@@ -2,6 +2,7 @@ module pkg
 
 import time
 import os
+import util
 
 #flag -larchive
 
@@ -120,8 +121,8 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 			'arch' { pkg_info.arch = value }
 			'builddate' { pkg_info.build_date = value.int() }
 			'packager' { pkg_info.packager = value }
-			'md5sum' { pkg_info.md5sum = value }
-			'sha256sum' { pkg_info.sha256sum = value }
+			'md5sum' { continue }
+			'sha256sum' { continue }
 			'pgpsig' { pkg_info.pgpsig = value }
 			'pgpsigsize' { pkg_info.pgpsigsize = value.int() }
 			// Array values
@@ -192,7 +193,11 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 	}
 
 	mut pkg_info := parse_pkg_info_string(unsafe { cstring_to_vstring(&char(buf)) }) ?
+
 	pkg_info.csize = i64(os.file_size(pkg_path))
+	pkg_info.md5sum, pkg_info.sha256sum = util.hash_file(pkg_path) or {
+		return error('Failed to hash package.')
+	}
 
 	return Pkg{
 		info: pkg_info
@@ -225,7 +230,6 @@ pub fn (p &PkgInfo) to_desc() string {
 	desc += format_entry('CSIZE', p.csize.str())
 	desc += format_entry('ISIZE', p.size.str())
 
-	// TODO calculate these
 	desc += format_entry('MD5SUM', p.md5sum)
 	desc += format_entry('SHA256SUM', p.sha256sum)
 
