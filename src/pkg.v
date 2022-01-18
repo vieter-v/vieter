@@ -114,7 +114,7 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 			'pkgbase' { pkg_info.base = value }
 			'pkgver' { pkg_info.version = value }
 			'pkgdesc' { pkg_info.description = value }
-			'csize' { pkg_info.csize = value.int() }
+			'csize' { continue }
 			'size' { pkg_info.size = value.int() }
 			'url' { pkg_info.url = value }
 			'arch' { pkg_info.arch = value }
@@ -191,7 +191,8 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 		}
 	}
 
-	pkg_info := parse_pkg_info_string(unsafe { cstring_to_vstring(&char(buf)) }) ?
+	mut pkg_info := parse_pkg_info_string(unsafe { cstring_to_vstring(&char(buf)) }) ?
+	pkg_info.csize = i64(os.file_size(pkg_path))
 
 	return Pkg{
 		info: pkg_info
@@ -199,10 +200,76 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 	}
 }
 
-// to_desc returns a desc file valid string representation
-pub fn (p &PkgInfo) to_desc() string {
-	// TODO calculate md5 & sha256 instead of believing the file
-	mut desc := ''
+fn format_entry(key string, value string) string {
+	return '\n%$key%\n$value\n'
+}
 
-	return desc
+// to_desc returns a desc file valid string representation
+// TODO calculate md5 & sha256 instead of believing the file
+pub fn (p &PkgInfo) to_desc() string {
+	// filename
+	mut desc := '%FILENAME%\n$p.name-$p.version-${p.arch}.pkg.tar.zst\n'
+
+	desc += format_entry('NAME', p.name)
+	desc += format_entry('BASE', p.base)
+	desc += format_entry('VERSION', p.version)
+
+	if p.description.len > 0 {
+		desc += format_entry('DESC', p.description)
+	}
+
+	if p.groups.len > 0 {
+		desc += format_entry('GROUPS', p.groups.join_lines())
+	}
+
+	desc += format_entry('CSIZE', p.csize.str())
+	desc += format_entry('ISIZE', p.size.str())
+
+	// TODO calculate these
+	desc += format_entry('MD5SUM', p.md5sum)
+	desc += format_entry('SHA256SUM', p.sha256sum)
+
+	// TODO add pgpsig stuff
+
+	if p.url.len > 0 {
+		desc += format_entry('URL', p.url)
+	}
+
+	if p.licenses.len > 0 {
+		desc += format_entry('LICENSE', p.licenses.join_lines())
+	}
+
+	desc += format_entry('ARCH', p.arch)
+	desc += format_entry('BUILDDATE', p.build_date.str())
+	desc += format_entry('PACKAGER', p.packager)
+
+	if p.replaces.len > 0 {
+		desc += format_entry('REPLACES', p.replaces.join_lines())
+	}
+
+	if p.conflicts.len > 0 {
+		desc += format_entry('CONFLICTS', p.conflicts.join_lines())
+	}
+
+	if p.provides.len > 0 {
+		desc += format_entry('PROVIDES', p.provides.join_lines())
+	}
+
+	if p.depends.len > 0 {
+		desc += format_entry('DEPENDS', p.depends.join_lines())
+	}
+
+	if p.optdepends.len > 0 {
+		desc += format_entry('OPTDEPENDS', p.optdepends.join_lines())
+	}
+
+	if p.makedepends.len > 0 {
+		desc += format_entry('MAKEDEPENDS', p.makedepends.join_lines())
+	}
+
+	if p.checkdepends.len > 0 {
+		desc += format_entry('CHECKDEPENDS', p.checkdepends.join_lines())
+	}
+
+	return '$desc\n'
 }

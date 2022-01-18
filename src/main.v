@@ -109,5 +109,5 @@ fn main() {
 		return
 	}
 	// println(info)
-	print(res)
+	print(res.info.to_desc())
 }
