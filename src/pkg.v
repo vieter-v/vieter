@@ -56,6 +56,7 @@ fn C.strcmp(&char, &char) int
 // Represents a read archive
 struct Pkg {
 pub:
+	path  string   [required]
 	info  PkgInfo  [required]
 	files []string [required]
 }
@@ -74,10 +75,10 @@ mut:
 	arch        string
 	build_date  i64
 	packager    string
-	md5sum      string
-	sha256sum   string
-	pgpsig      string
-	pgpsigsize  i64
+	// md5sum      string
+	// sha256sum   string
+	pgpsig     string
+	pgpsigsize i64
 	// Array values
 	groups       []string
 	licenses     []string
@@ -88,6 +89,10 @@ mut:
 	optdepends   []string
 	makedepends  []string
 	checkdepends []string
+}
+
+pub fn (p &Pkg) checksum() ?(string, string) {
+	return util.hash_file(p.path)
 }
 
 // parse_pkg_info_string parses a PkgInfo object from a string
@@ -195,11 +200,9 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 	mut pkg_info := parse_pkg_info_string(unsafe { cstring_to_vstring(&char(buf)) }) ?
 
 	pkg_info.csize = i64(os.file_size(pkg_path))
-	pkg_info.md5sum, pkg_info.sha256sum = util.hash_file(pkg_path) or {
-		return error('Failed to hash package.')
-	}
 
 	return Pkg{
+		path: pkg_path
 		info: pkg_info
 		files: files
 	}
@@ -211,7 +214,9 @@ fn format_entry(key string, value string) string {
 
 // to_desc returns a desc file valid string representation
 // TODO calculate md5 & sha256 instead of believing the file
-pub fn (p &PkgInfo) to_desc() string {
+pub fn (pkg &Pkg) to_desc() string {
+	p := pkg.info
+
 	// filename
 	mut desc := '%FILENAME%\n$p.name-$p.version-${p.arch}.pkg.tar.zst\n'
 
@@ -230,8 +235,12 @@ pub fn (p &PkgInfo) to_desc() string {
 	desc += format_entry('CSIZE', p.csize.str())
 	desc += format_entry('ISIZE', p.size.str())
 
-	desc += format_entry('MD5SUM', p.md5sum)
-	desc += format_entry('SHA256SUM', p.sha256sum)
+	md5sum, sha256sum := pkg.checksum() or { '', '' }
+
+	desc += format_entry('MD5SUM', md5sum)
+
+	// TODO add this
+	// desc += format_entry('SHA256SUM', sha256sum)
 
 	// TODO add pgpsig stuff
 
