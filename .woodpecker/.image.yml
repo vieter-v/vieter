@@ -1,0 +1,17 @@
+# These checks already get performed on the feature branches
+branches:
+  exclude: [ main, dev ]
+platform: linux/amd64
+
+pipeline:
+  dryrun:
+    image: woodpeckerci/plugin-docker-buildx
+    secrets: [ docker_username, docker_password ]
+    settings:
+      repo: chewingbever/vieter
+      tag: dev
+      platforms: [ linux/arm/v7, linux/arm64/v8, linux/amd64 ]
+      dry_run: true
+    when:
+      event: pull_request
+      branch: dev
