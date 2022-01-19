@@ -1,6 +1,5 @@
 module package
 
-import time
 import os
 import util
 
@@ -93,6 +92,7 @@ pub mut:
 	checkdepends []string
 }
 
+// checksum calculates the md5 & sha256 hash of the package
 pub fn (p &Pkg) checksum() ?(string, string) {
 	return util.hash_file(p.path)
 }
@@ -214,6 +214,7 @@ fn format_entry(key string, value string) string {
 	return '\n%$key%\n$value\n'
 }
 
+// filename returns the correct filename of the package file
 pub fn (pkg &Pkg) filename() string {
 	p := pkg.info
 

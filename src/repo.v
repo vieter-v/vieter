@@ -26,6 +26,7 @@ pub:
 	pkg_dir string [required]
 }
 
+// new creates a new Repo & creates the directories as needed
 pub fn new(repo_dir string, pkg_dir string) ?Repo {
 	if !os.is_dir(repo_dir) {
 		os.mkdir_all(repo_dir) or { return error('Failed to create repo directory.') }
