@@ -104,7 +104,7 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 
 fn main() {
 	// archive.list_filenames()
-	res := pkg.read_pkg('test/homebank-5.5.3-1-x86_64.pkg.tar.zst') or {
+	res := pkg.read_pkg('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
 		eprintln(err.msg)
 		return
 	}
