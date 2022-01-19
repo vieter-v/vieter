@@ -6,7 +6,7 @@
 
 struct C.archive {}
 
-// Create a new archive struct
+// Create a new archive struct for reading
 fn C.archive_read_new() &C.archive
 
 // Configure the archive to work with zstd compression
@@ -30,6 +30,27 @@ fn C.archive_read_free(&C.archive) int
 // Read an archive entry's contents into a pointer
 fn C.archive_read_data(&C.archive, voidptr, int)
 
+// Create a new archive struct for writing
+fn C.archive_write_new() &C.archive
+
+// Sets the filter for the archive to gzip
+fn C.archive_write_add_filter_gzip(&C.archive)
+
+// Sets to archive to "pax restricted" mode. Libarchive's "pax restricted"
+// format is a tar format that uses pax extensions only when absolutely
+// necessary. Most of the time, it will write plain ustar entries. This is the
+// recommended tar format for most uses. You should explicitly use ustar format
+// only when you have to create archives that will be readable on older
+// systems; you should explicitly request pax format only when you need to
+// preserve as many attributes as possible.
+fn C.archive_write_set_format_pax_restricted(&C.archive)
+
+// Opens up the filename for writing
+fn C.archive_write_open_filename(&C.archive, &char)
+
+// Write an entry to the archive file
+fn C.archive_write_header(&C.archive, &C.archive_entry)
+
 #include "archive_entry.h"
 
 struct C.archive_entry {}
@@ -45,6 +66,18 @@ fn C.archive_entry_pathname(&C.archive_entry) &char
 // arugment to malloc, we'll just roll with it & assume an entry is never
 // bigger than 4 gigs
 fn C.archive_entry_size(&C.archive_entry) int
+
+// Set the pathname for the entry
+fn C.archive_entry_set_pathname(&C.archive_entry, &char)
+
+// Sets the file size of the entry
+fn C.archive_entry_set_size(&C.archive_entry, i64)
+
+// Sets the file type for an entry
+fn C.archive_entry_set_filetype(&C.archive_entry, u32)
+
+// Sets the file permissions for an entry
+fn C.archive_entry_set_perm(&C.archive_entry, int)
 
 #include <string.h>
 
