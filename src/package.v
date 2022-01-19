@@ -1,4 +1,4 @@
-module pkg
+module package
 
 import time
 import os
@@ -45,7 +45,9 @@ fn C.archive_entry_new() &C.archive_entry
 fn C.archive_entry_pathname(&C.archive_entry) &char
 
 // Get an entry's file size
-// Note: this function actually returns an i64, but as this can't be used as an arugment to malloc, we'll just roll with it & assume an entry is never bigger than 4 gigs
+// Note: this function actually returns an i64, but as this can't be used as an
+// arugment to malloc, we'll just roll with it & assume an entry is never
+// bigger than 4 gigs
 fn C.archive_entry_size(&C.archive_entry) int
 
 #include <string.h>
@@ -63,7 +65,7 @@ pub:
 
 // Represents the contents of a .PKGINFO file
 struct PkgInfo {
-mut:
+pub mut:
 	// Single values
 	name        string
 	base        string
@@ -212,13 +214,19 @@ fn format_entry(key string, value string) string {
 	return '\n%$key%\n$value\n'
 }
 
+pub fn (pkg &Pkg) filename() string {
+	p := pkg.info
+
+	return '$p.name-$p.version-${p.arch}.pkg.tar.zst'
+}
+
 // to_desc returns a desc file valid string representation
 // TODO calculate md5 & sha256 instead of believing the file
 pub fn (pkg &Pkg) to_desc() string {
 	p := pkg.info
 
 	// filename
-	mut desc := '%FILENAME%\n$p.name-$p.version-${p.arch}.pkg.tar.zst\n'
+	mut desc := '%FILENAME%\n$pkg.filename()\n'
 
 	desc += format_entry('NAME', p.name)
 	desc += format_entry('BASE', p.base)
@@ -285,4 +293,9 @@ pub fn (pkg &Pkg) to_desc() string {
 	}
 
 	return '$desc\n'
+}
+
+// to_files returns a files file valid string representation
+pub fn (pkg &Pkg) to_files() string {
+	return '%FILES%\n$pkg.files.join_lines()\n'
 }
