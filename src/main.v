@@ -101,20 +101,3 @@ fn main() {
 		repo: repo
 	}, port)
 }
-
-// fn main() {
-// 	r := repo.new('data/repo', 'data/pkgs') or { return }
-// 	print(r.add_from_path('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
-// 		panic('you fialed')
-// 	})
-
-// 	// archive.list_filenames()
-// 	// res := pkg.read_pkg('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
-// 	// 	eprintln(err.msg)
-// 	// 	return
-// 	// }
-// 	// println(info)
-// 	// println('hey')
-// 	// print(res.to_desc())
-// 	// print(res.to_files())
-// }
