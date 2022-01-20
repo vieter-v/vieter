@@ -1,15 +1,16 @@
+matrix:
+  PLATFORM:
+    - linux/amd64
+    - linux/arm64
+    - linux/arm/v7
+
 # These checks already get performed on the feature branches
 branches:
   exclude: [ main, dev ]
-platform: linux/amd64
+platform: ${PLATFORM}
 
 pipeline:
-  vieter:
-    image: 'chewingbever/vlang:latest'
-    group: 'build'
-    commands:
-      - make vieter
-
+  # The default build isn't needed, as alpine switches to gcc for the compiler anyways
   debug:
     image: 'chewingbever/vlang:latest'
     group: 'build'
@@ -25,4 +26,5 @@ pipeline:
       - make prod
       # Make sure the binary is actually static
       - readelf -d pvieter
+      - du -h pvieter
       - '[ "$(readelf -d pvieter | grep NEEDED | wc -l)" = 0 ]'

@@ -4,9 +4,11 @@ import web
 import os
 import repo
 import time
+import rand
 
 const prefixes = ['B', 'KB', 'MB', 'GB']
 
+// pretty_bytes converts a byte count to human-readable version
 fn pretty_bytes(bytes int) string {
 	mut i := 0
 	mut n := f32(bytes)
@@ -23,6 +25,7 @@ fn is_pkg_name(s string) bool {
 	return s.contains('.pkg')
 }
 
+// get_root handles a GET request for a file on the root
 ['/:filename'; get]
 fn (mut app App) get_root(filename string) web.Result {
 	mut full_path := ''
@@ -36,58 +39,57 @@ fn (mut app App) get_root(filename string) web.Result {
 	return app.file(full_path)
 }
 
-// ['/pkgs/:pkg'; put]
-// fn (mut app App) put_package(pkg string) web.Result {
-// 	if !app.is_authorized() {
-// 		return app.text('Unauthorized.')
-// 	}
+['/publish'; post]
+fn (mut app App) put_package() web.Result {
+	if !app.is_authorized() {
+		return app.text('Unauthorized.')
+	}
 
-// 	if !is_pkg_name(pkg) {
-// 		app.lwarn("Invalid package name '$pkg'.")
+	mut pkg_path := ''
 
-// 		return app.text('Invalid filename.')
-// 	}
+	if length := app.req.header.get(.content_length) {
+		// Generate a random filename for the temp file
+		pkg_path = os.join_path_single(app.dl_dir, rand.uuid_v4())
 
-// 	if app.repo.exists(pkg) {
-// 		app.lwarn("Duplicate package '$pkg'")
+		for os.exists(pkg_path) {
+			pkg_path = os.join_path_single(app.dl_dir, rand.uuid_v4())
+		}
 
-// 		return app.text('File already exists.')
-// 	}
+		app.ldebug("Uploading $length (${pretty_bytes(length.int())}) bytes to '$pkg_path'.")
 
-// 	pkg_path := app.repo.pkg_path(pkg)
+		// This is used to time how long it takes to upload a file
+		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })
 
-// 	if length := app.req.header.get(.content_length) {
-// 		app.ldebug("Uploading $length (${pretty_bytes(length.int())}) bytes to package '$pkg'.")
+		reader_to_file(mut app.reader, length.int(), pkg_path) or {
+			app.lwarn("Failed to upload '$pkg_path'")
 
-// 		// This is used to time how long it takes to upload a file
-// 		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })
+			return app.text('Failed to upload file.')
+		}
 
-// 		reader_to_file(mut app.reader, length.int(), pkg_path) or {
-// 			app.lwarn("Failed to upload package '$pkg'")
+		sw.stop()
+		app.ldebug("Upload of '$pkg_path' completed in ${sw.elapsed().seconds():.3}s.")
+	} else {
+		app.lwarn('Tried to upload package without specifying a Content-Length.')
+		return app.text("Content-Type header isn't set.")
+	}
 
-// 			return app.text('Failed to upload file.')
-// 		}
+	added := app.repo.add_from_path(pkg_path) or {
+		app.lerror('Error while adding package: $err.msg')
 
-// 		sw.stop()
-// 		app.ldebug("Upload of package '$pkg' completed in ${sw.elapsed().seconds():.3}s.")
-// 	} else {
-// 		app.lwarn("Tried to upload package '$pkg' without specifying a Content-Length.")
-// 		return app.text("Content-Type header isn't set.")
-// 	}
+		return app.text('Failed to add package.')
+	}
+	if !added {
+		app.lwarn('Duplicate package.')
 
-// 	app.repo.add_package(pkg_path) or {
-// 		app.lwarn("Failed to add package '$pkg' to database.")
+		return app.text('File already exists.')
+	}
 
-// 		os.rm(pkg_path) or { println('Failed to remove $pkg_path') }
+	app.linfo("Added '$pkg_path' to repository.")
 
-// 		return app.text('Failed to add package to repo.')
-// 	}
+	return app.text('Package added successfully.')
+}
 
-// 	app.linfo("Added '$pkg' to repository.")
-
-// 	return app.text('Package added successfully.')
-// }
-
+// add_package PUT a new package to the server
 ['/add'; put]
 pub fn (mut app App) add_package() web.Result {
 	return app.text('')
