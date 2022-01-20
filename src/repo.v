@@ -59,7 +59,7 @@ pub fn (r &Repo) add_from_path(pkg_path string) ?bool {
 		}
 	}
 
-	return true
+	return added
 }
 
 // add adds a given Pkg to the repository
@@ -83,7 +83,8 @@ fn (r &Repo) add(pkg &package.Pkg) ?bool {
 
 		return error('Failed to write files file.')
 	}
-	// TODO generate database archive
+
+	r.sync() ?
 
 	return true
 }
@@ -91,4 +92,51 @@ fn (r &Repo) add(pkg &package.Pkg) ?bool {
 // Returns the path where the given package's desc & files files are stored
 fn (r &Repo) pkg_path(pkg &package.Pkg) string {
 	return os.join_path(r.repo_dir, '$pkg.info.name-$pkg.info.version')
+}
+
+// Re-generate the repo archive files
+fn (r &Repo) sync() ? {
+	a := C.archive_write_new()
+	entry := C.archive_entry_new()
+	st := C.stat{}
+	buf := [8192]byte{}
+
+	// This makes the archive a gzip-compressed tarball
+	C.archive_write_add_filter_gzip(a)
+	C.archive_write_set_format_pax_restricted(a)
+
+	repo_path := os.join_path_single(r.repo_dir, 'repo.db')
+
+	C.archive_write_open_filename(a, &char(repo_path.str))
+
+	// Iterate over each directory
+	for d in os.ls(r.repo_dir) ?.filter(os.is_dir(os.join_path_single(r.repo_dir, it))) {
+		inner_path := os.join_path_single(d, 'desc')
+		actual_path := os.join_path_single(r.repo_dir, inner_path)
+
+		unsafe {
+			C.stat(&char(actual_path.str), &st)
+		}
+
+		C.archive_entry_set_pathname(entry, &char(inner_path.str))
+		// C.archive_entry_copy_stat(entry, &st)
+		C.archive_entry_set_size(entry, st.st_size)
+		C.archive_entry_set_filetype(entry, C.AE_IFREG)
+		C.archive_entry_set_perm(entry, 0o644)
+		C.archive_write_header(a, entry)
+
+		fd := C.open(&char(actual_path.str), C.O_RDONLY)
+		mut len := C.read(fd, &buf, sizeof(buf))
+
+		for len > 0 {
+			C.archive_write_data(a, &buf, len)
+			len = C.read(fd, &buf, sizeof(buf))
+		}
+		C.close(fd)
+
+		C.archive_entry_clear(entry)
+	}
+
+	C.archive_write_close(a)
+	C.archive_write_free(a)
 }

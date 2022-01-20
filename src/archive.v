@@ -51,6 +51,15 @@ fn C.archive_write_open_filename(&C.archive, &char)
 // Write an entry to the archive file
 fn C.archive_write_header(&C.archive, &C.archive_entry)
 
+// Write the data in the buffer to the archive
+fn C.archive_write_data(&C.archive, voidptr, int)
+
+// Close an archive for writing
+fn C.archive_write_close(&C.archive)
+
+// Free the write archive
+fn C.archive_write_free(&C.archive)
+
 #include "archive_entry.h"
 
 struct C.archive_entry {}
@@ -78,6 +87,12 @@ fn C.archive_entry_set_filetype(&C.archive_entry, u32)
 
 // Sets the file permissions for an entry
 fn C.archive_entry_set_perm(&C.archive_entry, int)
+
+// Clears out an entry struct
+fn C.archive_entry_clear(&C.archive_entry)
+
+// Copy over a stat struct to the archive entry
+fn C.archive_entry_copy_stat(&C.archive_entry, &C.stat)
 
 #include <string.h>
 
