@@ -1,6 +1,6 @@
 FROM alpine:3.12
 
-LABEL maintainer="spytheman <spytheman@bulsynt.org>"
+ARG V_RELEASE=weekly.2022.03
 
 WORKDIR /opt/vlang
 
@@ -8,10 +8,9 @@ ENV VVV  /opt/vlang
 ENV PATH /opt/vlang:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ENV VFLAGS -cc gcc
 
-RUN mkdir -p /opt/vlang && \
-  ln -s /opt/vlang/v /usr/bin/v && \
+RUN ln -s /opt/vlang/v /usr/bin/v && \
   apk --no-cache add \
-    git make gcc \
+    curl git make gcc \
     musl-dev \
     openssl-libs-static openssl-dev \
     zlib-static bzip2-static xz-dev expat-static zstd-static lz4-static \
@@ -20,14 +19,15 @@ RUN mkdir -p /opt/vlang && \
     libarchive-static libarchive-dev \
     diffutils
 
-COPY . /vlang-local
-
-RUN git clone \
-      'https://github.com/ChewingBever/v/' \
-      -b vweb-streaming \
-      --single-branch \
-      '/opt/vlang' && \
-    rm -rf '/vlang-local' && \
-    make && v -version
+RUN curl -Lo - "https://github.com/vlang/v/archive/refs/tags/${V_RELEASE}.tar.gz" | tar xzf - && \
+  mv "v-${V_RELEASE}"/* /opt/vlang && \
+  make && v -version
+# RUN git clone \
+#       'https://github.com/ChewingBever/v/' \
+#       -b vweb-streaming \
+#       --single-branch \
+#       '/opt/vlang' && \
+#     rm -rf '/vlang-local' && \
+#     make && v -version
 
 CMD ["v"]
