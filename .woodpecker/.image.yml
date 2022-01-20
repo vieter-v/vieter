@@ -1,6 +1,6 @@
-# These checks already get performed on the feature branches
-branches:
-  exclude: [ main, dev ]
+# Because the only step here is a pull_request event, the branch should be dev
+# because it has to be the target of the pull request
+branches: dev
 platform: linux/amd64
 
 pipeline:
