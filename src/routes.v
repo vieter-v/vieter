@@ -74,7 +74,7 @@ fn (mut app App) put_package() web.Result {
 	}
 
 	added := app.repo.add_from_path(pkg_path) or {
-		app.lerror('Error while adding package.')
+		app.lerror('Error while adding package: $err.msg')
 
 		return app.text('Failed to add package.')
 	}

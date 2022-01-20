@@ -126,6 +126,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 
 	mut buf := voidptr(0)
 	mut files := []string{}
+	mut pkg_info := PkgInfo{}
 
 	for C.archive_read_next_header(a, &entry) == C.ARCHIVE_OK {
 		pathname := C.archive_entry_pathname(entry)
@@ -142,13 +143,20 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 
 			// TODO can this unsafe block be avoided?
 			buf = unsafe { malloc(size) }
-			C.archive_read_data(a, voidptr(buf), size)
+			C.archive_read_data(a, buf, size)
+
+			unsafe {
+				println(cstring_to_vstring(buf))
+			}
+			pkg_info = parse_pkg_info_string(unsafe { cstring_to_vstring(buf) }) ?
+
+			unsafe {
+				free(buf)
+			}
 		} else {
 			C.archive_read_data_skip(a)
 		}
 	}
-
-	mut pkg_info := parse_pkg_info_string(unsafe { cstring_to_vstring(&char(buf)) }) ?
 
 	pkg_info.csize = i64(os.file_size(pkg_path))
 
