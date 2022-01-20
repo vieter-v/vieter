@@ -119,10 +119,10 @@ fn (r &Repo) sync() ? {
 		}
 
 		C.archive_entry_set_pathname(entry, &char(inner_path.str))
-		// C.archive_entry_copy_stat(entry, &st)
-		C.archive_entry_set_size(entry, st.st_size)
-		C.archive_entry_set_filetype(entry, C.AE_IFREG)
-		C.archive_entry_set_perm(entry, 0o644)
+		C.archive_entry_copy_stat(entry, &st)
+		// C.archive_entry_set_size(entry, st.st_size)
+		// C.archive_entry_set_filetype(entry, C.AE_IFREG)
+		// C.archive_entry_set_perm(entry, 0o644)
 		C.archive_write_header(a, entry)
 
 		fd := C.open(&char(actual_path.str), C.O_RDONLY)

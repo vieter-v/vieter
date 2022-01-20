@@ -92,7 +92,7 @@ fn C.archive_entry_set_perm(&C.archive_entry, int)
 fn C.archive_entry_clear(&C.archive_entry)
 
 // Copy over a stat struct to the archive entry
-fn C.archive_entry_copy_stat(&C.archive_entry, &C.stat)
+fn C.archive_entry_copy_stat(entry &C.archive_entry, const_stat &C.stat)
 
 #include <string.h>
 
