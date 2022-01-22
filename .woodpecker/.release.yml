@@ -8,7 +8,7 @@ pipeline:
     image: 'chewingbever/vlang:latest'
     secrets: [ s3_username, s3_password ]
     commands:
-      - git clone "$CI_REPO_REMOTE"
+      - git clone "$CI_REPO_REMOTE" .
       - git checkout "$CI_COMMIT_BRANCH"
       # Write the title to a file that the plugin can then read
       - echo "$(git describe --tags --abbrev=0 2> /dev/null || echo '0.0.0')-$(git rev-list --count ^dev)" > title
