@@ -1,5 +1,7 @@
 FROM alpine:3.12
 
+ARG TARGETPLATFORM
+
 WORKDIR /opt/vlang
 
 ENV VVV  /opt/vlang
