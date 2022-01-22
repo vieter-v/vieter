@@ -11,14 +11,17 @@ ENV VFLAGS -cc gcc
 RUN mkdir -p /opt/vlang && \
   ln -s /opt/vlang/v /usr/bin/v && \
   apk --no-cache add \
-    git make gcc \
+    git make gcc curl openssl \
     musl-dev \
     openssl-libs-static openssl-dev \
     zlib-static bzip2-static xz-dev expat-static zstd-static lz4-static \
     sqlite-static sqlite-dev \
     libx11-dev glfw-dev freetype-dev \
     libarchive-static libarchive-dev \
-    diffutils
+    diffutils && \
+    # yes yes I know this is amd64, it's okay
+    wget -O /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc && \
+    chmod +x /usr/local/bin/mc
 
 COPY . /vlang-local
 
