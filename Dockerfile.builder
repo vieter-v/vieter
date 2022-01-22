@@ -6,8 +6,6 @@ ENV VVV  /opt/vlang
 ENV PATH /opt/vlang:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ENV VFLAGS -cc gcc
 
-RUN echo "$TARGETPLATFORM" && exit 1
-
 RUN mkdir -p /opt/vlang && \
   ln -s /opt/vlang/v /usr/bin/v && \
   apk --no-cache add \
@@ -18,10 +16,13 @@ RUN mkdir -p /opt/vlang && \
     sqlite-static sqlite-dev \
     libx11-dev glfw-dev freetype-dev \
     libarchive-static libarchive-dev \
-    diffutils && \
-    # yes yes I know this is amd64, it's okay
-    wget -O /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc && \
-    chmod +x /usr/local/bin/mc
+    diffutils
+
+RUN if [ "$TARGETPLATFORM" = 'linux/amd64' ]; then \
+  wget -O /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc && \
+  chmod +x /usr/local/bin/mc ; \
+fi
+
 
 COPY . /vlang-local
 
