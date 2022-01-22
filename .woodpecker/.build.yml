@@ -5,8 +5,6 @@ matrix:
     - linux/arm/v7
 
 # These checks already get performed on the feature branches
-branches:
-  exclude: [ main, dev ]
 platform: ${PLATFORM}
 
 pipeline:
