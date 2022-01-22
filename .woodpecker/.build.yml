@@ -42,18 +42,18 @@ pipeline:
       # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f
       - export URL=s3.rustybever.be
       - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:')"
-      - export DATE=`date -R --utc`
+      - export DATE="$(date -R --utc`)"
       - export CONTENT_TYPE='application/zstd'
-      - export SIG_STRING="PUT\n\n${CONTENT_TYPE}\n${DATE}\n${OBJ_PATH}"
-      - export SIGNATURE=`echo -en ${SIG_STRING} | openssl sha1 -hmac ${S3_PASSWORD} -binary | base64`
+      - export SIG_STRING="PUT\n\n$CONTENT_TYPE\n$DATE\n$OBJ_PATH"
+      - export SIGNATURE=`echo -en $SIG_STRING | openssl sha1 -hmac $S3_PASSWORD -binary | base64`
 
       - >
-        curl \
-          --silent \
-          -XPUT \
-          -T pvieter \
-          -H "Host: $URL" \
-          -H "Date: ${DATE}" \
-          -H "Content-Type: ${CONTENT_TYPE}" \
-          -H "Authorization: AWS ${S3_USERNAME}:${SIGNATURE}" \
-          https://$URL${OBJ_PATH}
+        curl 
+        --silent
+        -XPUT
+        -T pvieter
+        -H "Host: $URL"
+        -H "Date: $DATE"
+        -H "Content-Type: $CONTENT_TYPE"
+        -H "Authorization: AWS $S3_USERNAME:$SIGNATURE"
+        https://$URL$OBJ_PATH
