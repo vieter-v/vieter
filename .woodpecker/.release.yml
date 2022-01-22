@@ -1,9 +1,7 @@
 platform: linux/amd64
 
 # We need the entire repo in order for the release names to work
-clone:
-  git:
-    skip: true
+skip_clone: true
 
 pipeline:
   prepare:
