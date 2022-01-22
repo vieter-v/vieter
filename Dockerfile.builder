@@ -1,7 +1,5 @@
 FROM alpine:3.12
 
-LABEL maintainer="spytheman <spytheman@bulsynt.org>"
-
 WORKDIR /opt/vlang
 
 ENV VVV  /opt/vlang
