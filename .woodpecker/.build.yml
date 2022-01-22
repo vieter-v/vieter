@@ -1,8 +1,8 @@
 matrix:
   PLATFORM:
     - linux/amd64
-    # - linux/arm64
-    # - linux/arm/v7
+    - linux/arm64
+    - linux/arm/v7
 
 # These checks already get performed on the feature branches
 platform: ${PLATFORM}
@@ -11,12 +11,14 @@ pipeline:
   # The default build isn't needed, as alpine switches to gcc for the compiler anyways
   debug:
     image: 'chewingbever/vlang:latest'
+    pull: true
     group: 'build'
     commands:
       - make debug
 
   prod:
     image: 'chewingbever/vlang:latest'
+    pull: true
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     group: 'build'
