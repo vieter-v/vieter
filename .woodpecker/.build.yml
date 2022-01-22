@@ -24,7 +24,7 @@ pipeline:
     group: 'build'
     commands:
       - make prod
-      # Make sure the binary is actually static
+      # Make sure the binary is actually statically built
       - readelf -d pvieter
       - du -h pvieter
       - '[ "$(readelf -d pvieter | grep NEEDED | wc -l)" = 0 ]'
