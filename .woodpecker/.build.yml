@@ -40,9 +40,6 @@ pipeline:
     image: 'alpine:latest'
     secrets: [ s3_username, s3_password ]
     commands:
-      # We should just add this to the builder image instead
-      - apk add curl openssl
-
       # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f
       - export URL=s3.rustybever.be
       - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:g')"

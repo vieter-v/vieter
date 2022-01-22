@@ -16,10 +16,8 @@ pipeline:
       # Write the title to a file that the plugin can then read
       - echo "$(git describe --tags --abbrev=0 2> /dev/null || echo '0.0.0')-$(git rev-list --count ^dev)" > title
       - cat title
-      - wget https://dl.min.io/client/mc/release/linux-amd64/mc
-      - chmod +x mc
-      - ./mc alias set s3/ https://s3.rustybever.be "$S3_USERNAME" "$S3_PASSWORD"
-      - ./mc cp -r "s3/vieter/commits/$CI_COMMIT_SHA" assets
+      - mc alias set s3/ https://s3.rustybever.be "$S3_USERNAME" "$S3_PASSWORD"
+      - mc cp -r "s3/vieter/commits/$CI_COMMIT_SHA" assets
 
   release:
     image: 'plugins/gitea-release'
