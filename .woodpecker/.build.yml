@@ -28,3 +28,16 @@ pipeline:
       - readelf -d pvieter
       - du -h pvieter
       - '[ "$(readelf -d pvieter | grep NEEDED | wc -l)" = 0 ]'
+      # This removes so much, it's amazing
+      - strip -s pvieter
+      - du -h pvieter
+
+  upload:
+    image: 'alpine:latest'
+    secrets: [ s3_username, s3_password ]
+    commands:
+      # https://min.io/download#/linux
+      - wget https://dl.min.io/client/mc/release/linux-amd64/mc
+      - chmod +x mc
+      - ./mc alias set s3 https://s3.rustybever.be "$S3_USERNAME" "$S3_PASSWORD"
+      - ./mc cp pvieter "s3/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:')"
