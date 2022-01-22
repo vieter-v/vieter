@@ -8,6 +8,7 @@ skip_clone: true
 pipeline:
   prepare:
     image: 'chewingbever/vlang:latest'
+    pull: true
     secrets: [ s3_username, s3_password ]
     commands:
       - git clone "$CI_REPO_REMOTE" .
