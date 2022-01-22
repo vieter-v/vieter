@@ -5,26 +5,61 @@ matrix:
     - linux/arm/v7
 
 # These checks already get performed on the feature branches
-branches:
-  exclude: [ main, dev ]
 platform: ${PLATFORM}
 
 pipeline:
   # The default build isn't needed, as alpine switches to gcc for the compiler anyways
   debug:
     image: 'chewingbever/vlang:latest'
+    pull: true
     group: 'build'
     commands:
       - make debug
+    when:
+      event: push
 
   prod:
     image: 'chewingbever/vlang:latest'
+    pull: true
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     group: 'build'
     commands:
       - make prod
-      # Make sure the binary is actually static
+      # Make sure the binary is actually statically built
       - readelf -d pvieter
       - du -h pvieter
       - '[ "$(readelf -d pvieter | grep NEEDED | wc -l)" = 0 ]'
+      # This removes so much, it's amazing
+      - strip -s pvieter
+      - du -h pvieter
+    when:
+      event: push
+
+  upload:
+    image: 'alpine:latest'
+    secrets: [ s3_username, s3_password ]
+    commands:
+      # We should just add this to the builder image instead
+      - apk add curl openssl
+
+      # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f
+      - export URL=s3.rustybever.be
+      - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:g')"
+      - export DATE="$(date -R --utc)"
+      - export CONTENT_TYPE='application/zstd'
+      - export SIG_STRING="PUT\n\n$CONTENT_TYPE\n$DATE\n$OBJ_PATH"
+      - export SIGNATURE=`echo -en $SIG_STRING | openssl sha1 -hmac $S3_PASSWORD -binary | base64`
+
+      - >
+        curl 
+        --silent
+        -XPUT
+        -T pvieter
+        -H "Host: $URL"
+        -H "Date: $DATE"
+        -H "Content-Type: $CONTENT_TYPE"
+        -H "Authorization: AWS $S3_USERNAME:$SIGNATURE"
+        https://$URL$OBJ_PATH
+    when:
+      event: push

@@ -6,12 +6,8 @@ platform: linux/amd64
 pipeline:
   lint:
     image: 'chewingbever/vlang:latest'
+    pull: true
     group: lint
     commands:
       - make lint
-
-  vet:
-    image: 'chewingbever/vlang:latest'
-    group: lint
-    commands:
       - make vet
