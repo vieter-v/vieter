@@ -7,7 +7,7 @@ ARG CI_COMMIT_SHA
 
 WORKDIR /app
 
-RUN curl \
+RUN curl --fail \
     -o vieter \
     "https://s3.rustybever.be/vieter/commits/${CI_COMMIT_SHA}/vieter-$(echo "${TARGETPLATFORM}" | sed 's:/:-:g')" && \
     chmod +x vieter

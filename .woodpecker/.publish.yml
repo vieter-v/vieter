@@ -10,7 +10,7 @@ pipeline:
       repo: chewingbever/vieter
       tag: dev
       platforms: [ linux/arm/v7, linux/arm64/v8, linux/amd64 ]
-      args:
+      args-from-env:
         - CI_COMMIT_SHA
     when:
       event: push
