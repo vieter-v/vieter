@@ -31,3 +31,4 @@ pipeline:
 
 depends_on:
   - builder
+  - build
