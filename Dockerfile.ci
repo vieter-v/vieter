@@ -1,0 +1,20 @@
+# vim: ft=dockerfile
+# This image just has the required tools to download the binaries
+FROM chewingbever/vlang:latest AS builder
+
+ARG TARGETPLATFORM
+ARG CI_COMMIT_SHA
+
+WORKDIR /app
+
+RUN curl \
+    -o vieter \
+    "https://s3.rustybever.be/vieter/commits/${CI_COMMIT_SHA}/vieter-$(echo "${TARGETPLATFORM}" | sed 's:/:-:g')" && \
+    chmod +x vieter
+
+
+FROM scratch
+
+COPY --from=builder /app/vieter /bin/vieter
+
+ENTRYPOINT ["/bin/vieter"]

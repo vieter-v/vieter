@@ -1,6 +1,7 @@
 # Yeah so this only works on tags so we'll worry about this later
 platform: linux/amd64
 branches: main
+depends_on: build
 
 # We need the entire repo in order for the release names to work
 skip_clone: true
