@@ -2,7 +2,7 @@
 # because it has to be the target of the pull request
 branches: dev
 platform: linux/amd64
-depends_on: build
+depends_on: [ build ]
 
 pipeline:
   dryrun:
