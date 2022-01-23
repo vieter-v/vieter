@@ -37,7 +37,7 @@ pipeline:
       event: push
 
   upload:
-    image: 'alpine:latest'
+    image: 'chewingbever/vlang:latest'
     secrets: [ s3_username, s3_password ]
     commands:
       # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f
