@@ -71,10 +71,9 @@ vet:
 .PHONY: v
 v: v-$(V_RELEASE)/v
 v-$(V_RELEASE)/v:
-	git clone --depth 1 --single-branch --branch '$(V_RELEASE)' https://github.com/vlang/v 'v-$(V_RELEASE)'
-	# curl -Lo - 'https://github.com/vlang/v/archive/refs/tags/$(V_RELEASE).tar.gz' | tar xzf -
+	curl -Lo - 'https://github.com/vlang/v/archive/refs/tags/$(V_RELEASE).tar.gz' | tar xzf -
 	cd patches && sh patch.sh '../v-$(V_RELEASE)'
-	cd 'v-$(V_RELEASE)' && make
+	make -C 'v-$(V_RELEASE)'
 
 clean:
 	rm -rf '$(LARCHIVE_DIR)' 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'v-$(V_RELEASE)'
