@@ -28,7 +28,6 @@ fn exit_with_message(code int, msg string) {
 }
 
 fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
-	// Open up a file for writing to
 	mut file := os.create(path) ?
 	defer {
 		file.close()
