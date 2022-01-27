@@ -72,7 +72,7 @@ vet:
 v: v-$(V_RELEASE)/v
 v-$(V_RELEASE)/v:
 	curl -Lo - 'https://github.com/vlang/v/archive/refs/tags/$(V_RELEASE).tar.gz' | tar xzf -
-	cd patches && ./patch.sh '../v-$(V_RELEASE)'
+	cd patches && sh patch.sh '../v-$(V_RELEASE)'
 	'$(MAKE)' -C 'v-$(V_RELEASE)'
 
 clean:
