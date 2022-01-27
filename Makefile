@@ -2,15 +2,8 @@
 SRC_DIR := src
 SOURCES != find '$(SRC_DIR)' -iname '*.v'
 
-LARCHIVE_VER := 3.5.2
-LARCHIVE_DIR := libarchive-$(LARCHIVE_VER)
-LARCHIVE_LIB := $(LARCHIVE_DIR)/libarchive/libarchive.so
-
 V_RELEASE := weekly.2022.04
 V_PATH ?= v-$(V_RELEASE)/v
-
-# Custom V command for linking libarchive
-# V := LDFLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags '-I$(PWD)/$(LARCHIVE_DIR) -I $(PWD)/$(LARCHIVE_DIR)'
 V := $(V_PATH) -showcc
 
 all: vieter
@@ -32,6 +25,7 @@ prod: pvieter
 pvieter: $(SOURCES)
 	$(V) -o pvieter -prod $(SRC_DIR)
 
+# Only generate C code
 .PHONY: c
 c:
 	$(V) -o vieter.c $(SRC_DIR)
@@ -45,12 +39,12 @@ run: vieter
 
 .PHONY: run-prod
 run-prod: prod
-	 API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG ./pvieter
+	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG ./pvieter
 
 # Same as run, but restart when the source code changes
 .PHONY: watch
 watch:
-	API_KEY=test REPO_DIR=data LOG_LEVEL=DEBUG $(V) watch run vieter
+	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG $(V) watch run vieter
 
 
 # =====OTHER=====

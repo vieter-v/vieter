@@ -15,4 +15,3 @@ pipeline:
       path:
         - Dockerfile.builder
         - patches/*
-        - Makefile
