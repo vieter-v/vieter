@@ -7,10 +7,11 @@ LARCHIVE_DIR := libarchive-$(LARCHIVE_VER)
 LARCHIVE_LIB := $(LARCHIVE_DIR)/libarchive/libarchive.so
 
 V_RELEASE := weekly.2022.04
+V_PATH ?= v-$(V_RELEASE)/v
 
 # Custom V command for linking libarchive
 # V := LDFLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags '-I$(PWD)/$(LARCHIVE_DIR) -I $(PWD)/$(LARCHIVE_DIR)'
-V := v-$(V_RELEASE)/v -showcc
+V := $(V_PATH) -showcc
 
 all: vieter
 
