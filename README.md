@@ -33,7 +33,12 @@ terminal, & upload them to the servers using CI.
 
 The data directory consists of three main directories:
 
-* `downloads` - This is where packages are initially downloaded. Because vieter moves files from this folder to the `pkgs` folder, these two folders should best be on the same drive
+* `downloads` - This is where packages are initially downloaded. Because vieter
+  moves files from this folder to the `pkgs` folder, these two folders should
+  best be on the same drive
 * `pkgs` - This is where approved package files are stored.
-* `repos` - Each repository gets a subfolder here. The subfolder contains the uncompressed contents of the db file.
-    * Each repo subdirectory contains the compressed db & files archive for the repository, alongside a directory called `files` which contains the uncompressed contents.
+* `repos` - Each repository gets a subfolder here. The subfolder contains the
+  uncompressed contents of the db file.
+    * Each repo subdirectory contains the compressed db & files archive for the
+      repository, alongside a directory called `files` which contains the
+      uncompressed contents.

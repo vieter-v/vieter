@@ -6,9 +6,11 @@ LARCHIVE_VER := 3.5.2
 LARCHIVE_DIR := libarchive-$(LARCHIVE_VER)
 LARCHIVE_LIB := $(LARCHIVE_DIR)/libarchive/libarchive.so
 
+V_RELEASE := weekly.2022.04
+
 # Custom V command for linking libarchive
 # V := LDFLAGS=$(PWD)/$(LARCHIVE_LIB) v -cflags '-I$(PWD)/$(LARCHIVE_DIR) -I $(PWD)/$(LARCHIVE_DIR)'
-V := v -showcc
+V := v-$(V_RELEASE)/v -showcc
 
 all: vieter
 
@@ -64,24 +66,13 @@ fmt:
 vet:
 	$(V) vet -W $(SRC_DIR)
 
-# Pulls & builds my personal build of the v compiler, required for this project to function
-.PHONY: customv
-customv:
-	rm -rf v-jjr
-	git clone \
-		-b vweb-streaming \
-		--single-branch \
-		https://github.com/ChewingBever/v jjr-v
-	'$(MAKE)' -C jjr-v
-
-
-# =====LIBARCHIVE=====
-.PHONY: libarchive
-libarchive: $(LARCHIVE_LIB)
-$(LARCHIVE_LIB):
-	curl -o - "https://libarchive.org/downloads/libarchive-${LARCHIVE_VER}.tar.gz" | tar xzf -
-	cd "libarchive-${LARCHIVE_VER}" && cmake .
-	'$(MAKE)' -C "libarchive-${LARCHIVE_VER}"
+# Build & patch the V compiler
+.PHONY: v
+v: v-$(V_RELEASE)/v
+v-$(V_RELEASE)/v:
+	curl -Lo - 'https://github.com/vlang/v/archive/refs/tags/$(V_RELEASE).tar.gz' | tar xzf -
+	cd patches && ./patch.sh '../v-$(V_RELEASE)'
+	'$(MAKE)' -C 'v-$(V_RELEASE)'
 
 clean:
-	rm -rf '$(LARCHIVE_DIR)' 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c'
+	rm -rf '$(LARCHIVE_DIR)' 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'v-$(V_RELEASE)'

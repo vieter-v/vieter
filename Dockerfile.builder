@@ -1,6 +1,6 @@
-FROM alpine:3.12
+FROM alpine:3.15
 
-ARG V_RELEASE=weekly.2022.03
+ARG TARGETPLATFORM
 
 WORKDIR /opt/vlang
 
@@ -10,7 +10,7 @@ ENV VFLAGS -cc gcc
 
 RUN ln -s /opt/vlang/v /usr/bin/v && \
   apk --no-cache add \
-    curl git make gcc \
+    git make gcc curl openssl \
     musl-dev \
     openssl-libs-static openssl-dev \
     zlib-static bzip2-static xz-dev expat-static zstd-static lz4-static \
@@ -19,15 +19,16 @@ RUN ln -s /opt/vlang/v /usr/bin/v && \
     libarchive-static libarchive-dev \
     diffutils
 
-RUN curl -Lo - "https://github.com/vlang/v/archive/refs/tags/${V_RELEASE}.tar.gz" | tar xzf - && \
-  mv "v-${V_RELEASE}"/* /opt/vlang && \
-  make && v -version
-# RUN git clone \
-#       'https://github.com/ChewingBever/v/' \
-#       -b vweb-streaming \
-#       --single-branch \
-#       '/opt/vlang' && \
-#     rm -rf '/vlang-local' && \
-#     make && v -version
+COPY patches ./patches
+COPY Makefile ./
+
+RUN make v && \
+  mv v-*/* /opt/vlang && \
+  v -version
+
+RUN if [ "$TARGETPLATFORM" = 'linux/amd64' ]; then \
+  wget -O /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc && \
+  chmod +x /usr/local/bin/mc ; \
+fi
 
 CMD ["v"]

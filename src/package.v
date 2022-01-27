@@ -143,16 +143,17 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 
 			// TODO can this unsafe block be avoided?
 			buf = unsafe { malloc(size) }
+			defer {
+				unsafe {
+					free(buf)
+				}
+			}
 			C.archive_read_data(a, buf, size)
 
 			unsafe {
 				println(cstring_to_vstring(buf))
 			}
 			pkg_info = parse_pkg_info_string(unsafe { cstring_to_vstring(buf) }) ?
-
-			unsafe {
-				free(buf)
-			}
 		} else {
 			C.archive_read_data_skip(a)
 		}

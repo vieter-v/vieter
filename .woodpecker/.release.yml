@@ -1,0 +1,39 @@
+# Yeah so this only works on tags so we'll worry about this later
+platform: linux/amd64
+branches: main
+
+# We need the entire repo in order for the release names to work
+skip_clone: true
+
+pipeline:
+  prepare:
+    image: 'chewingbever/vlang:latest'
+    pull: true
+    secrets: [ s3_username, s3_password ]
+    commands:
+      - git clone "$CI_REPO_REMOTE" .
+      - git checkout "$CI_COMMIT_BRANCH"
+      # Write the title to a file that the plugin can then read
+      - echo "$(git describe --tags --abbrev=0 2> /dev/null || echo '0.0.0')-$(git rev-list --count ^dev)" > title
+      - cat title
+      - mc alias set s3/ https://s3.rustybever.be "$S3_USERNAME" "$S3_PASSWORD"
+      - mc cp -r "s3/vieter/commits/$CI_COMMIT_SHA" assets
+
+  release:
+    image: 'plugins/gitea-release'
+    secrets:
+      - gitea_release_api_key
+    settings:
+      base_url: https://git.rustybever.be
+      files: assets/*
+      checksums:
+        - md5
+        - sha256
+      prerelease: true
+      # This should get read in as a file
+      title: title
+    when:
+      event: push
+
+depends_on:
+  - build
