@@ -125,7 +125,6 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 		C.archive_read_free(a)
 	}
 
-	mut buf := voidptr(0)
 	mut files := []string{}
 	mut pkg_info := PkgInfo{}
 
@@ -143,7 +142,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 			size := C.archive_entry_size(entry)
 
 			// TODO can this unsafe block be avoided?
-			buf = unsafe { malloc(size) }
+            buf := unsafe { malloc(size) }
 			defer {
 				unsafe {
 					free(buf)
@@ -151,7 +150,8 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 			}
 			C.archive_read_data(a, buf, size)
 
-            pkg_text :=  unsafe { cstring_to_vstring(buf) }
+            pkg_text := unsafe { buf.vstring_with_len(size).clone() }
+
 			pkg_info = parse_pkg_info_string(pkg_text) ?
 		} else {
 			C.archive_read_data_skip(a)
