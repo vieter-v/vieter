@@ -107,7 +107,6 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 
 	a := C.archive_read_new()
 	entry := C.archive_entry_new()
-	mut r := 0
 
 	// Sinds 2020, all newly built Arch packages use zstd
 	C.archive_read_support_filter_zstd(a)
@@ -116,7 +115,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 	C.archive_read_support_format_tar(a)
 
 	// TODO find out where does this 10240 come from
-	r = C.archive_read_open_filename(a, &char(pkg_path.str), 10240)
+    r := C.archive_read_open_filename(a, &char(pkg_path.str), 10240)
 
 	if r != C.ARCHIVE_OK {
 		return error('Failed to open package.')
