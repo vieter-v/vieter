@@ -19,6 +19,3 @@ pipeline:
     when:
       event: pull_request
       branch: dev
-
-depends_on:
-  - build
