@@ -76,9 +76,17 @@ fn (mut app App) put_package() web.Result {
 	added := app.repo.add_from_path(pkg_path) or {
 		app.lerror('Error while adding package: $err.msg')
 
+        os.rm(pkg_path) or {
+            app.lerror("Failed to remove download '$pkg_path'.")
+        }
+
 		return app.text('Failed to add package.')
 	}
 	if !added {
+        os.rm(pkg_path) or {
+            app.lerror("Failed to remove download '$pkg_path'.")
+        }
+
 		app.lwarn('Duplicate package.')
 
 		return app.text('File already exists.')

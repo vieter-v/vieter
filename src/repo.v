@@ -96,6 +96,7 @@ fn (r &Repo) pkg_path(pkg &package.Pkg) string {
 
 // Re-generate the repo archive files
 fn (r &Repo) sync() ? {
+    // TODO also write files archive
 	lock r.mutex {
 		a := C.archive_write_new()
 		entry := C.archive_entry_new()
@@ -106,6 +107,7 @@ fn (r &Repo) sync() ? {
 		C.archive_write_add_filter_gzip(a)
 		C.archive_write_set_format_pax_restricted(a)
 
+        // TODO add symlink to .tar.gz version
 		repo_path := os.join_path_single(r.repo_dir, 'repo.db')
 
 		C.archive_write_open_filename(a, &char(repo_path.str))

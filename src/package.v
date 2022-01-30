@@ -111,17 +111,19 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 
 	// Sinds 2020, all newly built Arch packages use zstd
 	C.archive_read_support_filter_zstd(a)
+	C.archive_read_support_filter_gzip(a)
 	// The content should always be a tarball
 	C.archive_read_support_format_tar(a)
 
 	// TODO find out where does this 10240 come from
 	r = C.archive_read_open_filename(a, &char(pkg_path.str), 10240)
-	defer {
-		C.archive_read_free(a)
-	}
 
 	if r != C.ARCHIVE_OK {
 		return error('Failed to open package.')
+	}
+
+	defer {
+		C.archive_read_free(a)
 	}
 
 	mut buf := voidptr(0)
@@ -150,10 +152,8 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 			}
 			C.archive_read_data(a, buf, size)
 
-			unsafe {
-				println(cstring_to_vstring(buf))
-			}
-			pkg_info = parse_pkg_info_string(unsafe { cstring_to_vstring(buf) }) ?
+            pkg_text :=  unsafe { cstring_to_vstring(buf) }
+			pkg_info = parse_pkg_info_string(pkg_text) ?
 		} else {
 			C.archive_read_data_skip(a)
 		}
