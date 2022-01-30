@@ -115,7 +115,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 	C.archive_read_support_format_tar(a)
 
 	// TODO find out where does this 10240 come from
-    r := C.archive_read_open_filename(a, &char(pkg_path.str), 10240)
+	r := C.archive_read_open_filename(a, &char(pkg_path.str), 10240)
 
 	if r != C.ARCHIVE_OK {
 		return error('Failed to open package.')
@@ -142,7 +142,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 			size := C.archive_entry_size(entry)
 
 			// TODO can this unsafe block be avoided?
-            buf := unsafe { malloc(size) }
+			buf := unsafe { malloc(size) }
 			defer {
 				unsafe {
 					free(buf)
@@ -150,7 +150,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 			}
 			C.archive_read_data(a, buf, size)
 
-            pkg_text := unsafe { buf.vstring_with_len(size).clone() }
+			pkg_text := unsafe { buf.vstring_with_len(size).clone() }
 
 			pkg_info = parse_pkg_info_string(pkg_text) ?
 		} else {
