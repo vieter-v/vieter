@@ -31,4 +31,3 @@ pipeline:
         - CI_COMMIT_SHA
     when:
       event: tag
-      branch: main
