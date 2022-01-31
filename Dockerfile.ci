@@ -4,8 +4,16 @@ FROM chewingbever/vlang:latest AS builder
 
 ARG TARGETPLATFORM
 ARG CI_COMMIT_SHA
+ARG DI_VER=1.2.5
 
 WORKDIR /app
+
+# Build dumb-init
+RUN curl -Lo - "https://github.com/Yelp/dumb-init/archive/refs/tags/v${DI_VER}.tar.gz" | tar -xzf - && \
+    cd "dumb-init-${DI_VER}" && \
+    make SHELL=/bin/sh && \
+    mv dumb-init .. && \
+    cd ..
 
 RUN curl --fail \
     -o vieter \
@@ -13,8 +21,26 @@ RUN curl --fail \
     chmod +x vieter
 
 
-FROM scratch
+FROM busybox:1.35.0
 
-COPY --from=builder /app/vieter /bin/vieter
+ENV PATH=/bin \
+    REPO_DIR=/data/repo \
+    PKG_DIR=/data/pkgs \
+    DOWNLOAD_DIR=/data/downloads
 
-ENTRYPOINT ["/bin/vieter"]
+COPY --from=builder /app/dumb-init /app/vieter /bin/
+
+HEALTHCHECK --interval=30s \
+    --timeout=3s \
+    --start-period=5s \
+    CMD /bin/wget --spider http://localhost:8000/health || exit 1
+
+RUN mkdir /data && \
+    chown -R www-data:www-data /data
+
+WORKDIR /data
+
+USER www-data:www-data
+
+ENTRYPOINT ["/bin/dumb-init", "--"]
+CMD ["/bin/vieter"]

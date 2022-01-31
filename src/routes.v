@@ -25,6 +25,11 @@ fn is_pkg_name(s string) bool {
 	return s.contains('.pkg')
 }
 
+['/health'; get]
+pub fn (mut app App) healthcheck() web.Result {
+    return app.text('Healthy')
+}
+
 // get_root handles a GET request for a file on the root
 ['/:filename'; get]
 fn (mut app App) get_root(filename string) web.Result {
