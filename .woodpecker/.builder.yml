@@ -13,5 +13,6 @@ pipeline:
     when:
       event: push
       path:
+        - Makefile
         - Dockerfile.builder
         - patches/*

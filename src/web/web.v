@@ -262,7 +262,6 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	if ctx.done {
 		return Result{}
 	}
-	ctx.done = true
 
 	if !os.is_file(f_path) {
 		return ctx.not_found()

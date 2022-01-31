@@ -2,7 +2,7 @@
 SRC_DIR := src
 SOURCES != find '$(SRC_DIR)' -iname '*.v'
 
-V_RELEASE := weekly.2022.04
+V_RELEASE := weekly.2022.05
 V_PATH ?= v-$(V_RELEASE)/v
 V := $(V_PATH) -showcc
 
@@ -70,4 +70,4 @@ v-$(V_RELEASE)/v:
 	make -C 'v-$(V_RELEASE)'
 
 clean:
-	rm -rf '$(LARCHIVE_DIR)' 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'v-$(V_RELEASE)'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'v-$(V_RELEASE)'
