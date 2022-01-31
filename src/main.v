@@ -5,7 +5,6 @@ import os
 import log
 import io
 import repo
-import archive
 
 const port = 8000
 
@@ -17,6 +16,7 @@ struct App {
 	web.Context
 pub:
 	api_key string [required; web_global]
+	dl_dir  string [required; web_global]
 pub mut:
 	repo repo.Repo [required; web_global]
 }
@@ -28,7 +28,6 @@ fn exit_with_message(code int, msg string) {
 }
 
 fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
-	// Open up a file for writing to
 	mut file := os.create(path) ?
 	defer {
 		file.close()
@@ -80,33 +79,24 @@ fn main() {
 	repo_dir := os.getenv_opt('REPO_DIR') or {
 		exit_with_message(1, 'No repo directory was configured.')
 	}
-
-	repo := repo.Repo{
-		dir: repo_dir
-		name: db_name
+	pkg_dir := os.getenv_opt('PKG_DIR') or {
+		exit_with_message(1, 'No package directory was configured.')
+	}
+	dl_dir := os.getenv_opt('DOWNLOAD_DIR') or {
+		exit_with_message(1, 'No download directory was configured.')
 	}
 
-	// We create the upload directory during startup
-	if !os.is_dir(repo.pkg_dir()) {
-		os.mkdir_all(repo.pkg_dir()) or {
-			exit_with_message(2, "Failed to create repo directory '$repo.pkg_dir()'.")
-		}
-
-		logger.info("Created package directory '$repo.pkg_dir()'.")
+	// This also creates the directories if needed
+	repo := repo.new(repo_dir, pkg_dir) or {
+		exit_with_message(1, 'Failed to create required directories.')
 	}
+
+	os.mkdir_all(dl_dir) or { exit_with_message(1, 'Failed to create download directory.') }
 
 	web.run(&App{
 		logger: logger
 		api_key: key
+		dl_dir: dl_dir
 		repo: repo
 	}, port)
 }
-
-// fn main() {
-// 	// archive.list_filenames()
-// 	info := archive.get_pkg_info('test/jjr-joplin-desktop-2.6.10-4-x86_64.pkg.tar.zst') or {
-// 		eprintln(err.msg)
-// 		return
-// 	}
-// 	println(info)
-// }

@@ -16,9 +16,11 @@ that.
 ### Custom Compiler
 
 Currently, this program only works with a very slightly modified version of the
-V standard library, and therefore the compiler. The code for this can be found
-[here](https://github.com/ChewingBever/v). For CI purposes & ease of use, you
-can also clone & build that repo locally by running `make customv`.
+V standard library, and therefore the compiler. The changes that are made to
+the standard V release can be found in the [patches](/patches) directory. You
+can obtain this modified version of the compiler by running `make v`, which
+will download, patch & build the compiler. Afterwards, all make commands that
+require the V compiler will use this new binary.
 
 ## Features
 
@@ -28,3 +30,17 @@ daemon to start builds, which are then uploaded to the server's repository. The
 server also allows for non-agents to upload packages, as long as they have the
 required secrets. This allows me to also develop non-git packages, such as my
 terminal, & upload them to the servers using CI.
+
+## Directory Structure
+
+The data directory consists of three main directories:
+
+* `downloads` - This is where packages are initially downloaded. Because vieter
+  moves files from this folder to the `pkgs` folder, these two folders should
+  best be on the same drive
+* `pkgs` - This is where approved package files are stored.
+* `repos` - Each repository gets a subfolder here. The subfolder contains the
+  uncompressed contents of the db file.
+    * Each repo subdirectory contains the compressed db & files archive for the
+      repository, alongside a directory called `files` which contains the
+      uncompressed contents.

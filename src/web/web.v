@@ -187,14 +187,14 @@ struct Route {
 }
 
 // Defining this method is optional.
-// This method called at server start.
+// init_server is called at server start.
 // You can use it for initializing globals.
 pub fn (ctx Context) init_server() {
 	eprintln('init_server() has been deprecated, please init your web app in `fn main()`')
 }
 
 // Defining this method is optional.
-// This method called before every request (aka middleware).
+// before_request is called before every request (aka middleware).
 // Probably you can use it for check user session cookie or add header.
 pub fn (ctx Context) before_request() {}
 
@@ -206,7 +206,7 @@ pub struct Cookie {
 	http_only bool
 }
 
-// web intern function
+// send_response_to_client sends a response to the client
 [manualfree]
 pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bool {
 	if ctx.done {
@@ -230,39 +230,38 @@ pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bo
 	return true
 }
 
-// Response HTTP_OK with s as payload with content-type `text/html`
+// html HTTP_OK with s as payload with content-type `text/html`
 pub fn (mut ctx Context) html(s string) Result {
 	ctx.send_response_to_client('text/html', s)
 	return Result{}
 }
 
-// Response HTTP_OK with s as payload with content-type `text/plain`
+// text HTTP_OK with s as payload with content-type `text/plain`
 pub fn (mut ctx Context) text(s string) Result {
 	ctx.send_response_to_client('text/plain', s)
 	return Result{}
 }
 
-// Response HTTP_OK with json_s as payload with content-type `application/json`
+// json<T> HTTP_OK with json_s as payload with content-type `application/json`
 pub fn (mut ctx Context) json<T>(j T) Result {
 	json_s := json.encode(j)
 	ctx.send_response_to_client('application/json', json_s)
 	return Result{}
 }
 
-// Response HTTP_OK with a pretty-printed JSON result
+// json_pretty<T> Response HTTP_OK with a pretty-printed JSON result
 pub fn (mut ctx Context) json_pretty<T>(j T) Result {
 	json_s := json.encode_pretty(j)
 	ctx.send_response_to_client('application/json', json_s)
 	return Result{}
 }
 
-// Response HTTP_OK with file as payload
+// file Response HTTP_OK with file as payload
 // This function manually implements responses because it needs to stream the file contents
 pub fn (mut ctx Context) file(f_path string) Result {
 	if ctx.done {
 		return Result{}
 	}
-	ctx.done = true
 
 	if !os.is_file(f_path) {
 		return ctx.not_found()
@@ -329,13 +328,13 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	return Result{}
 }
 
-// Response HTTP_OK with s as payload
+// ok Response HTTP_OK with s as payload
 pub fn (mut ctx Context) ok(s string) Result {
 	ctx.send_response_to_client(ctx.content_type, s)
 	return Result{}
 }
 
-// Response a server error
+// server_error Response a server error
 pub fn (mut ctx Context) server_error(ecode int) Result {
 	$if debug {
 		eprintln('> ctx.server_error ecode: $ecode')
@@ -347,7 +346,7 @@ pub fn (mut ctx Context) server_error(ecode int) Result {
 	return Result{}
 }
 
-// Redirect to an url
+// redirect Redirect to an url
 pub fn (mut ctx Context) redirect(url string) Result {
 	if ctx.done {
 		return Result{}
@@ -360,7 +359,7 @@ pub fn (mut ctx Context) redirect(url string) Result {
 	return Result{}
 }
 
-// Send an not_found response
+// not_found Send an not_found response
 pub fn (mut ctx Context) not_found() Result {
 	if ctx.done {
 		return Result{}
@@ -370,7 +369,7 @@ pub fn (mut ctx Context) not_found() Result {
 	return Result{}
 }
 
-// Sets a cookie
+// set_cookie Sets a cookie
 pub fn (mut ctx Context) set_cookie(cookie Cookie) {
 	mut cookie_data := []string{}
 	mut secure := if cookie.secure { 'Secure;' } else { '' }
@@ -383,17 +382,17 @@ pub fn (mut ctx Context) set_cookie(cookie Cookie) {
 	ctx.add_header('Set-Cookie', '$cookie.name=$cookie.value; $data')
 }
 
-// Sets the response content type
+// set_content_type Sets the response content type
 pub fn (mut ctx Context) set_content_type(typ string) {
 	ctx.content_type = typ
 }
 
-// Sets a cookie with a `expire_data`
+// set_cookie_with_expire_date Sets a cookie with a `expire_data`
 pub fn (mut ctx Context) set_cookie_with_expire_date(key string, val string, expire_date time.Time) {
 	ctx.add_header('Set-Cookie', '$key=$val;  Secure; HttpOnly; expires=$expire_date.utc_string()')
 }
 
-// Gets a cookie by a key
+// get_cookie Gets a cookie by a key
 pub fn (ctx &Context) get_cookie(key string) ?string { // TODO refactor
 	mut cookie_header := ctx.get_header('cookie')
 	if cookie_header == '' {
@@ -413,7 +412,7 @@ pub fn (ctx &Context) get_cookie(key string) ?string { // TODO refactor
 	return error('Cookie not found')
 }
 
-// Sets the response status
+// set_status Sets the response status
 pub fn (mut ctx Context) set_status(code int, desc string) {
 	if code < 100 || code > 599 {
 		ctx.status = '500 Internal Server Error'
@@ -422,12 +421,12 @@ pub fn (mut ctx Context) set_status(code int, desc string) {
 	}
 }
 
-// Adds an header to the response with key and val
+// add_header Adds an header to the response with key and val
 pub fn (mut ctx Context) add_header(key string, val string) {
 	ctx.header.add_custom(key, val) or {}
 }
 
-// Returns the header data from the key
+// get_header Returns the header data from the key
 pub fn (ctx &Context) get_header(key string) string {
 	return ctx.req.header.get_custom(key) or { '' }
 }
@@ -436,7 +435,7 @@ interface DbInterface {
 	db voidptr
 }
 
-// run_app
+// run runs the app
 [manualfree]
 pub fn run<T>(global_app &T, port int) {
 	mut l := net.listen_tcp(.ip6, ':$port') or { panic('failed to listen $err.code $err') }
@@ -478,6 +477,7 @@ pub fn run<T>(global_app &T, port int) {
 	}
 }
 
+// handle_conn handles a connection
 [manualfree]
 fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	conn.set_read_timeout(30 * time.second)
@@ -615,6 +615,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	conn.write(web.http_404.bytes()) or {}
 }
 
+// route_matches returns wether a route matches
 fn route_matches(url_words []string, route_words []string) ?[]string {
 	// URL path should be at least as long as the route path
 	// except for the catchall route (`/:path...`)
@@ -657,7 +658,7 @@ fn route_matches(url_words []string, route_words []string) ?[]string {
 	return params
 }
 
-// check if request is for a static file and serves it
+// serve_if_static<T> checks if request is for a static file and serves it
 // returns true if we served a static file, false otherwise
 [manualfree]
 fn serve_if_static<T>(mut app T, url urllib.URL) bool {
@@ -676,6 +677,7 @@ fn serve_if_static<T>(mut app T, url urllib.URL) bool {
 	return true
 }
 
+// scan_static_directory makes a static route for each file in a directory
 fn (mut ctx Context) scan_static_directory(directory_path string, mount_path string) {
 	files := os.ls(directory_path) or { panic(err) }
 	if files.len > 0 {
@@ -695,7 +697,7 @@ fn (mut ctx Context) scan_static_directory(directory_path string, mount_path str
 	}
 }
 
-// Handles a directory static
+// handle_static Handles a directory static
 // If `root` is set the mount path for the dir will be in '/'
 pub fn (mut ctx Context) handle_static(directory_path string, root bool) bool {
 	if ctx.done || !os.exists(directory_path) {
@@ -724,7 +726,7 @@ pub fn (mut ctx Context) mount_static_folder_at(directory_path string, mount_pat
 	return true
 }
 
-// Serves a file static
+// serve_static Serves a file static
 // `url` is the access path on the site, `file_path` is the real path to the file, `mime_type` is the file type
 pub fn (mut ctx Context) serve_static(url string, file_path string) {
 	ctx.static_files[url] = file_path
@@ -733,7 +735,7 @@ pub fn (mut ctx Context) serve_static(url string, file_path string) {
 	ctx.static_mime_types[url] = web.mime_types[ext]
 }
 
-// Returns the ip address from the current user
+// ip Returns the ip address from the current user
 pub fn (ctx &Context) ip() string {
 	mut ip := ctx.req.header.get(.x_forwarded_for) or { '' }
 	if ip == '' {
@@ -749,22 +751,23 @@ pub fn (ctx &Context) ip() string {
 	return ip
 }
 
-// Set s to the form error
+// error Set s to the form error
 pub fn (mut ctx Context) error(s string) {
 	println('web error: $s')
 	ctx.form_error = s
 }
 
-// Returns an empty result
+// not_found Returns an empty result
 pub fn not_found() Result {
 	return Result{}
 }
 
+// send_string
 fn send_string(mut conn net.TcpConn, s string) ? {
 	conn.write(s.bytes()) ?
 }
 
-// Do not delete.
+// filter Do not delete.
 // It used by `vlib/v/gen/c/str_intp.v:130` for string interpolation inside web templates
 // TODO: move it to template render
 fn filter(s string) string {
