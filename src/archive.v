@@ -63,6 +63,9 @@ fn C.archive_write_close(&C.archive)
 // Free the write archive
 fn C.archive_write_free(&C.archive)
 
+// Returns the name of the filter
+fn C.archive_filter_code(&C.archive, int) int
+
 #include "archive_entry.h"
 
 struct C.archive_entry {}

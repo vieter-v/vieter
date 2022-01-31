@@ -6,9 +6,10 @@ import util
 // Represents a read archive
 struct Pkg {
 pub:
-	path  string   [required]
-	info  PkgInfo  [required]
-	files []string [required]
+	path        string   [required]
+	info        PkgInfo  [required]
+	files       []string [required]
+	compression int      [required]
 }
 
 // Represents the contents of a .PKGINFO file
@@ -125,6 +126,11 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 		C.archive_read_free(a)
 	}
 
+	// 0: no compression (just a tarball)
+	// 1: gzip
+	// 14: zstd
+	compression_code := C.archive_filter_code(a, 0)
+
 	mut files := []string{}
 	mut pkg_info := PkgInfo{}
 
@@ -164,6 +170,7 @@ pub fn read_pkg(pkg_path string) ?Pkg {
 		path: pkg_path
 		info: pkg_info
 		files: files
+		compression: compression_code
 	}
 }
 
@@ -175,7 +182,14 @@ fn format_entry(key string, value string) string {
 pub fn (pkg &Pkg) filename() string {
 	p := pkg.info
 
-	return '$p.name-$p.version-${p.arch}.pkg.tar.zst'
+	ext := match pkg.compression {
+		0 { '.tar' }
+		1 { '.tar.gz' }
+		14 { '.tar.zst' }
+		else { panic("Another compression code shouldn't be possible. Faulty code: $pkg.compression") }
+	}
+
+	return '$p.name-$p.version-${p.arch}.pkg$ext'
 }
 
 // to_desc returns a desc file valid string representation

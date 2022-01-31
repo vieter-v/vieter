@@ -67,7 +67,7 @@ def create_random_package(tmpdir, words, pkg_name_min_len, pkg_name_max_len, min
 
         return tar_info
 
-    with tarfile.open(tar_path, "w") as tar:
+    with tarfile.open(tar_path, "w:gz") as tar:
         # Add random .PKGINFO file
         pkginfo_file = sub_path / ".PKGINFO"
         pkginfo_file.write_text(create_random_pkginfo(words, pkg_name_min_len, pkg_name_max_len))
