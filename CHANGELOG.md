@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/Chewing_Bever/vieter)
 
+## [0.1.0-rc.1](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.1.0-rc.1)
+
 ### Added
 
 * Ability to publish packages
