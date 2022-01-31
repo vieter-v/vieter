@@ -13,13 +13,10 @@ pipeline:
     pull: true
     secrets: [ s3_username, s3_password ]
     commands:
-      - git clone "$CI_REPO_REMOTE" .
-      - git checkout "$CI_COMMIT_BRANCH"
-      # Write the title to a file that the plugin can then read
-      - echo "$(git describe --tags --abbrev=0 2> /dev/null || echo '0.0.0')-$(git rev-list --count ^dev)" > title
-      - cat title
       - mc alias set s3/ https://s3.rustybever.be "$S3_USERNAME" "$S3_PASSWORD"
       - mc cp -r "s3/vieter/commits/$CI_COMMIT_SHA" assets
+    when:
+      event: tag
 
   release:
     image: 'plugins/gitea-release'
@@ -32,7 +29,6 @@ pipeline:
         - md5
         - sha256
       prerelease: true
-      # This should get read in as a file
-      title: title
+      title: ${CI_COMMIT_TAG}
     when:
-      event: push
+      event: tag
