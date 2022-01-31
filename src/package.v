@@ -201,12 +201,10 @@ pub fn (pkg &Pkg) to_desc() string {
 	desc += format_entry('CSIZE', p.csize.str())
 	desc += format_entry('ISIZE', p.size.str())
 
-	md5sum, _ := pkg.checksum() or { '', '' }
+	md5sum, sha256sum := pkg.checksum() or { '', '' }
 
 	desc += format_entry('MD5SUM', md5sum)
-
-	// TODO add this
-	// desc += format_entry('SHA256SUM', sha256sum)
+	desc += format_entry('SHA256SUM', sha256sum)
 
 	// TODO add pgpsig stuff
 
