@@ -88,7 +88,8 @@ fn main() {
 
 	// This also creates the directories if needed
 	repo := repo.new(repo_dir, pkg_dir) or {
-		exit_with_message(1, 'Failed to create required directories.')
+		logger.error(err.msg)
+		exit(1)
 	}
 
 	os.mkdir_all(dl_dir) or { exit_with_message(1, 'Failed to create download directory.') }

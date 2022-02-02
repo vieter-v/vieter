@@ -25,6 +25,8 @@ fn is_pkg_name(s string) bool {
 	return s.contains('.pkg')
 }
 
+// healthcheck just returns a string, but can be used to quickly check if the
+// server is still responsive.
 ['/health'; get]
 pub fn (mut app App) healthcheck() web.Result {
 	return app.text('Healthy')
@@ -62,7 +64,7 @@ fn (mut app App) put_package() web.Result {
 			pkg_path = os.join_path_single(app.dl_dir, rand.uuid_v4())
 		}
 
-		app.ldebug("Uploading $length (${pretty_bytes(length.int())}) bytes to '$pkg_path'.")
+		app.ldebug("Uploading $length bytes (${pretty_bytes(length.int())}) to '$pkg_path'.")
 
 		// This is used to time how long it takes to upload a file
 		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })
@@ -80,28 +82,22 @@ fn (mut app App) put_package() web.Result {
 		return app.text("Content-Type header isn't set.")
 	}
 
-	added := app.repo.add_from_path(pkg_path) or {
+	res := app.repo.add_from_path(pkg_path) or {
 		app.lerror('Error while adding package: $err.msg')
 
-		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path'.") }
+		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
 		return app.text('Failed to add package.')
 	}
-	if !added {
-		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path'.") }
+	if !res.added {
+		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
-		app.lwarn('Duplicate package.')
+		app.lwarn("Duplicate package '$res.pkg.full_name()'.")
 
 		return app.text('File already exists.')
 	}
 
-	app.linfo("Added '$pkg_path' to repository.")
+	app.linfo("Added '$res.pkg.full_name()' to repository.")
 
 	return app.text('Package added successfully.')
-}
-
-// add_package PUT a new package to the server
-['/add'; put]
-pub fn (mut app App) add_package() web.Result {
-	return app.text('')
 }

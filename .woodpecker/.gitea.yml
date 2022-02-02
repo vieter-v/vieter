@@ -25,10 +25,9 @@ pipeline:
     settings:
       base_url: https://git.rustybever.be
       files: ${CI_COMMIT_SHA}/*
-      checksums:
+      checksum:
         - md5
         - sha256
-      prerelease: true
       title: ${CI_COMMIT_TAG}
     when:
       event: tag

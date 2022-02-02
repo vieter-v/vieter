@@ -3,12 +3,6 @@ module repo
 import os
 import package
 
-// subpath where the uncompressed version of the files archive is stored
-const files_subpath = 'files'
-
-// subpath where the uncompressed version of the repo archive is stored
-const repo_subpath = 'repo'
-
 // Dummy struct to work around the fact that you can only share structs, maps &
 // arrays
 pub struct Dummy {
@@ -20,20 +14,26 @@ pub struct Repo {
 mut:
 	mutex shared Dummy
 pub:
-	// Where to store repository files; should exist
+	// Where to store repository files
 	repo_dir string [required]
 	// Where to find packages; packages are expected to all be in the same directory
 	pkg_dir string [required]
 }
 
+pub struct RepoAddResult {
+pub:
+	added bool         [required]
+	pkg   &package.Pkg [required]
+}
+
 // new creates a new Repo & creates the directories as needed
 pub fn new(repo_dir string, pkg_dir string) ?Repo {
 	if !os.is_dir(repo_dir) {
-		os.mkdir_all(repo_dir) or { return error('Failed to create repo directory.') }
+		os.mkdir_all(repo_dir) or { return error('Failed to create repo directory: $err.msg') }
 	}
 
 	if !os.is_dir(pkg_dir) {
-		os.mkdir_all(pkg_dir) or { return error('Failed to create package directory.') }
+		os.mkdir_all(pkg_dir) or { return error('Failed to create package directory: $err.msg') }
 	}
 
 	return Repo{
@@ -44,7 +44,7 @@ pub fn new(repo_dir string, pkg_dir string) ?Repo {
 
 // add_from_path adds a package from an arbitrary path & moves it into the pkgs
 // directory if necessary.
-pub fn (r &Repo) add_from_path(pkg_path string) ?bool {
+pub fn (r &Repo) add_from_path(pkg_path string) ?RepoAddResult {
 	pkg := package.read_pkg(pkg_path) or { return error('Failed to read package file: $err.msg') }
 
 	added := r.add(pkg) ?
@@ -59,7 +59,10 @@ pub fn (r &Repo) add_from_path(pkg_path string) ?bool {
 		}
 	}
 
-	return added
+	return RepoAddResult{
+		added: added
+		pkg: &pkg
+	}
 }
 
 // add adds a given Pkg to the repository
