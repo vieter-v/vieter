@@ -20,6 +20,12 @@ pub:
 	pkg_dir string [required]
 }
 
+pub struct RepoAddResult {
+pub:
+	added bool         [required]
+	pkg   &package.Pkg [required]
+}
+
 // new creates a new Repo & creates the directories as needed
 pub fn new(repo_dir string, pkg_dir string) ?Repo {
 	if !os.is_dir(repo_dir) {
@@ -38,7 +44,7 @@ pub fn new(repo_dir string, pkg_dir string) ?Repo {
 
 // add_from_path adds a package from an arbitrary path & moves it into the pkgs
 // directory if necessary.
-pub fn (r &Repo) add_from_path(pkg_path string) ?bool {
+pub fn (r &Repo) add_from_path(pkg_path string) ?RepoAddResult {
 	pkg := package.read_pkg(pkg_path) or { return error('Failed to read package file: $err.msg') }
 
 	added := r.add(pkg) ?
@@ -53,7 +59,10 @@ pub fn (r &Repo) add_from_path(pkg_path string) ?bool {
 		}
 	}
 
-	return added
+	return RepoAddResult{
+		added: added
+		pkg: &pkg
+	}
 }
 
 // add adds a given Pkg to the repository

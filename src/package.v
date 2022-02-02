@@ -178,10 +178,13 @@ fn format_entry(key string, value string) string {
 	return '\n%$key%\n$value\n'
 }
 
+pub fn (pkg &Pkg) full_name() string {
+	p := pkg.info
+	return '$p.name-$p.version-$p.arch'
+}
+
 // filename returns the correct filename of the package file
 pub fn (pkg &Pkg) filename() string {
-	p := pkg.info
-
 	ext := match pkg.compression {
 		0 { '.tar' }
 		1 { '.tar.gz' }
@@ -189,7 +192,7 @@ pub fn (pkg &Pkg) filename() string {
 		else { panic("Another compression code shouldn't be possible. Faulty code: $pkg.compression") }
 	}
 
-	return '$p.name-$p.version-${p.arch}.pkg$ext'
+	return '${pkg.full_name()}.pkg$ext'
 }
 
 // to_desc returns a desc file valid string representation
