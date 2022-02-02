@@ -511,9 +511,12 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		return
 	}
 
-	lock app.logger {
-		app.logger.debug('$head.method $head.url $head.version')
-	}
+    // The healthcheck spams the logs, which isn't very useful
+    if head.url != '/health' {
+        lock app.logger {
+            app.logger.debug('$head.method $head.url $head.version')
+        }
+    }
 
 	// 	req := http.parse_request(mut reader) or {
 	// 		// Prevents errors from being thrown when BufferedReader is empty
