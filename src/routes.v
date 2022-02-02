@@ -25,6 +25,8 @@ fn is_pkg_name(s string) bool {
 	return s.contains('.pkg')
 }
 
+// healthcheck just returns a string, but can be used to quickly check if the
+// server is still responsive.
 ['/health'; get]
 pub fn (mut app App) healthcheck() web.Result {
 	return app.text('Healthy')

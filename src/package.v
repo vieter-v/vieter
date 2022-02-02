@@ -178,6 +178,8 @@ fn format_entry(key string, value string) string {
 	return '\n%$key%\n$value\n'
 }
 
+// full_name returns the properly formatted name for the package, including
+// version & architecture
 pub fn (pkg &Pkg) full_name() string {
 	p := pkg.info
 	return '$p.name-$p.version-$p.arch'

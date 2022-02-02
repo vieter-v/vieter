@@ -28,7 +28,6 @@ pipeline:
       checksum:
         - md5
         - sha256
-      prerelease: true
       title: ${CI_COMMIT_TAG}
     when:
       event: tag
