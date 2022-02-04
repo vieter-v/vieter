@@ -18,6 +18,7 @@ RUN ln -s /opt/vlang/v /usr/bin/v && \
     sqlite-static sqlite-dev \
     libx11-dev glfw-dev freetype-dev \
     libarchive-static libarchive-dev \
+    gc-dev \
     diffutils
 
 COPY patches ./patches

@@ -6,6 +6,8 @@ matrix:
 
 # These checks already get performed on the feature branches
 platform: ${PLATFORM}
+depends_on:
+  - builder
 
 pipeline:
   # The default build isn't needed, as alpine switches to gcc for the compiler anyways
