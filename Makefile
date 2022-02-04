@@ -4,7 +4,7 @@ SOURCES != find '$(SRC_DIR)' -iname '*.v'
 
 V_RELEASE := weekly.2022.05
 V_PATH ?= v-$(V_RELEASE)/v
-V := $(V_PATH) -showcc
+V := $(V_PATH) -showcc -gc boehm
 
 all: vieter
 
