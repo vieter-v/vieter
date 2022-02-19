@@ -74,6 +74,9 @@ fn (r &Repo) add(pkg &package.Pkg) ?bool {
 		return false
 	}
 
+	// We remove the older package version first, if present
+	r.remove(pkg.info.name, false) ?
+
 	os.mkdir(pkg_dir) or { return error('Failed to create package directory.') }
 
 	os.write_file(os.join_path_single(pkg_dir, 'desc'), pkg.to_desc()) or {
@@ -90,6 +93,31 @@ fn (r &Repo) add(pkg &package.Pkg) ?bool {
 	r.sync() ?
 
 	return true
+}
+
+// remove removes a package from the database. It returns false if the package
+// wasn't present in the database.
+fn (r &Repo) remove(pkg_name string, sync bool) ?bool {
+	// We iterate over every directory in the repo dir
+	for d in os.ls(r.repo_dir) ? {
+		name := d.split('-')#[..-2].join('-')
+
+		if name == pkg_name {
+			// We lock the mutex here to prevent other routines from creating a
+			// new archive while we removed an entry
+			lock r.mutex {
+				os.rmdir_all(os.join_path_single(r.repo_dir, d)) ?
+			}
+
+			if sync {
+				r.sync() ?
+			}
+
+			return true
+		}
+	}
+
+	return false
 }
 
 // Returns the path where the given package's desc & files files are stored
