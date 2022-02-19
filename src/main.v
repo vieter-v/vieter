@@ -53,13 +53,13 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 }
 
 fn main() {
-    if os.args.len == 1 {
-        exit_with_message(1, 'No action provided.')
-    }
+	if os.args.len == 1 {
+		exit_with_message(1, 'No action provided.')
+	}
 
-    match os.args[1] {
-        'server' { server() }
-        'build' { build() }
-        else { exit_with_message(1, 'Unknown action: ${os.args[1]}') }
-    }
+	match os.args[1] {
+		'server' { server() }
+		'build' { build() }
+		else { exit_with_message(1, 'Unknown action: ${os.args[1]}') }
+	}
 }
