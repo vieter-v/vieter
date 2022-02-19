@@ -7,4 +7,5 @@ end_of_line = lf
 insert_final_newline = true
 
 [*.v]
-indent_style = space
+# vfmt wants it :(
+indent_style = tab
