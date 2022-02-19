@@ -16,11 +16,11 @@ that.
 ### Custom Compiler
 
 Currently, this program only works with a very slightly modified version of the
-V standard library, and therefore the compiler. The changes that are made to
-the standard V release can be found in the [patches](/patches) directory. You
-can obtain this modified version of the compiler by running `make v`, which
-will download, patch & build the compiler. Afterwards, all make commands that
-require the V compiler will use this new binary.
+V standard library, and therefore the compiler. The source code for this fork
+can be found [here](https://git.rustybever.be/Chewing_Bever/vieter-v). You can
+obtain this modified version of the compiler by running `make v`, which will
+clone & build the compiler. Afterwards, all make commands that require the V
+compiler will use this new binary.
 
 ## Features
 
