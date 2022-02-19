@@ -1,7 +1,6 @@
 branches: [main, dev]
 platform: linux/amd64
 depends_on:
-  - builder
   - build
 
 pipeline:

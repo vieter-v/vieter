@@ -17,4 +17,4 @@ libarchive-*
 test/
 
 # V compiler directory
-v-*/
+v/

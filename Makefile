@@ -2,8 +2,7 @@
 SRC_DIR := src
 SOURCES != find '$(SRC_DIR)' -iname '*.v'
 
-V_RELEASE := weekly.2022.07
-V_PATH ?= v-$(V_RELEASE)/v
+V_PATH ?= v/v
 V := $(V_PATH) -showcc -gc boehm
 
 all: vieter
@@ -46,7 +45,6 @@ run-prod: prod
 watch:
 	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG $(V) watch run vieter
 
-
 # =====OTHER=====
 .PHONY: lint
 lint:
@@ -63,11 +61,10 @@ vet:
 
 # Build & patch the V compiler
 .PHONY: v
-v: v-$(V_RELEASE)/v
-v-$(V_RELEASE)/v:
-	curl -Lo - 'https://github.com/vlang/v/archive/refs/tags/$(V_RELEASE).tar.gz' | tar xzf -
-	cd patches && sh patch.sh '../v-$(V_RELEASE)'
-	make -C 'v-$(V_RELEASE)'
+v: v/v
+v/v:
+	git clone --single-branch --branch patches https://git.rustybever.be/Chewing_Bever/vieter-v v
+	make -C v
 
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'v-$(V_RELEASE)'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c'
