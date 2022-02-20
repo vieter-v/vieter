@@ -23,12 +23,31 @@ fn send(req &string) ?http.Response {
 	// Write the request to the socket
 	s.write_string(req) ?
 
+
+	s.wait_for_write() ?
+
+	mut c := 0
 	mut buf := []byte{len: docker.buf_len}
 	mut res := []byte{}
 
-	mut c := 0
+	for {
+		c = s.read(mut buf) or { return error('Failed to read data from socket.') }
+		res << buf[..c]
 
-	for res.len < 5 && res#[-4..] != [0, '\r', `\n`, `\r`, `\n`] {
+		if c < docker.buf_len {
+			break
+		}
+	}
+
+	// If the response isn't a chunked reply, we return early
+	parsed := http.parse_response(res.bytestr()) ?
+
+	if parsed.header.get(http.CommonHeader.transfer_encoding) or { '' } != 'chunked' {
+		return parsed
+	}
+
+	// We loop until we've encountered the end of the chunked response
+	for res.len < 5 || res#[-5..] != [byte(`0`), `\r`, `\n`, `\r`, `\n`] {
 		// Wait for the server to respond
 		s.wait_for_write() ?
 
@@ -41,8 +60,6 @@ fn send(req &string) ?http.Response {
 			}
 		}
 	}
-
-	println(res)
 
 	// Decode chunked response
 	return http.parse_response(res.bytestr())
