@@ -65,7 +65,7 @@ fn send(req &string) ?http.Response {
 }
 
 fn request_with_body(method string, url urllib.URL, content_type string, body string) ?http.Response {
-	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: ${content_type}\nContent-Length: $body.len\n\n$body\n\n'
+	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: $content_type\nContent-Length: $body.len\n\n$body\n\n'
 
 	return send(req)
 }
@@ -76,12 +76,15 @@ fn request(method string, url urllib.URL) ?http.Response {
 	return send(req)
 }
 
+// request_with_json<T> sends a request to the Docker socket with a given JSON
+// payload
 pub fn request_with_json<T>(method string, url urllib.URL, data &T) ?http.Response {
 	body := json.encode(data)
 
 	return request_with_body(method, url, 'application/json', body)
 }
 
+// pull_image pulls tries to pull the image for the given image & tag
 pub fn pull_image(image string, tag string) ?http.Response {
 	return request('POST', urllib.parse('/images/create?fromImage=$image&tag=$tag') ?)
 }

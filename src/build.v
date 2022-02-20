@@ -11,7 +11,9 @@ import git
 const container_build_dir = '/build'
 
 fn build(key string, repo_dir string) ? {
-	server_url := os.getenv_opt('VIETER_ADDRESS') or { exit_with_message(1, 'No Vieter server address was provided.') }
+	server_url := os.getenv_opt('VIETER_ADDRESS') or {
+		exit_with_message(1, 'No Vieter server address was provided.')
+	}
 
 	// Read in the repos from a json file
 	filename := os.join_path_single(repo_dir, 'repos.json')
@@ -22,14 +24,14 @@ fn build(key string, repo_dir string) ? {
 		// Update repos & install required packages
 		'pacman -Syu --needed --noconfirm base-devel git'
 		// Add a non-root user to run makepkg
-		'groupadd -g 1000 builder'
+		'groupadd -g 1000 builder',
 		'useradd -mg builder builder'
 		// Make sure they can use sudo without a password
 		"echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
 		// Create the directory for the builds & make it writeable for the
 		// build user
-		'mkdir /build'
-		'chown -R builder:builder /build'
+		'mkdir /build',
+		'chown -R builder:builder /build',
 	]
 
 	// Each repo gets a unique UUID to avoid naming conflicts when cloning

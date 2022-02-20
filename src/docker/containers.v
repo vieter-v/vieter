@@ -8,6 +8,7 @@ struct Container {
 	names []string [json: Names]
 }
 
+// containers returns a list of all currently running containers
 pub fn containers() ?[]Container {
 	res := request('GET', urllib.parse('/containers/json') ?) ?
 
@@ -15,16 +16,18 @@ pub fn containers() ?[]Container {
 }
 
 pub struct NewContainer {
-	image string [json: Image]
+	image      string   [json: Image]
 	entrypoint []string [json: Entrypoint]
-	cmd []string [json: Cmd]
-	env []string [json: Env]
+	cmd        []string [json: Cmd]
+	env        []string [json: Env]
 }
 
 struct CreatedContainer {
 	id string [json: Id]
 }
 
+// create_container creates a container defined by the given configuration. If
+// successful, it returns the ID of the newly created container.
 pub fn create_container(c &NewContainer) ?string {
 	res := request_with_json('POST', urllib.parse('/containers/create') ?, c) ?
 
@@ -35,6 +38,8 @@ pub fn create_container(c &NewContainer) ?string {
 	return json.decode(CreatedContainer, res.text) ?.id
 }
 
+// start_container starts a container with a given ID. It returns whether the
+// container was started or not.
 pub fn start_container(id string) ?bool {
 	res := request('POST', urllib.parse('/containers/$id/start') ?) ?
 
@@ -51,16 +56,19 @@ pub:
 	running bool [json: Running]
 }
 
+// inspect_container returns the result of inspecting a container with a given
+// ID.
 pub fn inspect_container(id string) ?ContainerInspect {
 	res := request('GET', urllib.parse('/containers/$id/json') ?) ?
 
 	if res.status_code != 200 {
-		return error("Failed to inspect container.")
+		return error('Failed to inspect container.')
 	}
 
-	return json.decode(ContainerInspect, res.text)
+	return json.decode(ContainerInspect, res.text) or {}
 }
 
+// remove_container removes a container with a given ID.
 pub fn remove_container(id string) ?bool {
 	res := request('DELETE', urllib.parse('/containers/$id') ?) ?
 

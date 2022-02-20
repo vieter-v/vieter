@@ -2,6 +2,6 @@ module git
 
 pub struct GitRepo {
 pub:
-	url string [required]
+	url    string [required]
 	branch string [required]
 }
