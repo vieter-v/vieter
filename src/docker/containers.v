@@ -37,7 +37,32 @@ pub fn create_container(c &NewContainer) ?string {
 
 pub fn start_container(id string) ?bool {
 	res := request('POST', urllib.parse('/containers/$id/start') ?) ?
-	println(res)
+
+	return res.status_code == 204
+}
+
+struct ContainerInspect {
+pub:
+	state ContainerState [json: State]
+}
+
+struct ContainerState {
+pub:
+	running bool [json: Running]
+}
+
+pub fn inspect_container(id string) ?ContainerInspect {
+	res := request('GET', urllib.parse('/containers/$id/json') ?) ?
+
+	if res.status_code != 200 {
+		return error("Failed to inspect container.")
+	}
+
+	return json.decode(ContainerInspect, res.text)
+}
+
+pub fn remove_container(id string) ?bool {
+	res := request('DELETE', urllib.parse('/containers/$id') ?) ?
 
 	return res.status_code == 204
 }

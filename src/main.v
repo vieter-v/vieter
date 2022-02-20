@@ -9,8 +9,6 @@ const port = 8000
 
 const buf_size = 1_000_000
 
-const db_name = 'pieter.db'
-
 struct App {
 	web.Context
 pub:
@@ -53,13 +51,18 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 }
 
 fn main() {
+	key := os.getenv_opt('API_KEY') or { exit_with_message(1, 'No API key was provided.') }
+	repo_dir := os.getenv_opt('REPO_DIR') or {
+		exit_with_message(1, 'No repo directory was configured.')
+	}
+
 	if os.args.len == 1 {
 		exit_with_message(1, 'No action provided.')
 	}
 
 	match os.args[1] {
-		'server' { server() }
-		'build' { build() }
+		'server' { server(key, repo_dir) }
+		'build' { build(key, repo_dir) ? }
 		else { exit_with_message(1, 'Unknown action: ${os.args[1]}') }
 	}
 }

@@ -82,6 +82,6 @@ pub fn request_with_json<T>(method string, url urllib.URL, data &T) ?http.Respon
 	return request_with_body(method, url, 'application/json', body)
 }
 
-pub fn pull(image string, tag string) ?http.Response {
+pub fn pull_image(image string, tag string) ?http.Response {
 	return request('POST', urllib.parse('/images/create?fromImage=$image&tag=$tag') ?)
 }

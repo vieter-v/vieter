@@ -5,7 +5,7 @@ import os
 import log
 import repo
 
-fn server() {
+fn server(key string, repo_dir string) {
 	// Configure logger
 	log_level_str := os.getenv_opt('LOG_LEVEL') or { 'WARN' }
 	log_level := log.level_from_tag(log_level_str) or {
@@ -27,10 +27,6 @@ fn server() {
 	}
 
 	// Configure web server
-	key := os.getenv_opt('API_KEY') or { exit_with_message(1, 'No API key was provided.') }
-	repo_dir := os.getenv_opt('REPO_DIR') or {
-		exit_with_message(1, 'No repo directory was configured.')
-	}
 	pkg_dir := os.getenv_opt('PKG_DIR') or {
 		exit_with_message(1, 'No package directory was configured.')
 	}

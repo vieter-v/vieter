@@ -3,6 +3,8 @@ module main
 import docker
 import encoding.base64
 import rand
+import time
+import os
 
 const container_build_dir = '/build'
 
@@ -11,15 +13,12 @@ struct GitRepo {
 	branch string [required]
 }
 
-fn build() {
-	// println(docker.pull('nginx', 'latest') or { panic('yeetus') })
-	// println(docker.containers() or { panic('heet') })
+fn build(key string, repo_dir string) ? {
+	server_url := os.getenv_opt('VIETER_ADDRESS') or { exit_with_message(1, 'No Vieter server address was provided.') }
 	repos := [
 		GitRepo{'https://git.rustybever.be/Chewing_Bever/st', 'master'}
 		GitRepo{'https://aur.archlinux.org/libxft-bgra.git', 'master'}
 	]
-	mut uuids := []string{}
-
 	mut commands := [
 		// Update repos & install required packages
 		'pacman -Syu --needed --noconfirm base-devel git'
@@ -32,9 +31,10 @@ fn build() {
 		// build user
 		'mkdir /build'
 		'chown -R builder:builder /build'
-		// "su builder -c 'git clone https://git.rustybever.be/Chewing_Bever/st /build/st'"
-		// 'su builder -c \'cd /build/st && makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\${pkg}" -H "X-API-KEY: \$API_KEY" https://arch.r8r.be/publish; done\''
 	]
+
+	// Each repo gets a unique UUID to avoid naming conflicts when cloning
+	mut uuids := []string{}
 
 	for repo in repos {
 		mut uuid := rand.uuid_v4()
@@ -47,20 +47,37 @@ fn build() {
 		uuids << uuid
 
 		commands << "su builder -c 'git clone --single-branch --depth 1 --branch $repo.branch $repo.url /build/$uuid'"
-		commands << 'su builder -c \'cd /build/$uuid && makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\${pkg}" -H "X-API-KEY: \$API_KEY" https://arch.r8r.be/publish; done\''
+		commands << 'su builder -c \'cd /build/$uuid && makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\${pkg}" -H "X-API-KEY: \$API_KEY" $server_url/publish; done\''
 	}
-	println(commands)
 
-	// We convert the list of commands into a base64 string
+	// We convert the list of commands into a base64 string, which then gets
+	// passed to the container as an env var
 	cmds_str := base64.encode_str(commands.join('\n'))
 
 	c := docker.NewContainer{
 		image: 'archlinux:latest'
-		env: ['BUILD_SCRIPT=$cmds_str']
+		env: ['BUILD_SCRIPT=$cmds_str', 'API_KEY=$key']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
 	}
 
-	id := docker.create_container(c) or { panic('aaaahh') }
-	print(docker.start_container(id) or { panic('yikes') })
+	// First, we pull the latest archlinux image
+	docker.pull_image('archlinux', 'latest') ?
+
+	id := docker.create_container(c) ?
+	docker.start_container(id) ?
+
+	// This loop waits until the container has stopped, so we can remove it after
+	for {
+		data := docker.inspect_container(id) ?
+
+		if !data.state.running {
+			break
+		}
+
+		// Wait for 5 seconds
+		time.sleep(5000000000)
+	}
+
+	docker.remove_container(id) ?
 }
