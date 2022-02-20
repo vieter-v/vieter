@@ -5,20 +5,19 @@ import encoding.base64
 import rand
 import time
 import os
+import json
+import git
 
 const container_build_dir = '/build'
 
-struct GitRepo {
-	url string [required]
-	branch string [required]
-}
-
 fn build(key string, repo_dir string) ? {
 	server_url := os.getenv_opt('VIETER_ADDRESS') or { exit_with_message(1, 'No Vieter server address was provided.') }
-	repos := [
-		GitRepo{'https://git.rustybever.be/Chewing_Bever/st', 'master'}
-		GitRepo{'https://aur.archlinux.org/libxft-bgra.git', 'master'}
-	]
+
+	// Read in the repos from a json file
+	filename := os.join_path_single(repo_dir, 'repos.json')
+	txt := os.read_file(filename) ?
+	repos := json.decode([]git.GitRepo, txt) ?
+
 	mut commands := [
 		// Update repos & install required packages
 		'pacman -Syu --needed --noconfirm base-devel git'
