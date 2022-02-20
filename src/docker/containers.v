@@ -4,8 +4,8 @@ import json
 import net.urllib
 
 struct Container {
-    id    string [json: Id]
-    names []string [json: Names]
+	id    string   [json: Id]
+	names []string [json: Names]
 }
 
 pub fn containers() ?[]Container {

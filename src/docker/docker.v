@@ -23,7 +23,6 @@ fn send(req &string) ?http.Response {
 	// Write the request to the socket
 	s.write_string(req) ?
 
-
 	s.wait_for_write() ?
 
 	mut c := 0
@@ -63,11 +62,10 @@ fn send(req &string) ?http.Response {
 
 	// Decode chunked response
 	return http.parse_response(res.bytestr())
-
 }
 
 fn request_with_body(method string, url urllib.URL, body &string) ?http.Response {
-	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Length: ${body.len}\n$body\n'
+	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Length: $body.len\n$body\n'
 
 	return send(req)
 }
@@ -80,7 +78,6 @@ fn request(method string, url urllib.URL) ?http.Response {
 
 pub fn request_with_json<T>(method string, url urllib.URL, data T) ?http.Response {
 	body := json.encode(data)
-	println(body)
 
 	return request_with_body(method, url, body)
 }
@@ -91,15 +88,9 @@ fn get(url urllib.URL) ?http.Response {
 
 struct ImagePull {
 	from_image string [json: fromImage]
-	tag string
+	tag        string
 }
 
 pub fn pull(image string, tag string) ?http.Response {
-	// data := ImagePull{
-	// 	from_image: image
-	// 	tag: tag
-	// }
-
-	// return request_with_json("POST", urllib.parse("/images/create") ?, data)
-	return request("POST", urllib.parse("/images/create?fromImage=$image&tag=$tag") ?)
+	return request('POST', urllib.parse('/images/create?fromImage=$image&tag=$tag') ?)
 }
