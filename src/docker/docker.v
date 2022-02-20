@@ -64,8 +64,8 @@ fn send(req &string) ?http.Response {
 	return http.parse_response(res.bytestr())
 }
 
-fn request_with_body(method string, url urllib.URL, body &string) ?http.Response {
-	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Length: $body.len\n$body\n'
+fn request_with_body(method string, url urllib.URL, content_type string, body string) ?http.Response {
+	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: ${content_type}\nContent-Length: $body.len\n\n$body\n\n'
 
 	return send(req)
 }
@@ -76,19 +76,10 @@ fn request(method string, url urllib.URL) ?http.Response {
 	return send(req)
 }
 
-pub fn request_with_json<T>(method string, url urllib.URL, data T) ?http.Response {
+pub fn request_with_json<T>(method string, url urllib.URL, data &T) ?http.Response {
 	body := json.encode(data)
 
-	return request_with_body(method, url, body)
-}
-
-fn get(url urllib.URL) ?http.Response {
-	return request('GET', url)
-}
-
-struct ImagePull {
-	from_image string [json: fromImage]
-	tag        string
+	return request_with_body(method, url, 'application/json', body)
 }
 
 pub fn pull(image string, tag string) ?http.Response {
