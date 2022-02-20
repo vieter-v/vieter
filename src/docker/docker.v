@@ -23,22 +23,26 @@ fn send(req &string) ?http.Response {
 	// Write the request to the socket
 	s.write_string(req) ?
 
-	// Wait for the server to respond
-	s.wait_for_write() ?
-
 	mut buf := []byte{len: docker.buf_len}
 	mut res := []byte{}
 
 	mut c := 0
 
-	for {
-		c = s.read(mut buf) or { return error('Failed to read data from socket.') }
-		res << buf[..c]
+	for res.len < 5 && res#[-4..] != [0, '\r', `\n`, `\r`, `\n`] {
+		// Wait for the server to respond
+		s.wait_for_write() ?
 
-		if c < docker.buf_len {
-			break
+		for {
+			c = s.read(mut buf) or { return error('Failed to read data from socket.') }
+			res << buf[..c]
+
+			if c < docker.buf_len {
+				break
+			}
 		}
 	}
+
+	println(res)
 
 	// Decode chunked response
 	return http.parse_response(res.bytestr())
