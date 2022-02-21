@@ -7,25 +7,6 @@ import time
 import rand
 import util
 
-const prefixes = ['B', 'KB', 'MB', 'GB']
-
-// pretty_bytes converts a byte count to human-readable version
-fn pretty_bytes(bytes int) string {
-	mut i := 0
-	mut n := f32(bytes)
-
-	for n >= 1024 {
-		i++
-		n /= 1024
-	}
-
-	return '${n:.2}${server.prefixes[i]}'
-}
-
-fn is_pkg_name(s string) bool {
-	return s.contains('.pkg')
-}
-
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
 ['/health'; get]
@@ -65,7 +46,7 @@ fn (mut app App) put_package() web.Result {
 			pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
 		}
 
-		app.ldebug("Uploading $length bytes (${pretty_bytes(length.int())}) to '$pkg_path'.")
+		app.ldebug("Uploading $length bytes (${util.pretty_bytes(length.int())}) to '$pkg_path'.")
 
 		// This is used to time how long it takes to upload a file
 		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })

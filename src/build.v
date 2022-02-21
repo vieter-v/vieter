@@ -6,7 +6,7 @@ import rand
 import time
 import os
 import json
-import git
+import server
 import env
 
 const container_build_dir = '/build'
@@ -17,7 +17,7 @@ fn build() ? {
 	// Read in the repos from a json file
 	filename := os.join_path_single(conf.repo_dir, 'repos.json')
 	txt := os.read_file(filename) ?
-	repos := json.decode([]git.GitRepo, txt) ?
+	repos := json.decode([]server.GitRepo, txt) ?
 
 	mut commands := [
 		// Update repos & install required packages

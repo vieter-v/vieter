@@ -17,6 +17,7 @@ pub:
 	download_dir string
 	api_key      string
 	repo_dir     string
+	repos_file string
 }
 
 pub struct BuildConfig {
@@ -42,7 +43,10 @@ fn get_env_var(field_name string) ?string {
 		return error('Only one of $env_var_name or $env_file_name can be defined.')
 	}
 
-	// If it's the env var itself, we return it
+	// If it's the env var itself, we return it.
+	// I'm pretty sure this also prevents variable ending in _FILE (e.g.
+	// VIETER_LOG_FILE) from being mistakingely read as an _FILE suffixed env
+	// var.
 	if env_var != '' {
 		return env_var
 	}

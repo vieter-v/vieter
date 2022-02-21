@@ -16,7 +16,17 @@ vieter: $(SOURCES)
 .PHONY: debug
 debug: dvieter
 dvieter: $(SOURCES)
-	$(V) -keepc -cg -cc gcc -o dvieter $(SRC_DIR)
+	$(V_PATH) -showcc -keepc -cg -o dvieter $(SRC_DIR)
+
+.PHONY: gdb
+gdb: dvieter
+	 VIETER_API_KEY=test \
+		VIETER_DOWNLOAD_DIR=data/downloads \
+		VIETER_REPO_DIR=data/repo \
+		VIETER_PKG_DIR=data/pkgs \
+		VIETER_LOG_LEVEL=DEBUG \
+		VIETER_REPOS_FILE=data/repos.json \
+		gdb --args ./dvieter
 
 # Optimised production build
 .PHONY: prod
@@ -39,6 +49,7 @@ run: vieter
 		VIETER_REPO_DIR=data/repo \
 		VIETER_PKG_DIR=data/pkgs \
 		VIETER_LOG_LEVEL=DEBUG \
+		VIETER_REPOS_FILE=data/repos.json \
 		./vieter server
 
 .PHONY: run-prod

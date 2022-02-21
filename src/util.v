@@ -7,6 +7,14 @@ import crypto.sha256
 
 const reader_buf_size = 1_000_000
 
+const prefixes = ['B', 'KB', 'MB', 'GB']
+
+// Dummy struct to work around the fact that you can only share structs, maps &
+// arrays
+pub struct Dummy {
+	x int
+}
+
 [noreturn]
 pub fn exit_with_message(code int, msg string) {
 	eprintln(msg)
@@ -67,3 +75,17 @@ pub fn hash_file(path &string) ?(string, string) {
 
 	return md5sum.checksum().hex(), sha256sum.checksum().hex()
 }
+
+// pretty_bytes converts a byte count to human-readable version
+pub fn pretty_bytes(bytes int) string {
+	mut i := 0
+	mut n := f32(bytes)
+
+	for n >= 1024 {
+		i++
+		n /= 1024
+	}
+
+	return '${n:.2}${util.prefixes[i]}'
+}
+

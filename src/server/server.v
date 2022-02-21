@@ -12,9 +12,11 @@ const port = 8000
 struct App {
 	web.Context
 pub:
-	conf env.ServerConfig [required: web_global]
+	conf env.ServerConfig [required; web_global]
 pub mut:
 	repo repo.Repo [required; web_global]
+	// This is used to claim the file lock on the repos file
+	git_mutex shared util.Dummy
 }
 
 pub fn server() ? {
