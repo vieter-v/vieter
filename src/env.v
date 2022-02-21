@@ -23,7 +23,6 @@ pub:
 pub struct BuildConfig {
 pub:
 	api_key  string
-	repo_dir string
 	address  string
 }
 

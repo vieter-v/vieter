@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Better environment variable support
     * Each env var can now be provided from a file by appending it with `_FILE`
       & passing the path to the file as value
+* API for managing Git repositories to build
 
 ## Fixed
 

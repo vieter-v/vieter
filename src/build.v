@@ -8,16 +8,19 @@ import os
 import json
 import server
 import env
+import net.http
 
 const container_build_dir = '/build'
 
 fn build() ? {
 	conf := env.load<env.BuildConfig>() ?
 
-	// Read in the repos from a json file
-	filename := os.join_path_single(conf.repo_dir, 'repos.json')
-	txt := os.read_file(filename) ?
-	repos := json.decode([]server.GitRepo, txt) ?
+	// We get the repos list from the Vieter instance
+	mut req := http.new_request(http.Method.get, '${conf.address}/api/repos', '') ?
+	req.add_custom_header('X-Api-Key', conf.api_key) ?
+
+	res := req.do() ?
+	repos := json.decode([]server.GitRepo, res.text) ?
 
 	mut commands := [
 		// Update repos & install required packages
