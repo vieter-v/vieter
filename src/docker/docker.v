@@ -11,7 +11,9 @@ const buf_len = 1024
 
 fn send(req &string) ?http.Response {
 	// Open a connection to the socket
-	mut s := unix.connect_stream(docker.socket) or { return error('Failed to connect to socket ${docker.socket}.') }
+	mut s := unix.connect_stream(docker.socket) or {
+		return error('Failed to connect to socket ${docker.socket}.')
+	}
 
 	defer {
 		// This or is required because otherwise, the V compiler segfaults for
@@ -40,7 +42,9 @@ fn send(req &string) ?http.Response {
 
 	// After reading the first part of the response, we parse it into an HTTP
 	// response. If it isn't chunked, we return early with the data.
-	parsed := http.parse_response(res.bytestr()) or { return error('Failed to parse HTTP response from socket ${docker.socket}.') }
+	parsed := http.parse_response(res.bytestr()) or {
+		return error('Failed to parse HTTP response from socket ${docker.socket}.')
+	}
 
 	if parsed.header.get(http.CommonHeader.transfer_encoding) or { '' } != 'chunked' {
 		return parsed
@@ -53,7 +57,9 @@ fn send(req &string) ?http.Response {
 		s.wait_for_write() ?
 
 		for {
-			c = s.read(mut buf) or { return error('Failed to read data from socket ${docker.socket}.') }
+			c = s.read(mut buf) or {
+				return error('Failed to read data from socket ${docker.socket}.')
+			}
 			res << buf[..c]
 
 			if c < docker.buf_len {
@@ -88,5 +94,5 @@ pub fn request_with_json<T>(method string, url urllib.URL, data &T) ?http.Respon
 
 // pull_image pulls tries to pull the image for the given image & tag
 pub fn pull_image(image string, tag string) ?http.Response {
-	return request('POST', urllib.parse('/images/create?fromImage=$image&tag=$tag') ?)
+	return request('POST', urllib.parse('/v1.41/images/create?fromImage=$image&tag=$tag') ?)
 }

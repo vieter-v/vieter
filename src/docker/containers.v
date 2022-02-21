@@ -10,7 +10,7 @@ struct Container {
 
 // containers returns a list of all currently running containers
 pub fn containers() ?[]Container {
-	res := request('GET', urllib.parse('/containers/json') ?) ?
+	res := request('GET', urllib.parse('/v1.41/containers/json') ?) ?
 
 	return json.decode([]Container, res.text) or {}
 }
@@ -29,7 +29,7 @@ struct CreatedContainer {
 // create_container creates a container defined by the given configuration. If
 // successful, it returns the ID of the newly created container.
 pub fn create_container(c &NewContainer) ?string {
-	res := request_with_json('POST', urllib.parse('/containers/create') ?, c) ?
+	res := request_with_json('POST', urllib.parse('/v1.41/containers/create') ?, c) ?
 
 	if res.status_code != 201 {
 		return error('Failed to create container.')
@@ -41,7 +41,7 @@ pub fn create_container(c &NewContainer) ?string {
 // start_container starts a container with a given ID. It returns whether the
 // container was started or not.
 pub fn start_container(id string) ?bool {
-	res := request('POST', urllib.parse('/containers/$id/start') ?) ?
+	res := request('POST', urllib.parse('/v1.41/containers/$id/start') ?) ?
 
 	return res.status_code == 204
 }
@@ -59,7 +59,7 @@ pub:
 // inspect_container returns the result of inspecting a container with a given
 // ID.
 pub fn inspect_container(id string) ?ContainerInspect {
-	res := request('GET', urllib.parse('/containers/$id/json') ?) ?
+	res := request('GET', urllib.parse('/v1.41/containers/$id/json') ?) ?
 
 	if res.status_code != 200 {
 		return error('Failed to inspect container.')
@@ -70,7 +70,7 @@ pub fn inspect_container(id string) ?ContainerInspect {
 
 // remove_container removes a container with a given ID.
 pub fn remove_container(id string) ?bool {
-	res := request('DELETE', urllib.parse('/containers/$id') ?) ?
+	res := request('DELETE', urllib.parse('/v1.41/containers/$id') ?) ?
 
 	return res.status_code == 204
 }
