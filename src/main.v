@@ -1,22 +1,7 @@
 module main
 
-import web
 import os
 import io
-import repo
-
-const port = 8000
-
-const buf_size = 1_000_000
-
-struct App {
-	web.Context
-pub:
-	api_key string [required; web_global]
-	dl_dir  string [required; web_global]
-pub mut:
-	repo repo.Repo [required; web_global]
-}
 
 [noreturn]
 fn exit_with_message(code int, msg string) {
@@ -51,18 +36,13 @@ fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 }
 
 fn main() {
-	key := os.getenv_opt('API_KEY') or { exit_with_message(1, 'No API key was provided.') }
-	repo_dir := os.getenv_opt('REPO_DIR') or {
-		exit_with_message(1, 'No repo directory was configured.')
-	}
-
 	if os.args.len == 1 {
 		exit_with_message(1, 'No action provided.')
 	}
 
 	match os.args[1] {
-		'server' { server(key, repo_dir) }
-		'build' { build(key, repo_dir) ? }
+		'server' { server() ? }
+		'build' { build() ? }
 		else { exit_with_message(1, 'Unknown action: ${os.args[1]}') }
 	}
 }

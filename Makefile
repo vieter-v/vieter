@@ -34,16 +34,21 @@ c:
 # Run the server in the default 'data' directory
 .PHONY: run
 run: vieter
-	 API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG ./vieter server
+	 VIETER_API_KEY=test \
+		VIETER_DOWNLOAD_DIR=data/downloads \
+		VIETER_REPO_DIR=data/repo \
+		VIETER_PKG_DIR=data/pkgs \
+		VIETER_LOG_LEVEL=DEBUG \
+		./vieter server
 
 .PHONY: run-prod
 run-prod: prod
-	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG ./pvieter
-
-# Same as run, but restart when the source code changes
-.PHONY: watch
-watch:
-	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG $(V) watch run vieter
+	VIETER_API_KEY=test \
+		VIETER_DOWNLOAD_DIR=data/downloads \
+		VIETER_REPO_DIR=data/repo \
+		VIETER_PKG_DIR=data/pkgs \
+		VIETER_LOG_LEVEL=DEBUG \
+	./pvieter server
 
 # =====OTHER=====
 .PHONY: lint

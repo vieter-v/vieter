@@ -7,5 +7,5 @@ fn (mut app App) is_authorized() bool {
 		return false
 	}
 
-	return x_header.trim_space() == app.api_key
+	return x_header.trim_space() == app.conf.api_key
 }

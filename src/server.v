@@ -4,20 +4,33 @@ import web
 import os
 import log
 import repo
+import env
 
-fn server(key string, repo_dir string) {
+const port = 8000
+
+const buf_size = 1_000_000
+
+struct App {
+	web.Context
+pub:
+	conf env.ServerConfig [required: web_global]
+pub mut:
+	repo repo.Repo [required; web_global]
+}
+
+fn server() ? {
+	conf := env.load<env.ServerConfig>() ?
+
 	// Configure logger
-	log_level_str := os.getenv_opt('LOG_LEVEL') or { 'WARN' }
-	log_level := log.level_from_tag(log_level_str) or {
+	log_level := log.level_from_tag(conf.log_level) or {
 		exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
 	}
-	log_file := os.getenv_opt('LOG_FILE') or { 'vieter.log' }
 
 	mut logger := log.Log{
 		level: log_level
 	}
 
-	logger.set_full_logpath(log_file)
+	logger.set_full_logpath(conf.log_file)
 	logger.log_to_console_too()
 
 	defer {
@@ -26,26 +39,17 @@ fn server(key string, repo_dir string) {
 		logger.close()
 	}
 
-	// Configure web server
-	pkg_dir := os.getenv_opt('PKG_DIR') or {
-		exit_with_message(1, 'No package directory was configured.')
-	}
-	dl_dir := os.getenv_opt('DOWNLOAD_DIR') or {
-		exit_with_message(1, 'No download directory was configured.')
-	}
-
 	// This also creates the directories if needed
-	repo := repo.new(repo_dir, pkg_dir) or {
+	repo := repo.new(conf.repo_dir, conf.pkg_dir) or {
 		logger.error(err.msg)
 		exit(1)
 	}
 
-	os.mkdir_all(dl_dir) or { exit_with_message(1, 'Failed to create download directory.') }
+	os.mkdir_all(conf.download_dir) or { exit_with_message(1, 'Failed to create download directory.') }
 
 	web.run(&App{
 		logger: logger
-		api_key: key
-		dl_dir: dl_dir
+		conf: conf
 		repo: repo
 	}, port)
 }
