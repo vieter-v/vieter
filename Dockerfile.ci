@@ -36,11 +36,14 @@ HEALTHCHECK --interval=30s \
     CMD /bin/wget --spider http://localhost:8000/health || exit 1
 
 RUN mkdir /data && \
-    chown -R www-data:www-data /data
+    chown -R www-data:www-data /data && \
+    mkdir -p '/var/spool/cron/crontabs' && \
+    echo '0 3 * * * /bin/vieter build' >> /var/spool/cron/crontabs/www-data && \
+    chown www-data:www-data /var/spool/cron/crontabs/www-data
 
 WORKDIR /data
 
 USER www-data:www-data
 
 ENTRYPOINT ["/bin/dumb-init", "--"]
-CMD ["/bin/vieter"]
+CMD ["/bin/vieter", "server"]
