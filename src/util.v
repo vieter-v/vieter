@@ -88,4 +88,3 @@ pub fn pretty_bytes(bytes int) string {
 
 	return '${n:.2}${util.prefixes[i]}'
 }
-

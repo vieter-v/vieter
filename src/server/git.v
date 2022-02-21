@@ -20,13 +20,14 @@ fn read_repos(path string) ?[]GitRepo {
 			f.close()
 		}
 
-		f.write_string('{}') ?
+		f.write_string('[]') ?
 
 		return []
 	}
 
 	content := os.read_file(path) ?
-	return json.decode([]GitRepo, content)
+	res := json.decode([]GitRepo, content) ?
+	return res
 }
 
 fn write_repos(path string, repos []GitRepo) ? {
@@ -36,7 +37,6 @@ fn write_repos(path string, repos []GitRepo) ? {
 		f.close()
 	}
 
-	dump(repos)
 	value := json.encode(repos)
 	f.write_string(value) ?
 }
@@ -91,9 +91,7 @@ pub fn (mut app App) post_repo() web.Result {
 	repos << new_repo
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, repos) or {
-			return app.server_error(500)
-		}
+		write_repos(app.conf.repos_file, repos) or { return app.server_error(500) }
 	}
 
 	return app.ok('Repo added successfully.')

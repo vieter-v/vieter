@@ -17,7 +17,7 @@ pub:
 	download_dir string
 	api_key      string
 	repo_dir     string
-	repos_file string
+	repos_file   string
 }
 
 pub struct BuildConfig {
