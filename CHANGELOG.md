@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/Chewing_Bever/vieter)
 
+## Added
+
+* Very basic build system
+    * Build is triggered by separate cron container
+    * Packages build on cron container's system
+    * Packages are always rebuilt, even if they haven't changed
+    * Hardcoded planning of builds
+    * Builds are sequential
+
+## Fixed
+
+* Each package can now only have one version in the repository at once
+  (required by Pacman)
+
 ## [0.1.0](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.1.0)
 
 ### Changed
