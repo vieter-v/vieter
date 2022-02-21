@@ -1,10 +1,11 @@
-module main
+module server
 
 import web
 import os
 import repo
 import time
 import rand
+import util
 
 const prefixes = ['B', 'KB', 'MB', 'GB']
 
@@ -18,7 +19,7 @@ fn pretty_bytes(bytes int) string {
 		n /= 1024
 	}
 
-	return '${n:.2}${prefixes[i]}'
+	return '${n:.2}${server.prefixes[i]}'
 }
 
 fn is_pkg_name(s string) bool {
@@ -69,7 +70,7 @@ fn (mut app App) put_package() web.Result {
 		// This is used to time how long it takes to upload a file
 		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })
 
-		reader_to_file(mut app.reader, length.int(), pkg_path) or {
+		util.reader_to_file(mut app.reader, length.int(), pkg_path) or {
 			app.lwarn("Failed to upload '$pkg_path'")
 
 			return app.text('Failed to upload file.')

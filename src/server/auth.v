@@ -1,4 +1,4 @@
-module main
+module server
 
 import net.http
 

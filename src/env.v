@@ -11,24 +11,24 @@ const file_suffix = '_FILE'
 
 pub struct ServerConfig {
 pub:
-	log_level string [default: WARN]
-	log_file string [default: 'vieter.log']
-	pkg_dir string
+	log_level    string [default: WARN]
+	log_file     string [default: 'vieter.log']
+	pkg_dir      string
 	download_dir string
-	api_key string
-	repo_dir string
+	api_key      string
+	repo_dir     string
 }
 
 pub struct BuildConfig {
 pub:
-	api_key string
+	api_key  string
 	repo_dir string
-	address string
+	address  string
 }
 
 fn get_env_var(field_name string) ?string {
-	env_var_name := '${prefix}${field_name.to_upper()}'
-	env_file_name := '${prefix}${field_name.to_upper()}${file_suffix}'
+	env_var_name := '$env.prefix$field_name.to_upper()'
+	env_file_name := '$env.prefix$field_name.to_upper()$env.file_suffix'
 	env_var := os.getenv(env_var_name)
 	env_file := os.getenv(env_file_name)
 
@@ -76,6 +76,5 @@ pub fn load<T>() ?T {
 			default
 		}
 	}
-
 	return res
 }
