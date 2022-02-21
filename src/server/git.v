@@ -96,3 +96,34 @@ pub fn (mut app App) post_repo() web.Result {
 
 	return app.ok('Repo added successfully.')
 }
+
+['/api/repos'; delete]
+pub fn (mut app App) delete_repo() web.Result {
+	if !app.is_authorized() {
+		return app.text('Unauthorized.')
+	}
+
+	if !('url' in app.query && 'branch' in app.query) {
+		return app.server_error(400)
+	}
+
+	repo_to_remove := GitRepo{
+		url: app.query['url']
+		branch: app.query['branch']
+	}
+
+	mut repos := rlock app.git_mutex {
+		read_repos(app.conf.repos_file) or {
+			app.lerror('Failed to read repos file.')
+
+			return app.server_error(500)
+		}
+	}
+	filtered := repos.filter(it != repo_to_remove)
+
+	lock app.git_mutex {
+		write_repos(app.conf.repos_file, filtered) or { return app.server_error(500) }
+	}
+
+	return app.ok('Repo removed successfully.')
+}
