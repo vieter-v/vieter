@@ -2,17 +2,12 @@ module repo
 
 import os
 import package
-
-// Dummy struct to work around the fact that you can only share structs, maps &
-// arrays
-pub struct Dummy {
-	x int
-}
+import util
 
 // This struct manages a single repository.
 pub struct Repo {
 mut:
-	mutex shared Dummy
+	mutex shared util.Dummy
 pub:
 	// Where to store repository files
 	repo_dir string [required]

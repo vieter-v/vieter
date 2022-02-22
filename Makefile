@@ -13,10 +13,23 @@ vieter: $(SOURCES)
 	$(V) -g -o vieter $(SRC_DIR)
 
 # Debug build using gcc
+# The debug build can't use the boehm garbage collector, as that is
+# multi-threaded and causes issues when running vieter inside gdb.
 .PHONY: debug
 debug: dvieter
 dvieter: $(SOURCES)
-	$(V) -keepc -cg -cc gcc -o dvieter $(SRC_DIR)
+	$(V_PATH) -showcc -keepc -cg -o dvieter $(SRC_DIR)
+
+# Run the debug build inside gdb
+.PHONY: gdb
+gdb: dvieter
+	 VIETER_API_KEY=test \
+		VIETER_DOWNLOAD_DIR=data/downloads \
+		VIETER_REPO_DIR=data/repo \
+		VIETER_PKG_DIR=data/pkgs \
+		VIETER_LOG_LEVEL=DEBUG \
+		VIETER_REPOS_FILE=data/repos.json \
+		gdb --args ./dvieter
 
 # Optimised production build
 .PHONY: prod
@@ -34,16 +47,22 @@ c:
 # Run the server in the default 'data' directory
 .PHONY: run
 run: vieter
-	 API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG ./vieter server
+	 VIETER_API_KEY=test \
+		VIETER_DOWNLOAD_DIR=data/downloads \
+		VIETER_REPO_DIR=data/repo \
+		VIETER_PKG_DIR=data/pkgs \
+		VIETER_LOG_LEVEL=DEBUG \
+		VIETER_REPOS_FILE=data/repos.json \
+		./vieter server
 
 .PHONY: run-prod
 run-prod: prod
-	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG ./pvieter
-
-# Same as run, but restart when the source code changes
-.PHONY: watch
-watch:
-	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG $(V) watch run vieter
+	VIETER_API_KEY=test \
+		VIETER_DOWNLOAD_DIR=data/downloads \
+		VIETER_REPO_DIR=data/repo \
+		VIETER_PKG_DIR=data/pkgs \
+		VIETER_LOG_LEVEL=DEBUG \
+	./pvieter server
 
 # =====OTHER=====
 .PHONY: lint

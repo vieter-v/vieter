@@ -1,29 +1,11 @@
-module main
+module server
 
 import web
 import os
 import repo
 import time
 import rand
-
-const prefixes = ['B', 'KB', 'MB', 'GB']
-
-// pretty_bytes converts a byte count to human-readable version
-fn pretty_bytes(bytes int) string {
-	mut i := 0
-	mut n := f32(bytes)
-
-	for n >= 1024 {
-		i++
-		n /= 1024
-	}
-
-	return '${n:.2}${prefixes[i]}'
-}
-
-fn is_pkg_name(s string) bool {
-	return s.contains('.pkg')
-}
+import util
 
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
@@ -58,18 +40,18 @@ fn (mut app App) put_package() web.Result {
 
 	if length := app.req.header.get(.content_length) {
 		// Generate a random filename for the temp file
-		pkg_path = os.join_path_single(app.dl_dir, rand.uuid_v4())
+		pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
 
 		for os.exists(pkg_path) {
-			pkg_path = os.join_path_single(app.dl_dir, rand.uuid_v4())
+			pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
 		}
 
-		app.ldebug("Uploading $length bytes (${pretty_bytes(length.int())}) to '$pkg_path'.")
+		app.ldebug("Uploading $length bytes (${util.pretty_bytes(length.int())}) to '$pkg_path'.")
 
 		// This is used to time how long it takes to upload a file
 		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })
 
-		reader_to_file(mut app.reader, length.int(), pkg_path) or {
+		util.reader_to_file(mut app.reader, length.int(), pkg_path) or {
 			app.lwarn("Failed to upload '$pkg_path'")
 
 			return app.text('Failed to upload file.')

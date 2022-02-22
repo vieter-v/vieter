@@ -4,21 +4,22 @@ import docker
 import encoding.base64
 import rand
 import time
-import os
 import json
-import git
+import server
+import env
+import net.http
 
 const container_build_dir = '/build'
 
-fn build(key string, repo_dir string) ? {
-	server_url := os.getenv_opt('VIETER_ADDRESS') or {
-		exit_with_message(1, 'No Vieter server address was provided.')
-	}
+fn build() ? {
+	conf := env.load<env.BuildConfig>() ?
 
-	// Read in the repos from a json file
-	filename := os.join_path_single(repo_dir, 'repos.json')
-	txt := os.read_file(filename) ?
-	repos := json.decode([]git.GitRepo, txt) ?
+	// We get the repos list from the Vieter instance
+	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
+	req.add_custom_header('X-Api-Key', conf.api_key) ?
+
+	res := req.do() ?
+	repos := json.decode([]server.GitRepo, res.text) ?
 
 	mut commands := [
 		// Update repos & install required packages
@@ -48,7 +49,7 @@ fn build(key string, repo_dir string) ? {
 		uuids << uuid
 
 		commands << "su builder -c 'git clone --single-branch --depth 1 --branch $repo.branch $repo.url /build/$uuid'"
-		commands << 'su builder -c \'cd /build/$uuid && makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\${pkg}" -H "X-API-KEY: \$API_KEY" $server_url/publish; done\''
+		commands << 'su builder -c \'cd /build/$uuid && makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\${pkg}" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done\''
 	}
 
 	// We convert the list of commands into a base64 string, which then gets
@@ -57,7 +58,7 @@ fn build(key string, repo_dir string) ? {
 
 	c := docker.NewContainer{
 		image: 'archlinux:latest'
-		env: ['BUILD_SCRIPT=$cmds_str', 'API_KEY=$key']
+		env: ['BUILD_SCRIPT=$cmds_str', 'API_KEY=$conf.api_key']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
 	}
