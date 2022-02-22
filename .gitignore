@@ -5,6 +5,8 @@ data/
 vieter
 dvieter
 pvieter
+dvieterctl
+vieterctl
 vieter.c
 
 # Ignore testing files

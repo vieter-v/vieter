@@ -42,6 +42,17 @@ pvieter: $(SOURCES)
 c:
 	$(V) -o vieter.c $(SRC_DIR)
 
+# Build the CLI tool
+.PHONY: cli
+cli: dvieterctl
+dvieterctl: cli.v
+	$(V_PATH) -showcc -o dvieterctl cli.v
+
+.PHONY: cli-prod
+cli-prod: vieterctl
+vieterctl: cli.v
+cli-prod:
+	$(V_PATH) -showcc -o vieterctl -prod cli.v
 
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
