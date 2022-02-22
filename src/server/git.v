@@ -42,7 +42,7 @@ fn write_repos(path string, repos []GitRepo) ? {
 }
 
 ['/api/repos'; get]
-pub fn (mut app App) get_repos() web.Result {
+fn (mut app App) get_repos() web.Result {
 	if !app.is_authorized() {
 		return app.text('Unauthorized.')
 	}
@@ -59,7 +59,7 @@ pub fn (mut app App) get_repos() web.Result {
 }
 
 ['/api/repos'; post]
-pub fn (mut app App) post_repo() web.Result {
+fn (mut app App) post_repo() web.Result {
 	if !app.is_authorized() {
 		return app.text('Unauthorized.')
 	}
@@ -98,7 +98,7 @@ pub fn (mut app App) post_repo() web.Result {
 }
 
 ['/api/repos'; delete]
-pub fn (mut app App) delete_repo() web.Result {
+fn (mut app App) delete_repo() web.Result {
 	if !app.is_authorized() {
 		return app.text('Unauthorized.')
 	}

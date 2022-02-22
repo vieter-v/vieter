@@ -19,6 +19,7 @@ pub mut:
 	git_mutex shared util.Dummy
 }
 
+// server starts the web server & starts listening for requests
 pub fn server() ? {
 	conf := env.load<env.ServerConfig>() ?
 

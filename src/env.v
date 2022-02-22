@@ -22,8 +22,8 @@ pub:
 
 pub struct BuildConfig {
 pub:
-	api_key  string
-	address  string
+	api_key string
+	address string
 }
 
 fn get_env_var(field_name string) ?string {
@@ -56,7 +56,10 @@ fn get_env_var(field_name string) ?string {
 	}
 }
 
-// load attempts to create the given type from environment variables.
+// load<T> attempts to create the given type from environment variables. For
+// each field, the corresponding env var is its name in uppercase prepended
+// with the hardcoded prefix. If this one isn't present, it looks for the env
+// var with the file_suffix suffix.
 pub fn load<T>() ?T {
 	res := T{}
 

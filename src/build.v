@@ -4,7 +4,6 @@ import docker
 import encoding.base64
 import rand
 import time
-import os
 import json
 import server
 import env
@@ -16,7 +15,7 @@ fn build() ? {
 	conf := env.load<env.BuildConfig>() ?
 
 	// We get the repos list from the Vieter instance
-	mut req := http.new_request(http.Method.get, '${conf.address}/api/repos', '') ?
+	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
 	req.add_custom_header('X-Api-Key', conf.api_key) ?
 
 	res := req.do() ?

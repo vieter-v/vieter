@@ -15,12 +15,15 @@ pub struct Dummy {
 	x int
 }
 
+// exit_with_message exits the program with a given status code after having
+// first printed a specific message to STDERR
 [noreturn]
 pub fn exit_with_message(code int, msg string) {
 	eprintln(msg)
 	exit(code)
 }
 
+// reader_to_file writes the contents of a BufferedReader to a file
 pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 	mut file := os.create(path) ?
 	defer {

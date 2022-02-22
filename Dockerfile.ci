@@ -24,9 +24,10 @@ RUN curl --fail \
 FROM busybox:1.35.0
 
 ENV PATH=/bin \
-    REPO_DIR=/data/repo \
-    PKG_DIR=/data/pkgs \
-    DOWNLOAD_DIR=/data/downloads
+    VIETER_REPO_DIR=/data/repo \
+    VIETER_PKG_DIR=/data/pkgs \
+    VIETER_DOWNLOAD_DIR=/data/downloads \
+    VIETER_REPOS_FILE=/data/repos.json
 
 COPY --from=builder /app/dumb-init /app/vieter /bin/
 

@@ -13,11 +13,14 @@ vieter: $(SOURCES)
 	$(V) -g -o vieter $(SRC_DIR)
 
 # Debug build using gcc
+# The debug build can't use the boehm garbage collector, as that is
+# multi-threaded and causes issues when running vieter inside gdb.
 .PHONY: debug
 debug: dvieter
 dvieter: $(SOURCES)
 	$(V_PATH) -showcc -keepc -cg -o dvieter $(SRC_DIR)
 
+# Run the debug build inside gdb
 .PHONY: gdb
 gdb: dvieter
 	 VIETER_API_KEY=test \
