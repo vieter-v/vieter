@@ -83,7 +83,7 @@ pipeline:
         curl 
         --silent
         -XPUT
-        -T pvieter
+        -T vieterctl
         -H "Host: $URL"
         -H "Date: $DATE"
         -H "Content-Type: $CONTENT_TYPE"
