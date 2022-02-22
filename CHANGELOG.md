@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/Chewing_Bever/vieter)
 
+## Changed
+
+* Better environment variable support
+    * Each env var can now be provided from a file by appending it with `_FILE`
+      & passing the path to the file as value
+
 ## Added
 
 * Very basic build system
@@ -15,10 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * Packages are always rebuilt, even if they haven't changed
     * Hardcoded planning of builds
     * Builds are sequential
-* Better environment variable support
-    * Each env var can now be provided from a file by appending it with `_FILE`
-      & passing the path to the file as value
 * API for managing Git repositories to build
+* CLI to list, add & remove Git repos to build
+* Published packages on my Vieter instance
 
 ## Fixed
 

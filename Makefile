@@ -46,7 +46,7 @@ c:
 .PHONY: cli
 cli: dvieterctl
 dvieterctl: cli.v
-	$(V_PATH) -showcc -o dvieterctl cli.v
+	$(V_PATH) -showcc -g -o dvieterctl cli.v
 
 .PHONY: cli-prod
 cli-prod: vieterctl
@@ -97,4 +97,4 @@ v/v:
 	make -C v
 
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl'
