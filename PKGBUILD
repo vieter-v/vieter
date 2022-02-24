@@ -4,7 +4,7 @@ pkgbase='vieter'
 pkgname=('vieter' 'vieterctl')
 pkgver=0.1.0.rc1.r45.g6d3ff8a
 pkgrel=1
-depends=('openssl' 'libarchive' 'gc')
+depends=('glibc' 'openssl' 'libarchive' 'gc')
 arch=('x86_64' 'aarch64' 'armv7')
 url='https://git.rustybever.be/Chewing_Bever/vieter'
 license=('AGPL3')
@@ -20,7 +20,7 @@ build() {
     cd "$pkgname"
 
     # Build the compiler
-    make v
+    CFLAGS= make v
 
     # Build the server & the CLI tool
     make prod
@@ -30,11 +30,11 @@ build() {
 package_vieter() {
     install -dm755 "$pkgdir/usr/bin"
 
-    install -Dm755 "$pkgname/pvieter" "$pkgdir/usr/bin/vieter"
+    install -Dm755 "$pkgbase/pvieter" "$pkgdir/usr/bin/vieter"
 }
 
 package_vieterctl() {
     install -dm755 "$pkgdir/usr/bin"
 
-    install -Dm755 "$pkgname/vieterctl" "$pkgdir/usr/bin/vieterctl"
+    install -Dm755 "$pkgbase/vieterctl" "$pkgdir/usr/bin/vieterctl"
 }

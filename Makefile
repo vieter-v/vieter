@@ -97,4 +97,4 @@ v/v:
 	make -C v
 
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter'
