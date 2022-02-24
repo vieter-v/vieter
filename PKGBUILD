@@ -5,6 +5,7 @@ pkgname=('vieter' 'vieterctl')
 pkgver=0.1.0.rc1.r45.g6d3ff8a
 pkgrel=1
 depends=('glibc' 'openssl' 'libarchive' 'gc')
+makedepends=('git' 'gcc')
 arch=('x86_64' 'aarch64' 'armv7')
 url='https://git.rustybever.be/Chewing_Bever/vieter'
 license=('AGPL3')
