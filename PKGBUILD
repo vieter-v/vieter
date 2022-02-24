@@ -29,12 +29,14 @@ build() {
 }
 
 package_vieter() {
+    pkgdesc="Vieter is a lightweight implementation of an Arch repository server."
     install -dm755 "$pkgdir/usr/bin"
 
     install -Dm755 "$pkgbase/pvieter" "$pkgdir/usr/bin/vieter"
 }
 
 package_vieterctl() {
+    pkgdesc="Allows you to configure a Vieter server's list of Git repositories."
     install -dm755 "$pkgdir/usr/bin"
 
     install -Dm755 "$pkgbase/vieterctl" "$pkgdir/usr/bin/vieterctl"
