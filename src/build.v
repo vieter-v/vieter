@@ -2,7 +2,6 @@ module main
 
 import docker
 import encoding.base64
-import rand
 import time
 import json
 import server
@@ -10,6 +9,7 @@ import env
 import net.http
 
 const container_build_dir = '/build'
+
 const build_image_repo = 'vieter-build'
 
 fn create_build_image() ?string {
@@ -83,13 +83,13 @@ fn build() ? {
 	for repo in repos {
 		// TODO what to do with PKGBUILDs that build multiple packages?
 		commands := [
-			"git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo"
-			'cd repo'
-			"makepkg --nobuild --nodeps"
-			'source PKGBUILD'
+			'git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo',
+			'cd repo',
+			'makepkg --nobuild --nodeps',
+			'source PKGBUILD',
 			// The build container checks whether the package is already present on the server
-			"curl --head --fail $conf.address/\$pkgname-\$pkgver-\$pkgrel-\$(uname -m).pkg.tar.zst && exit 0"
-			'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done'
+			'curl --head --fail $conf.address/\$pkgname-\$pkgver-\$pkgrel-\$(uname -m).pkg.tar.zst && exit 0',
+			'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done',
 		]
 
 		// We convert the list of commands into a base64 string, which then gets
