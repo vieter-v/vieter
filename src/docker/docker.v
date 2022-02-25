@@ -91,8 +91,3 @@ pub fn request_with_json<T>(method string, url urllib.URL, data &T) ?http.Respon
 
 	return request_with_body(method, url, 'application/json', body)
 }
-
-// pull_image pulls tries to pull the image for the given image & tag
-pub fn pull_image(image string, tag string) ?http.Response {
-	return request('POST', urllib.parse('/v1.41/images/create?fromImage=$image&tag=$tag') ?)
-}

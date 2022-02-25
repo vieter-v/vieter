@@ -10,18 +10,10 @@ import env
 import net.http
 
 const container_build_dir = '/build'
+const build_image_repo = 'vieter-build'
 
-fn build() ? {
-	conf := env.load<env.BuildConfig>() ?
-
-	// We get the repos list from the Vieter instance
-	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
-	req.add_custom_header('X-Api-Key', conf.api_key) ?
-
-	res := req.do() ?
-	repos := json.decode([]server.GitRepo, res.text) ?
-
-	mut commands := [
+fn create_build_image() ?string {
+	commands := [
 		// Update repos & install required packages
 		'pacman -Syu --needed --noconfirm base-devel git'
 		// Add a non-root user to run makepkg
@@ -34,31 +26,11 @@ fn build() ? {
 		'mkdir /build',
 		'chown -R builder:builder /build',
 	]
-
-	// Each repo gets a unique UUID to avoid naming conflicts when cloning
-	mut uuids := []string{}
-
-	for repo in repos {
-		mut uuid := rand.uuid_v4()
-
-		// Just to be sure we don't have any collisions
-		for uuids.contains(uuid) {
-			uuid = rand.uuid_v4()
-		}
-
-		uuids << uuid
-
-		commands << "su builder -c 'git clone --single-branch --depth 1 --branch $repo.branch $repo.url /build/$uuid'"
-		commands << 'su builder -c \'cd /build/$uuid && makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\${pkg}" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done\''
-	}
-
-	// We convert the list of commands into a base64 string, which then gets
-	// passed to the container as an env var
 	cmds_str := base64.encode_str(commands.join('\n'))
 
 	c := docker.NewContainer{
 		image: 'archlinux:latest'
-		env: ['BUILD_SCRIPT=$cmds_str', 'API_KEY=$conf.api_key']
+		env: ['BUILD_SCRIPT=$cmds_str']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
 	}
@@ -81,5 +53,68 @@ fn build() ? {
 		time.sleep(5000000000)
 	}
 
+	// Finally, we create the image from the container
+	// As the tag, we use the epoch value
+	tag := time.sys_mono_now().str()
+	image := docker.create_image_from_container(id, 'vieter-build', tag) ?
 	docker.remove_container(id) ?
+
+	return image.id
+}
+
+fn build() ? {
+	conf := env.load<env.BuildConfig>() ?
+
+	// We get the repos list from the Vieter instance
+	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
+	req.add_custom_header('X-Api-Key', conf.api_key) ?
+
+	res := req.do() ?
+	repos := json.decode([]server.GitRepo, res.text) ?
+
+	// No point in doing work if there's no repos present
+	if repos.len == 0 {
+		return
+	}
+
+	// First, we create a base image which has updated repos n stuff
+	image_id := create_build_image() ?
+
+	for repo in repos {
+		commands := [
+			"su builder -c 'git clone --single-branch --depth 1 --branch $repo.branch $repo.url /build/repo'"
+			'su builder -c \'cd /build/repo && MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done\''
+		]
+
+		// We convert the list of commands into a base64 string, which then gets
+		// passed to the container as an env var
+		cmds_str := base64.encode_str(commands.join('\n'))
+
+		c := docker.NewContainer{
+			image: '$image_id'
+			env: ['BUILD_SCRIPT=$cmds_str', 'API_KEY=$conf.api_key']
+			entrypoint: ['/bin/sh', '-c']
+			cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
+		}
+
+		id := docker.create_container(c) ?
+		docker.start_container(id) ?
+
+		// This loop waits until the container has stopped, so we can remove it after
+		for {
+			data := docker.inspect_container(id) ?
+
+			if !data.state.running {
+				break
+			}
+
+			// Wait for 5 seconds
+			time.sleep(5000000000)
+		}
+
+		docker.remove_container(id) ?
+	}
+
+	// Finally, we remove the builder image
+	docker.remove_image(image_id) ?
 }
