@@ -20,6 +20,8 @@ pub struct NewContainer {
 	entrypoint []string [json: Entrypoint]
 	cmd        []string [json: Cmd]
 	env        []string [json: Env]
+	work_dir   string   [json:  WorkingDir]
+	user string [json: User]
 }
 
 struct CreatedContainer {

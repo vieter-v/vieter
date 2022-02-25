@@ -81,9 +81,15 @@ fn build() ? {
 	image_id := create_build_image() ?
 
 	for repo in repos {
+		// TODO what to do with PKGBUILDs that build multiple packages?
 		commands := [
-			"su builder -c 'git clone --single-branch --depth 1 --branch $repo.branch $repo.url /build/repo'"
-			'su builder -c \'cd /build/repo && MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done\''
+			"git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo"
+			'cd repo'
+			"makepkg --nobuild --nodeps"
+			'source PKGBUILD'
+			// The build container checks whether the package is already present on the server
+			"curl --head --fail $conf.address/\$pkgname-\$pkgver-\$pkgrel-\$(uname -m).pkg.tar.zst && exit 0"
+			'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done'
 		]
 
 		// We convert the list of commands into a base64 string, which then gets
@@ -94,7 +100,9 @@ fn build() ? {
 			image: '$image_id'
 			env: ['BUILD_SCRIPT=$cmds_str', 'API_KEY=$conf.api_key']
 			entrypoint: ['/bin/sh', '-c']
-			cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
+			cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/bash -e']
+			work_dir: '/build'
+			user: 'builder:builder'
 		}
 
 		id := docker.create_container(c) ?
@@ -112,7 +120,7 @@ fn build() ? {
 			time.sleep(5000000000)
 		}
 
-		docker.remove_container(id) ?
+		// docker.remove_container(id) ?
 	}
 
 	// Finally, we remove the builder image
