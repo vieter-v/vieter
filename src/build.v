@@ -120,7 +120,7 @@ fn build() ? {
 			time.sleep(5000000000)
 		}
 
-		// docker.remove_container(id) ?
+		docker.remove_container(id) ?
 	}
 
 	// Finally, we remove the builder image
