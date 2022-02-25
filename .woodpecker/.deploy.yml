@@ -10,6 +10,8 @@ pipeline:
   webhook:
     image: chewingbever/vlang:latest
     secrets:
-      - webhook
+      - webhook_1
+      - webhook_2
     commands:
-      - curl -XPOST -s "$WEBHOOK"
+      - curl -XPOST -s "$WEBHOOK_1"
+      - curl -XPOST -s "$WEBHOOK_2"

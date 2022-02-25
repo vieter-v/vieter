@@ -6,6 +6,7 @@ import repo
 import time
 import rand
 import util
+import net.http
 
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
@@ -15,7 +16,7 @@ pub fn (mut app App) healthcheck() web.Result {
 }
 
 // get_root handles a GET request for a file on the root
-['/:filename'; get]
+['/:filename'; get; head]
 fn (mut app App) get_root(filename string) web.Result {
 	mut full_path := ''
 
@@ -25,6 +26,15 @@ fn (mut app App) get_root(filename string) web.Result {
 		full_path = os.join_path_single(app.repo.repo_dir, '$filename')
 	} else {
 		full_path = os.join_path_single(app.repo.pkg_dir, filename)
+	}
+
+	// Scuffed way to respond to HEAD requests
+	if app.req.method == http.Method.head {
+		if os.exists(full_path) {
+			return app.ok('')
+		}
+
+		return app.not_found()
 	}
 
 	return app.file(full_path)
