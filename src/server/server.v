@@ -42,7 +42,7 @@ pub fn server() ? {
 	}
 
 	// This also creates the directories if needed
-	repo := repo.new(conf.data_dir, conf.pkg_dir, "x86_64") or {
+	repo := repo.new(conf.data_dir, conf.pkg_dir, 'x86_64') or {
 		logger.error(err.msg)
 		exit(1)
 	}
