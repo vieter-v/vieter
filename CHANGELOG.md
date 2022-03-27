@@ -18,17 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Very basic build system
     * Build is triggered by separate cron container
     * Packages build on cron container's system
-    * Packages are always rebuilt, even if they haven't changed
+    * A HEAD request is used to determine whether a package should be rebuilt
+      or not
     * Hardcoded planning of builds
     * Builds are sequential
 * API for managing Git repositories to build
 * CLI to list, add & remove Git repos to build
 * Published packages on my Vieter instance
+* Support for multiple repositories
+* Support for multiple architectures per repository
 
 ## Fixed
 
 * Each package can now only have one version in the repository at once
   (required by Pacman)
+* Packages with unknown fields in .PKGINFO are now allowed
 
 ## [0.1.0](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.1.0)
 

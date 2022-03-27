@@ -86,15 +86,16 @@ fn (mut app App) put_package(repo string) web.Result {
 
 		return app.text('Failed to add package.')
 	}
+
 	if !res.added {
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
-		app.lwarn("Duplicate package '$res.pkg.full_name()'.")
+		app.lwarn("Duplicate package '$res.pkg.full_name()' in repo '$repo ($res.pkg.info.arch)'.")
 
 		return app.text('File already exists.')
 	}
 
-	app.linfo("Added '$res.pkg.full_name()' to repository.")
+	app.linfo("Added '$res.pkg.full_name()' to repo '$repo ($res.pkg.info.arch)'.")
 
 	return app.text('Package added successfully.')
 }

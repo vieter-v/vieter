@@ -81,15 +81,16 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
 			arch_repos << r.default_arch
 		}
 
-		for arch in arch_repos {
-			r.add_pkg_in_arch_repo(repo, arch, pkg) ?
-		}
-	}else{
-		r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg) ?
-	}
+		mut added := false
 
-	// TODO properly handle this
-	return true
+		for arch in arch_repos {
+			added = added || r.add_pkg_in_arch_repo(repo, arch, pkg) ?
+		}
+
+		return added
+	}else{
+		return r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)
+	}
 }
 
 // add_pkg_in_repo adds the given package to the specified repo. A repo is an
