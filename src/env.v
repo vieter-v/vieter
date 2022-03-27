@@ -16,7 +16,7 @@ pub:
 	pkg_dir      string
 	download_dir string
 	api_key      string
-	repo_dir     string
+	data_dir     string
 	repos_file   string
 }
 

@@ -8,6 +8,8 @@ import rand
 import util
 import net.http
 
+const default_repo = "vieter"
+
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
 ['/health'; get]
@@ -21,9 +23,9 @@ fn (mut app App) get_root(filename string) web.Result {
 	mut full_path := ''
 
 	if filename.ends_with('.db') || filename.ends_with('.files') {
-		full_path = os.join_path_single(app.repo.repo_dir, '${filename}.tar.gz')
+		full_path = os.join_path_single(app.repo.data_dir, '${filename}.tar.gz')
 	} else if filename.ends_with('.db.tar.gz') || filename.ends_with('.files.tar.gz') {
-		full_path = os.join_path_single(app.repo.repo_dir, '$filename')
+		full_path = os.join_path_single(app.repo.data_dir, '$filename')
 	} else {
 		full_path = os.join_path_single(app.repo.pkg_dir, filename)
 	}
@@ -74,7 +76,7 @@ fn (mut app App) put_package() web.Result {
 		return app.text("Content-Type header isn't set.")
 	}
 
-	res := app.repo.add_from_path(pkg_path) or {
+	res := app.repo.add_pkg_from_path(default_repo, pkg_path) or {
 		app.lerror('Error while adding package: $err.msg')
 
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }

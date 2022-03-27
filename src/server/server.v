@@ -14,7 +14,7 @@ struct App {
 pub:
 	conf env.ServerConfig [required; web_global]
 pub mut:
-	repo repo.Repo [required; web_global]
+	repo repo.RepoGroupManager [required; web_global]
 	// This is used to claim the file lock on the repos file
 	git_mutex shared util.Dummy
 }
@@ -42,7 +42,7 @@ pub fn server() ? {
 	}
 
 	// This also creates the directories if needed
-	repo := repo.new(conf.repo_dir, conf.pkg_dir) or {
+	repo := repo.new(conf.data_dir, conf.pkg_dir, "x86_64") or {
 		logger.error(err.msg)
 		exit(1)
 	}

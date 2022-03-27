@@ -30,8 +30,9 @@ fn archive_add_entry(archive &C.archive, entry &C.archive_entry, file_path &stri
 }
 
 // Re-generate the repo archive files
-fn (r &Repo) sync() ? {
-	// TODO also write files archive
+fn (r &RepoGroupManager) sync(repo string, arch string) ? {
+	subrepo_path := os.join_path(r.data_dir, repo, arch)
+
 	lock r.mutex {
 		a_db := C.archive_write_new()
 		a_files := C.archive_write_new()
@@ -44,18 +45,18 @@ fn (r &Repo) sync() ? {
 		C.archive_write_add_filter_gzip(a_files)
 		C.archive_write_set_format_pax_restricted(a_files)
 
-		db_path := os.join_path_single(r.repo_dir, 'vieter.db.tar.gz')
-		files_path := os.join_path_single(r.repo_dir, 'vieter.files.tar.gz')
+		db_path := os.join_path_single(subrepo_path, 'vieter.db.tar.gz')
+		files_path := os.join_path_single(subrepo_path, 'vieter.files.tar.gz')
 
 		C.archive_write_open_filename(a_db, &char(db_path.str))
 		C.archive_write_open_filename(a_files, &char(files_path.str))
 
 		// Iterate over each directory
-		for d in os.ls(r.repo_dir) ?.filter(os.is_dir(os.join_path_single(r.repo_dir,
+		for d in os.ls(subrepo_path) ?.filter(os.is_dir(os.join_path_single(subrepo_path,
 			it))) {
 			// desc
 			mut inner_path := os.join_path_single(d, 'desc')
-			mut actual_path := os.join_path_single(r.repo_dir, inner_path)
+			mut actual_path := os.join_path_single(subrepo_path, inner_path)
 
 			archive_add_entry(a_db, entry, actual_path, inner_path)
 			archive_add_entry(a_files, entry, actual_path, inner_path)
@@ -64,7 +65,7 @@ fn (r &Repo) sync() ? {
 
 			// files
 			inner_path = os.join_path_single(d, 'files')
-			actual_path = os.join_path_single(r.repo_dir, inner_path)
+			actual_path = os.join_path_single(subrepo_path, inner_path)
 
 			archive_add_entry(a_files, entry, actual_path, inner_path)
 

@@ -46,7 +46,7 @@ def create_random_pkginfo(words, name_min_len, name_max_len):
         "pkgname": name,
         "pkgbase": name,
         "pkgver": ver,
-        "arch": "x86_64"
+        "arch": "any"
     }
 
     return "\n".join(f"{key} = {value}" for key, value in data.items())

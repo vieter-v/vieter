@@ -101,7 +101,7 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 
 // read_pkg extracts the file list & .PKGINFO contents from an archive
 // NOTE: this command currently only supports zstd-compressed tarballs
-pub fn read_pkg(pkg_path string) ?Pkg {
+pub fn read_pkg_archive(pkg_path string) ?Pkg {
 	if !os.is_file(pkg_path) {
 		return error("'$pkg_path' doesn't exist or isn't a file.")
 	}
