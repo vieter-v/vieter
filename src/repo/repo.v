@@ -70,8 +70,12 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
 	if pkg.info.arch == "any" {
 		repo_dir := os.join_path_single(r.data_dir, repo)
 
-		// We get a listing of all currently present arch-repos in the given repo
-		mut arch_repos := os.ls(repo_dir) ?.filter(os.is_dir(os.join_path_single(repo_dir, it)))
+		mut arch_repos := []string{}
+
+		if os.exists(repo_dir) {
+			// We get a listing of all currently present arch-repos in the given repo
+			arch_repos = os.ls(repo_dir) ?.filter(os.is_dir(os.join_path_single(repo_dir, it)))
+		}
 
 		if arch_repos.len == 0 {
 			arch_repos << r.default_arch

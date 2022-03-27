@@ -97,7 +97,7 @@ async def upload_random_package(tar_path, sem):
     async with sem:
         with open(tar_path, 'rb') as f:
             async with aiohttp.ClientSession() as s:
-                async with s.post("http://localhost:8000/publish", data=f.read(), headers={"x-api-key": "test"}) as r:
+                async with s.post("http://localhost:8000/vieter/publish", data=f.read(), headers={"x-api-key": "test"}) as r:
                     return await check_output(r)
 
 

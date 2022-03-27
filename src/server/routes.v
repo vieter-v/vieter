@@ -8,8 +8,6 @@ import rand
 import util
 import net.http
 
-const default_repo = "vieter"
-
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
 ['/health'; get]
@@ -17,15 +15,20 @@ pub fn (mut app App) healthcheck() web.Result {
 	return app.text('Healthy')
 }
 
-// get_root handles a GET request for a file on the root
-['/:filename'; get; head]
-fn (mut app App) get_root(filename string) web.Result {
+['/:repo/:arch/:filename'; get; head]
+fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Result {
 	mut full_path := ''
 
-	if filename.ends_with('.db') || filename.ends_with('.files') {
-		full_path = os.join_path_single(app.repo.data_dir, '${filename}.tar.gz')
-	} else if filename.ends_with('.db.tar.gz') || filename.ends_with('.files.tar.gz') {
-		full_path = os.join_path_single(app.repo.data_dir, '$filename')
+	db_exts := ['.db', '.files', '.db.tar.gz', '.files.tar.gz']
+
+	if db_exts.any(filename.ends_with(it)) {
+		full_path = os.join_path(app.repo.data_dir, repo, arch, filename)
+
+		// repo-add does this using symlinks, but we just change the requested
+		// path
+		if !full_path.ends_with('.tar.gz') {
+			full_path += '.tar.gz'
+		}
 	} else {
 		full_path = os.join_path_single(app.repo.pkg_dir, filename)
 	}
@@ -42,8 +45,8 @@ fn (mut app App) get_root(filename string) web.Result {
 	return app.file(full_path)
 }
 
-['/publish'; post]
-fn (mut app App) put_package() web.Result {
+['/:repo/publish'; post]
+fn (mut app App) put_package(repo string) web.Result {
 	if !app.is_authorized() {
 		return app.text('Unauthorized.')
 	}
@@ -76,7 +79,7 @@ fn (mut app App) put_package() web.Result {
 		return app.text("Content-Type header isn't set.")
 	}
 
-	res := app.repo.add_pkg_from_path(default_repo, pkg_path) or {
+	res := app.repo.add_pkg_from_path(repo, pkg_path) or {
 		app.lerror('Error while adding package: $err.msg')
 
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
