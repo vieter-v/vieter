@@ -45,8 +45,8 @@ fn (r &RepoGroupManager) sync(repo string, arch string) ? {
 		C.archive_write_add_filter_gzip(a_files)
 		C.archive_write_set_format_pax_restricted(a_files)
 
-		db_path := os.join_path_single(subrepo_path, 'vieter.db.tar.gz')
-		files_path := os.join_path_single(subrepo_path, 'vieter.files.tar.gz')
+		db_path := os.join_path_single(subrepo_path, '${repo}.db.tar.gz')
+		files_path := os.join_path_single(subrepo_path, '${repo}.files.tar.gz')
 
 		C.archive_write_open_filename(a_db, &char(db_path.str))
 		C.archive_write_open_filename(a_files, &char(files_path.str))
