@@ -70,9 +70,10 @@ run: vieter
 run-prod: prod
 	VIETER_API_KEY=test \
 		VIETER_DOWNLOAD_DIR=data/downloads \
-		VIETER_REPO_DIR=data/repo \
+		VIETER_DATA_DIR=data/repo \
 		VIETER_PKG_DIR=data/pkgs \
 		VIETER_LOG_LEVEL=DEBUG \
+		VIETER_REPOS_FILE=data/repos.json \
 	./pvieter server
 
 # =====OTHER=====
