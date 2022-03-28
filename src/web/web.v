@@ -139,7 +139,7 @@ pub const (
 pub struct Context {
 mut:
 	content_type string = 'text/plain'
-	status       int    = 200
+	status       http.Status    = http.Status.ok
 pub:
 	// HTTP Request
 	req http.Request
@@ -212,12 +212,12 @@ pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bo
 		text: res
 	}
 	resp.set_version(.v1_1)
-	resp.set_status(http.status_from_int(ctx.status))
+	resp.set_status(ctx.status)
 	send_string(mut ctx.conn, resp.bytestr()) or { return false }
 	return true
 }
 
-pub fn (mut ctx Context) text(status int, s string) Result {
+pub fn (mut ctx Context) text(status http.Status, s string) Result {
 	ctx.status = status
 
 	ctx.send_response_to_client('text/plain', s)
@@ -226,7 +226,7 @@ pub fn (mut ctx Context) text(status int, s string) Result {
 }
 
 // json<T> HTTP_OK with json_s as payload with content-type `application/json`
-pub fn (mut ctx Context) json<T>(status int, j T) Result {
+pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 	ctx.status = status
 
 	json_s := json.encode(j)
@@ -280,7 +280,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 		header: header.join(web.headers_close)
 	}
 	resp.set_version(.v1_1)
-	resp.set_status(http.status_from_int(ctx.status))
+	resp.set_status(ctx.status)
 	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
 
 	mut buf := []byte{len: 1_000_000}
@@ -306,7 +306,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	return Result{}
 }
 
-pub fn (mut ctx Context) status(status int) Result {
+pub fn (mut ctx Context) status(status http.Status) Result {
 	return ctx.text(status, '')
 }
 
@@ -337,7 +337,7 @@ pub fn (mut ctx Context) redirect(url string) Result {
 
 // not_found Send an not_found response
 pub fn (mut ctx Context) not_found() Result {
-	return ctx.status(404)
+	return ctx.status(http.Status.not_found)
 }
 
 // add_header Adds an header to the response with key and val
