@@ -78,31 +78,31 @@ fn write_repos(path string, repos &map[string]GitRepo) ? {
 ['/api/repos'; get]
 fn (mut app App) get_repos() web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(401, new_response('Unauthorized.'))
 	}
 
 	repos := rlock app.git_mutex {
 		read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(500)
 		}
 	}
 
-	return app.json(repos)
+	return app.json(200, new_data_response(repos))
 }
 
 ['/api/repos/:id'; get]
 fn (mut app App) get_single_repo(id string) web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(401, new_response('Unauthorized.'))
 	}
 
 	repos := rlock app.git_mutex {
 		read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(500)
 		}
 	}
 
@@ -112,18 +112,17 @@ fn (mut app App) get_single_repo(id string) web.Result {
 
 	repo := repos[id]
 
-	return app.json(repo)
+	return app.json(200, new_data_response(repo))
 }
 
 ['/api/repos'; post]
 fn (mut app App) post_repo() web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(401, new_response('Unauthorized.'))
 	}
 
 	new_repo := repo_from_params(app.query) or {
-		app.set_status(400, err.msg)
-		return app.ok("")
+		return app.json(400, new_response(err.msg))
 	}
 
 	id := rand.uuid_v4()
@@ -132,37 +131,37 @@ fn (mut app App) post_repo() web.Result {
 		read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(500)
 		}
 	}
 
 	// We need to check for duplicates
 	for _, repo in repos {
 		if repo == new_repo {
-			return app.text('Duplicate repository.')
+			return app.json(400, new_response('Duplicate repository.'))
 		}
 	}
 
 	repos[id] = new_repo
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+		write_repos(app.conf.repos_file, &repos) or { return app.status(500) }
 	}
 
-	return app.ok('Repo added successfully.')
+	return app.json(200, new_response('Repo added successfully.'))
 }
 
 ['/api/repos/:id'; delete]
 fn (mut app App) delete_repo(id string) web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(401, new_response('Unauthorized.'))
 	}
 
 	mut repos := rlock app.git_mutex {
 		read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(500)
 		}
 	}
 
@@ -176,20 +175,20 @@ fn (mut app App) delete_repo(id string) web.Result {
 		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
 	}
 
-	return app.ok('Repo removed successfully.')
+	return app.json(200, new_response('Repo removed successfully.'))
 }
 
 ['/api/repos/:id'; patch]
 fn (mut app App) patch_repo(id string) web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(401, new_response('Unauthorized.'))
 	}
 
 	mut repos := rlock app.git_mutex {
 		read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(500)
 		}
 	}
 
@@ -203,5 +202,5 @@ fn (mut app App) patch_repo(id string) web.Result {
 		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
 	}
 
-	return app.ok('Repo updated successfully.')
+	return app.json(200, new_response('Repo updated successfully.'))
 }

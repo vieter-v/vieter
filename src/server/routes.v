@@ -12,7 +12,7 @@ import net.http
 // server is still responsive.
 ['/health'; get]
 pub fn (mut app App) healthcheck() web.Result {
-	return app.text('Healthy')
+	return app.json(200, new_response('Healthy.'))
 }
 
 // get_root handles a GET request for a file on the root
@@ -31,7 +31,7 @@ fn (mut app App) get_root(filename string) web.Result {
 	// Scuffed way to respond to HEAD requests
 	if app.req.method == http.Method.head {
 		if os.exists(full_path) {
-			return app.ok('')
+			return app.status(200)
 		}
 
 		return app.not_found()
@@ -43,7 +43,7 @@ fn (mut app App) get_root(filename string) web.Result {
 ['/publish'; post]
 fn (mut app App) put_package() web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(401, new_response('Unauthorized.'))
 	}
 
 	mut pkg_path := ''
@@ -64,14 +64,16 @@ fn (mut app App) put_package() web.Result {
 		util.reader_to_file(mut app.reader, length.int(), pkg_path) or {
 			app.lwarn("Failed to upload '$pkg_path'")
 
-			return app.text('Failed to upload file.')
+			return app.json(500, new_response('Failed to upload file.'))
 		}
 
 		sw.stop()
 		app.ldebug("Upload of '$pkg_path' completed in ${sw.elapsed().seconds():.3}s.")
 	} else {
 		app.lwarn('Tried to upload package without specifying a Content-Length.')
-		return app.text("Content-Type header isn't set.")
+
+		// length required
+		return app.status(411)
 	}
 
 	res := app.repo.add_from_path(pkg_path) or {
@@ -79,17 +81,17 @@ fn (mut app App) put_package() web.Result {
 
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
-		return app.text('Failed to add package.')
+		return app.json(500, new_response('Failed to add package.'))
 	}
 	if !res.added {
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
 		app.lwarn("Duplicate package '$res.pkg.full_name()'.")
 
-		return app.text('File already exists.')
+		return app.json(400, new_response('File already exists.'))
 	}
 
 	app.linfo("Added '$res.pkg.full_name()' to repository.")
 
-	return app.text('Package added successfully.')
+	return app.json(200, new_response('Package added successfully.'))
 }
