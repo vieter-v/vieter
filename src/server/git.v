@@ -3,16 +3,44 @@ module server
 import web
 import os
 import json
-
-const repos_file = 'repos.json'
+import rand
 
 pub struct GitRepo {
-pub:
-	url    string [required]
-	branch string [required]
+pub mut:
+	// URL of the Git repository
+	url    string
+	// Branch of the Git repository to use
+	branch string
+	// On which architectures the package is allowed to be built. In reality,
+	// this controls which builders will periodically build the image.
+	arch   []string
 }
 
-fn read_repos(path string) ?[]GitRepo {
+fn (mut r GitRepo) patch_from_params(params &map[string]string) ? {
+	$for field in GitRepo.fields {
+		if field.name in params {
+			$if field.typ is string {
+				r.$(field.name) = params[field.name]
+			// This specific type check is needed for the compiler to ensure
+			// our types are correct
+			} $else $if field.typ is []string {
+				r.$(field.name) = params[field.name].split(',')
+			}
+		}else{
+			return error('Missing parameter: ${field.name}.')
+		}
+	}
+}
+
+fn repo_from_params(params &map[string]string) ?GitRepo {
+	mut repo := GitRepo{}
+
+	repo.patch_from_params(params) ?
+
+	return repo
+}
+
+fn read_repos(path string) ?map[string]GitRepo {
 	if !os.exists(path) {
 		mut f := os.create(path) ?
 
@@ -20,17 +48,17 @@ fn read_repos(path string) ?[]GitRepo {
 			f.close()
 		}
 
-		f.write_string('[]') ?
+		f.write_string('{}') ?
 
-		return []
+		return {}
 	}
 
 	content := os.read_file(path) ?
-	res := json.decode([]GitRepo, content) ?
+	res := json.decode(map[string]GitRepo, content) ?
 	return res
 }
 
-fn write_repos(path string, repos []GitRepo) ? {
+fn write_repos(path string, repos &map[string]GitRepo) ? {
 	mut f := os.create(path) ?
 
 	defer {
@@ -58,20 +86,40 @@ fn (mut app App) get_repos() web.Result {
 	return app.json(repos)
 }
 
+['/api/repos/:id'; get]
+fn (mut app App) get_single_repo(id string) web.Result {
+	if !app.is_authorized() {
+		return app.text('Unauthorized.')
+	}
+
+	repos := rlock app.git_mutex {
+		read_repos(app.conf.repos_file) or {
+			app.lerror('Failed to read repos file.')
+
+			return app.server_error(500)
+		}
+	}
+
+	if id !in repos {
+		return app.not_found()
+	}
+
+	repo := repos[id]
+
+	return app.json(repo)
+}
+
 ['/api/repos'; post]
 fn (mut app App) post_repo() web.Result {
 	if !app.is_authorized() {
 		return app.text('Unauthorized.')
 	}
 
-	if !('url' in app.query && 'branch' in app.query) {
+	new_repo := repo_from_params(&app.query) or {
 		return app.server_error(400)
 	}
 
-	new_repo := GitRepo{
-		url: app.query['url']
-		branch: app.query['branch']
-	}
+	id := rand.uuid_v4()
 
 	mut repos := rlock app.git_mutex {
 		read_repos(app.conf.repos_file) or {
@@ -82,34 +130,25 @@ fn (mut app App) post_repo() web.Result {
 	}
 
 	// We need to check for duplicates
-	for r in repos {
-		if r == new_repo {
+	for _, repo in repos {
+		if repo == new_repo {
 			return app.text('Duplicate repository.')
 		}
 	}
 
-	repos << new_repo
+	repos[id] = new_repo
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, repos) or { return app.server_error(500) }
+		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
 	}
 
 	return app.ok('Repo added successfully.')
 }
 
-['/api/repos'; delete]
-fn (mut app App) delete_repo() web.Result {
+['/api/repos/:id'; delete]
+fn (mut app App) delete_repo(id string) web.Result {
 	if !app.is_authorized() {
 		return app.text('Unauthorized.')
-	}
-
-	if !('url' in app.query && 'branch' in app.query) {
-		return app.server_error(400)
-	}
-
-	repo_to_remove := GitRepo{
-		url: app.query['url']
-		branch: app.query['branch']
 	}
 
 	mut repos := rlock app.git_mutex {
@@ -119,11 +158,43 @@ fn (mut app App) delete_repo() web.Result {
 			return app.server_error(500)
 		}
 	}
-	filtered := repos.filter(it != repo_to_remove)
+
+	if id !in repos {
+		return app.not_found()
+	}
+
+	repos.delete(id)
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, filtered) or { return app.server_error(500) }
+		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
 	}
 
 	return app.ok('Repo removed successfully.')
+}
+
+['/api/repos/:id'; patch]
+fn (mut app App) patch_repo(id string) web.Result {
+	if !app.is_authorized() {
+		return app.text('Unauthorized.')
+	}
+
+	mut repos := rlock app.git_mutex {
+		read_repos(app.conf.repos_file) or {
+			app.lerror('Failed to read repos file.')
+
+			return app.server_error(500)
+		}
+	}
+
+	if id !in repos {
+		return app.not_found()
+	}
+
+	repos[id].patch_from_params(&app.query)
+
+	lock app.git_mutex {
+		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+	}
+
+	return app.ok('Repo updated successfully.')
 }
