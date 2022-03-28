@@ -16,7 +16,7 @@ pub mut:
 	arch   []string
 }
 
-fn (mut r GitRepo) patch_from_params(params &map[string]string) ? {
+fn (mut r GitRepo) patch_from_params(params map[string]string) {
 	$for field in GitRepo.fields {
 		if field.name in params {
 			$if field.typ is string {
@@ -26,16 +26,22 @@ fn (mut r GitRepo) patch_from_params(params &map[string]string) ? {
 			} $else $if field.typ is []string {
 				r.$(field.name) = params[field.name].split(',')
 			}
-		}else{
-			return error('Missing parameter: ${field.name}.')
 		}
 	}
 }
 
-fn repo_from_params(params &map[string]string) ?GitRepo {
+fn repo_from_params(params map[string]string) ?GitRepo {
 	mut repo := GitRepo{}
 
-	repo.patch_from_params(params) ?
+	// If we're creating a new GitRepo, we want all fields to be present before
+	// "patching".
+	$for field in GitRepo.fields {
+		if field.name !in params {
+			return error('Missing parameter: ${field.name}.')
+		}
+	}
+
+	repo.patch_from_params(params)
 
 	return repo
 }
@@ -115,8 +121,9 @@ fn (mut app App) post_repo() web.Result {
 		return app.text('Unauthorized.')
 	}
 
-	new_repo := repo_from_params(&app.query) or {
-		return app.server_error(400)
+	new_repo := repo_from_params(app.query) or {
+		app.set_status(400, err.msg)
+		return app.ok("")
 	}
 
 	id := rand.uuid_v4()
@@ -190,7 +197,7 @@ fn (mut app App) patch_repo(id string) web.Result {
 		return app.not_found()
 	}
 
-	repos[id].patch_from_params(&app.query)
+	repos[id].patch_from_params(app.query)
 
 	lock app.git_mutex {
 		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
