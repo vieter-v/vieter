@@ -9,12 +9,12 @@ import net.http
 pub struct GitRepo {
 pub mut:
 	// URL of the Git repository
-	url    string
+	url string
 	// Branch of the Git repository to use
 	branch string
 	// On which architectures the package is allowed to be built. In reality,
 	// this controls which builders will periodically build the image.
-	arch   []string
+	arch []string
 }
 
 fn (mut r GitRepo) patch_from_params(params map[string]string) {
@@ -22,8 +22,8 @@ fn (mut r GitRepo) patch_from_params(params map[string]string) {
 		if field.name in params {
 			$if field.typ is string {
 				r.$(field.name) = params[field.name]
-			// This specific type check is needed for the compiler to ensure
-			// our types are correct
+				// This specific type check is needed for the compiler to ensure
+				// our types are correct
 			} $else $if field.typ is []string {
 				r.$(field.name) = params[field.name].split(',')
 			}
@@ -41,7 +41,6 @@ fn repo_from_params(params map[string]string) ?GitRepo {
 			return error('Missing parameter: ${field.name}.')
 		}
 	}
-
 	repo.patch_from_params(params)
 
 	return repo
@@ -146,7 +145,9 @@ fn (mut app App) post_repo() web.Result {
 	repos[id] = new_repo
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, &repos) or { return app.status(http.Status.internal_server_error) }
+		write_repos(app.conf.repos_file, &repos) or {
+			return app.status(http.Status.internal_server_error)
+		}
 	}
 
 	return app.json(http.Status.ok, new_response('Repo added successfully.'))

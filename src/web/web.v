@@ -138,8 +138,8 @@ pub const (
 // It has fields for the query, form, files.
 pub struct Context {
 mut:
-	content_type string = 'text/plain'
-	status       http.Status    = http.Status.ok
+	content_type string      = 'text/plain'
+	status       http.Status = http.Status.ok
 pub:
 	// HTTP Request
 	req http.Request
