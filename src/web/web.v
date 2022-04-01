@@ -217,6 +217,7 @@ pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bo
 	return true
 }
 
+// text responds to a request with some plaintext.
 pub fn (mut ctx Context) text(status http.Status, s string) Result {
 	ctx.status = status
 
@@ -307,6 +308,8 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	return Result{}
 }
 
+// status responds with an empty textual response, essentially only returning
+// the given status code.
 pub fn (mut ctx Context) status(status http.Status) Result {
 	return ctx.text(status, '')
 }
