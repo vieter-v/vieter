@@ -231,6 +231,7 @@ pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 
 	json_s := json.encode(j)
 	ctx.send_response_to_client('application/json', json_s)
+
 	return Result{}
 }
 
