@@ -1,0 +1,9 @@
+# This file contains settings used during development
+api_key = "test"
+download_dir = "data/downloads"
+repo_dir = "data/repo"
+pkg_dir = "data/pkgs"
+# log_level = "DEBUG"
+repos_file = "data/repos.json"
+
+address = "http://localhost:8000"
