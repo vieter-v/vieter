@@ -18,7 +18,7 @@ pub:
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'server'
-		description: 'Start the Vieter server'
+		description: 'Start the Vieter server.'
 		execute: fn (cmd cli.Command) ? {
 			config_file := cmd.flags.get_string('config-file') ?
 			conf := env.load<Config>(config_file) ?

@@ -9,7 +9,7 @@ import git
 fn main() {
 	mut app := cli.Command{
 		name: 'vieter'
-		description: 'Arch repository server'
+		description: 'Vieter is a lightweight implementation of an Arch repository server.'
 		version: '0.1.0'
 		flags: [
 			cli.Flag{

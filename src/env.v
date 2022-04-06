@@ -49,7 +49,7 @@ pub fn load<T>(path string) ?T {
 
 	if os.exists(path) {
 		// We don't use reflect here because reflect also sets any fields not
-		// in the toml back to "empty", which we don't want
+		// in the toml back to their zero value, which we don't want
 		doc := toml.parse_file(path) ?
 
 		$for field in T.fields {
