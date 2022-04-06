@@ -3,6 +3,7 @@ module server
 import cli
 import env
 
+// cmd returns the cli submodule that handles starting the server
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'server'

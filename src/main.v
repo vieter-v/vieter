@@ -2,9 +2,7 @@ module main
 
 import os
 import server
-import util
 import cli
-import env
 import build
 import git
 

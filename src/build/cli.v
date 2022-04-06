@@ -3,6 +3,7 @@ module build
 import cli
 import env
 
+// cmd returns the cli submodule that handles the build process
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'build'

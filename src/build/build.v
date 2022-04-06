@@ -3,12 +3,10 @@ module build
 import docker
 import encoding.base64
 import time
-import json
-import server
 import env
 import net.http
-import cli
 import git
+import json
 
 const container_build_dir = '/build'
 

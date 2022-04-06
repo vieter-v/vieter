@@ -1,8 +1,6 @@
 module server
 
 import web
-import os
-import json
 import git
 
 const repos_file = 'repos.json'

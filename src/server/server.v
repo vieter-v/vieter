@@ -6,7 +6,6 @@ import log
 import repo
 import env
 import util
-import cli
 
 const port = 8000
 

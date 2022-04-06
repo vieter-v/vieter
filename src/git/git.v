@@ -9,6 +9,7 @@ pub:
 	branch string [required]
 }
 
+// read_repos reads the given JSON file & parses it as a list of Git repos
 pub fn read_repos(path string) ?[]GitRepo {
 	if !os.exists(path) {
 		mut f := os.create(path) ?
@@ -27,6 +28,7 @@ pub fn read_repos(path string) ?[]GitRepo {
 	return res
 }
 
+// write_repos writes a list of repositories back to a given file
 pub fn write_repos(path string, repos []GitRepo) ? {
 	mut f := os.create(path) ?
 

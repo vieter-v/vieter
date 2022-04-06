@@ -100,6 +100,3 @@ pub fn load<T>(path string) ?T {
 	}
 	return res
 }
-
-pub fn load_with_file<T>(path string) ?T {
-}

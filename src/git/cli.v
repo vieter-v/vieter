@@ -9,6 +9,7 @@ struct Config {
 	api_key string [required]
 }
 
+// cmd returns the cli submodule that handles the repos API interaction
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'repos'
