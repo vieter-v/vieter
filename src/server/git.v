@@ -1,79 +1,11 @@
 module server
 
 import web
-import os
-import json
-import rand
+import git
 import net.http
+import rand
 
-pub struct GitRepo {
-pub mut:
-	// URL of the Git repository
-	url string
-	// Branch of the Git repository to use
-	branch string
-	// On which architectures the package is allowed to be built. In reality,
-	// this controls which builders will periodically build the image.
-	arch []string
-}
-
-fn (mut r GitRepo) patch_from_params(params map[string]string) {
-	$for field in GitRepo.fields {
-		if field.name in params {
-			$if field.typ is string {
-				r.$(field.name) = params[field.name]
-				// This specific type check is needed for the compiler to ensure
-				// our types are correct
-			} $else $if field.typ is []string {
-				r.$(field.name) = params[field.name].split(',')
-			}
-		}
-	}
-}
-
-fn repo_from_params(params map[string]string) ?GitRepo {
-	mut repo := GitRepo{}
-
-	// If we're creating a new GitRepo, we want all fields to be present before
-	// "patching".
-	$for field in GitRepo.fields {
-		if field.name !in params {
-			return error('Missing parameter: ${field.name}.')
-		}
-	}
-	repo.patch_from_params(params)
-
-	return repo
-}
-
-fn read_repos(path string) ?map[string]GitRepo {
-	if !os.exists(path) {
-		mut f := os.create(path) ?
-
-		defer {
-			f.close()
-		}
-
-		f.write_string('{}') ?
-
-		return {}
-	}
-
-	content := os.read_file(path) ?
-	res := json.decode(map[string]GitRepo, content) ?
-	return res
-}
-
-fn write_repos(path string, repos &map[string]GitRepo) ? {
-	mut f := os.create(path) ?
-
-	defer {
-		f.close()
-	}
-
-	value := json.encode(repos)
-	f.write_string(value) ?
-}
+const repos_file = 'repos.json'
 
 ['/api/repos'; get]
 fn (mut app App) get_repos() web.Result {
@@ -82,7 +14,7 @@ fn (mut app App) get_repos() web.Result {
 	}
 
 	repos := rlock app.git_mutex {
-		read_repos(app.conf.repos_file) or {
+		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
 			return app.status(http.Status.internal_server_error)
@@ -99,7 +31,7 @@ fn (mut app App) get_single_repo(id string) web.Result {
 	}
 
 	repos := rlock app.git_mutex {
-		read_repos(app.conf.repos_file) or {
+		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
 			return app.status(http.Status.internal_server_error)
@@ -121,14 +53,14 @@ fn (mut app App) post_repo() web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	new_repo := repo_from_params(app.query) or {
+	new_repo := git.repo_from_params(app.query) or {
 		return app.json(http.Status.bad_request, new_response(err.msg))
 	}
 
 	id := rand.uuid_v4()
 
 	mut repos := rlock app.git_mutex {
-		read_repos(app.conf.repos_file) or {
+		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
 			return app.status(http.Status.internal_server_error)
@@ -145,7 +77,7 @@ fn (mut app App) post_repo() web.Result {
 	repos[id] = new_repo
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, &repos) or {
+		git.write_repos(app.conf.repos_file, &repos) or {
 			return app.status(http.Status.internal_server_error)
 		}
 	}
@@ -160,7 +92,7 @@ fn (mut app App) delete_repo(id string) web.Result {
 	}
 
 	mut repos := rlock app.git_mutex {
-		read_repos(app.conf.repos_file) or {
+		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
 			return app.status(http.Status.internal_server_error)
@@ -174,7 +106,7 @@ fn (mut app App) delete_repo(id string) web.Result {
 	repos.delete(id)
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
 	}
 
 	return app.json(http.Status.ok, new_response('Repo removed successfully.'))
@@ -187,7 +119,7 @@ fn (mut app App) patch_repo(id string) web.Result {
 	}
 
 	mut repos := rlock app.git_mutex {
-		read_repos(app.conf.repos_file) or {
+		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
 			return app.status(http.Status.internal_server_error)
@@ -201,7 +133,7 @@ fn (mut app App) patch_repo(id string) web.Result {
 	repos[id].patch_from_params(app.query)
 
 	lock app.git_mutex {
-		write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
 	}
 
 	return app.json(http.Status.ok, new_response('Repo updated successfully.'))

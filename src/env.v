@@ -1,6 +1,7 @@
 module env
 
 import os
+import toml
 
 // The prefix that every environment variable should have
 const prefix = 'VIETER_'
@@ -9,32 +10,15 @@ const prefix = 'VIETER_'
 // instead
 const file_suffix = '_FILE'
 
-pub struct ServerConfig {
-pub:
-	log_level    string [default: WARN]
-	log_file     string [default: 'vieter.log']
-	pkg_dir      string
-	download_dir string
-	api_key      string
-	repo_dir     string
-	repos_file   string
-}
-
-pub struct BuildConfig {
-pub:
-	api_key string
-	address string
-}
-
 fn get_env_var(field_name string) ?string {
 	env_var_name := '$env.prefix$field_name.to_upper()'
 	env_file_name := '$env.prefix$field_name.to_upper()$env.file_suffix'
 	env_var := os.getenv(env_var_name)
 	env_file := os.getenv(env_file_name)
 
-	// If both aren't set, we report them missing
+	// If both are missing, we return an empty string
 	if env_var == '' && env_file == '' {
-		return error('Either $env_var_name or $env_file_name is required.')
+		return ''
 	}
 
 	// If they're both set, we report a conflict
@@ -56,30 +40,42 @@ fn get_env_var(field_name string) ?string {
 	}
 }
 
-// load<T> attempts to create the given type from environment variables. For
-// each field, the corresponding env var is its name in uppercase prepended
-// with the hardcoded prefix. If this one isn't present, it looks for the env
-// var with the file_suffix suffix.
-pub fn load<T>() ?T {
-	res := T{}
+// load<T> attempts to create an object of type T from the given path to a toml
+// file & environment variables. For each field, it will select either a value
+// given from an environment variable, a value defined in the config file or a
+// configured default if present, in that order.
+pub fn load<T>(path string) ?T {
+	mut res := T{}
+
+	if os.exists(path) {
+		// We don't use reflect here because reflect also sets any fields not
+		// in the toml back to their zero value, which we don't want
+		doc := toml.parse_file(path) ?
+
+		$for field in T.fields {
+			s := doc.value(field.name)
+
+			// We currently only support strings
+			if s.type_name() == 'string' {
+				res.$(field.name) = s.string()
+			}
+		}
+	}
 
 	$for field in T.fields {
-		res.$(field.name) = get_env_var(field.name) or {
-			// We use the default instead, if it's present
-			mut default := ''
+		$if field.typ is string {
+			env_value := get_env_var(field.name) ?
 
-			for attr in field.attrs {
-				if attr.starts_with('default: ') {
-					default = attr[9..]
-					break
-				}
+			// The value of the env var will always be chosen over the config
+			// file
+			if env_value != '' {
+				res.$(field.name) = env_value
 			}
-
-			if default == '' {
-				return err
+			// If there's no value from the toml file either, we try to find a
+			// default value
+			else if res.$(field.name) == '' {
+				return error("Missing config variable '$field.name' with no provided default. Either add it to the config file or provide it using an environment variable.")
 			}
-
-			default
 		}
 	}
 	return res

@@ -37,22 +37,6 @@ pipeline:
     when:
       event: push
 
-  cli:
-    image: 'chewingbever/vlang:latest'
-    environment:
-      - LDFLAGS=-static
-    commands:
-      - make cli-prod
-      # Make sure the binary is actually statically built
-      - readelf -d vieterctl
-      - du -h vieterctl
-      - '[ "$(readelf -d vieterctl | grep NEEDED | wc -l)" = 0 ]'
-      # This removes so much, it's amazing
-      - strip -s vieterctl
-      - du -h vieterctl
-    when:
-      event: push
-
   upload:
     image: 'chewingbever/vlang:latest'
     secrets: [ s3_username, s3_password ]
@@ -70,21 +54,6 @@ pipeline:
         --silent
         -XPUT
         -T pvieter
-        -H "Host: $URL"
-        -H "Date: $DATE"
-        -H "Content-Type: $CONTENT_TYPE"
-        -H "Authorization: AWS $S3_USERNAME:$SIGNATURE"
-        https://$URL$OBJ_PATH
-
-      # Also update the CLI tool
-      - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieterctl-$(echo '${PLATFORM}' | sed 's:/:-:g')"
-      - export SIG_STRING="PUT\n\n$CONTENT_TYPE\n$DATE\n$OBJ_PATH"
-      - export SIGNATURE=`echo -en $SIG_STRING | openssl sha1 -hmac $S3_PASSWORD -binary | base64`
-      - >
-        curl 
-        --silent
-        -XPUT
-        -T vieterctl
         -H "Host: $URL"
         -H "Date: $DATE"
         -H "Content-Type: $CONTENT_TYPE"
