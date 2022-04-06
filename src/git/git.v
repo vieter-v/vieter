@@ -14,6 +14,8 @@ pub mut:
 	arch []string
 }
 
+// patch_from_params patches a GitRepo from a map[string]string, usually
+// provided from a web.App's params
 pub fn (mut r GitRepo) patch_from_params(params map[string]string) {
 	$for field in GitRepo.fields {
 		if field.name in params {
@@ -28,6 +30,7 @@ pub fn (mut r GitRepo) patch_from_params(params map[string]string) {
 	}
 }
 
+// read_repos reads the provided path & parses it into a map of GitRepo's.
 pub fn read_repos(path string) ?map[string]GitRepo {
 	if !os.exists(path) {
 		mut f := os.create(path) ?
@@ -47,6 +50,7 @@ pub fn read_repos(path string) ?map[string]GitRepo {
 	return res
 }
 
+// write_repos writes a map of GitRepo's back to disk given the provided path.
 pub fn write_repos(path string, repos &map[string]GitRepo) ? {
 	mut f := os.create(path) ?
 
@@ -58,6 +62,8 @@ pub fn write_repos(path string, repos &map[string]GitRepo) ? {
 	f.write_string(value) ?
 }
 
+// repo_from_params creates a GitRepo from a map[string]string, usually
+// provided from a web.App's params
 pub fn repo_from_params(params map[string]string) ?GitRepo {
 	mut repo := GitRepo{}
 
