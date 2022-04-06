@@ -2,7 +2,6 @@ matrix:
   PLATFORM:
     - linux/amd64
     - linux/arm64
-    - linux/arm/v7
 
 # These checks already get performed on the feature branches
 platform: ${PLATFORM}
