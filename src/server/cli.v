@@ -8,7 +8,8 @@ pub fn cmd() cli.Command {
 		name: 'server'
 		description: 'Start the Vieter server'
 		execute: fn (cmd cli.Command) ? {
-			conf := env.load<env.ServerConfig>() ?
+			config_file := cmd.flags.get_string('config-file') ?
+			conf := env.load<env.ServerConfig>(config_file) ?
 
 			server(conf) ?
 		}

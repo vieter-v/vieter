@@ -18,7 +18,8 @@ pub fn cmd() cli.Command {
 				name: 'list'
 				description: 'List the current repos.'
 				execute: fn (cmd cli.Command) ? {
-					conf := env.load<Config>() ?
+					config_file := cmd.flags.get_string('config-file') ?
+					conf := env.load<Config>(config_file) ?
 
 					list(conf) ?
 				}
@@ -29,7 +30,8 @@ pub fn cmd() cli.Command {
 				usage: 'url branch'
 				description: 'Add a new repository.'
 				execute: fn (cmd cli.Command) ? {
-					conf := env.load<Config>() ?
+					config_file := cmd.flags.get_string('config-file') ?
+					conf := env.load<Config>(config_file) ?
 
 					add(conf, cmd.args[0], cmd.args[1]) ?
 				}
@@ -40,7 +42,8 @@ pub fn cmd() cli.Command {
 				usage: 'url branch'
 				description: 'Remove a repository.'
 				execute: fn (cmd cli.Command) ? {
-					conf := env.load<Config>() ?
+					config_file := cmd.flags.get_string('config-file') ?
+					conf := env.load<Config>(config_file) ?
 
 					remove(conf, cmd.args[0], cmd.args[1]) ?
 				}
@@ -59,7 +62,8 @@ fn list(conf Config) ? {
 }
 
 fn add(conf Config, url string, branch string) ? {
-	mut req := http.new_request(http.Method.post, '$conf.address/api/repos?url=$url&branch=$branch', '') ?
+	mut req := http.new_request(http.Method.post, '$conf.address/api/repos?url=$url&branch=$branch',
+		'') ?
 	req.add_custom_header('X-API-Key', conf.api_key) ?
 
 	res := req.do() ?
@@ -68,7 +72,8 @@ fn add(conf Config, url string, branch string) ? {
 }
 
 fn remove(conf Config, url string, branch string) ? {
-	mut req := http.new_request(http.Method.delete, '$conf.address/api/repos?url=$url&branch=$branch', '') ?
+	mut req := http.new_request(http.Method.delete, '$conf.address/api/repos?url=$url&branch=$branch',
+		'') ?
 	req.add_custom_header('X-API-Key', conf.api_key) ?
 
 	res := req.do() ?

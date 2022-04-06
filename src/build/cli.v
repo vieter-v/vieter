@@ -8,7 +8,8 @@ pub fn cmd() cli.Command {
 		name: 'build'
 		description: 'Run the build process.'
 		execute: fn (cmd cli.Command) ? {
-			conf := env.load<env.BuildConfig>() ?
+			config_file := cmd.flags.get_string('config-file') ?
+			conf := env.load<env.BuildConfig>(config_file) ?
 
 			build(conf) ?
 		}
