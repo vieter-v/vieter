@@ -56,15 +56,9 @@ fn get_env_var(field_name string) ?string {
 	}
 }
 
-// load<T> attempts to create the given type from environment variables. For
-// each field, the corresponding env var is its name in uppercase prepended
-// with the hardcoded prefix. If this one isn't present, it looks for the env
-// var with the file_suffix suffix.
-pub fn load<T>() ?T {
-	res := T{}
-
+fn load_in_place<T>(mut o T) ? {
 	$for field in T.fields {
-		res.$(field.name) = get_env_var(field.name) or {
+		o.$(field.name) = get_env_var(field.name) or {
 			// We use the default instead, if it's present
 			mut default := ''
 
@@ -82,5 +76,20 @@ pub fn load<T>() ?T {
 			default
 		}
 	}
+}
+
+// load<T> attempts to create the given type from environment variables. For
+// each field, the corresponding env var is its name in uppercase prepended
+// with the hardcoded prefix. If this one isn't present, it looks for the env
+// var with the file_suffix suffix.
+pub fn load<T>() ?T {
+	mut res := T{}
+
+	load_in_place<T>(mut res) ?
+
 	return res
+}
+
+pub fn load_with_file<T>(path string) ?T {
+
 }

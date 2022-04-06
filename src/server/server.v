@@ -6,6 +6,7 @@ import log
 import repo
 import env
 import util
+import cli
 
 const port = 8000
 
@@ -20,9 +21,7 @@ pub mut:
 }
 
 // server starts the web server & starts listening for requests
-pub fn server() ? {
-	conf := env.load<env.ServerConfig>() ?
-
+pub fn server(conf env.ServerConfig) ? {
 	// Configure logger
 	log_level := log.level_from_tag(conf.log_level) or {
 		util.exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
