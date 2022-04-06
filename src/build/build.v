@@ -3,7 +3,6 @@ module build
 import docker
 import encoding.base64
 import time
-import env
 import net.http
 import git
 import json
@@ -62,7 +61,7 @@ fn create_build_image() ?string {
 	return image.id
 }
 
-fn build(conf env.BuildConfig) ? {
+fn build(conf Config) ? {
 	// We get the repos list from the Vieter instance
 	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
 	req.add_custom_header('X-Api-Key', conf.api_key) ?

@@ -10,23 +10,6 @@ const prefix = 'VIETER_'
 // instead
 const file_suffix = '_FILE'
 
-pub struct ServerConfig {
-pub:
-	log_level    string = "WARN"
-	log_file     string = "vieter.log"
-	pkg_dir      string
-	download_dir string
-	api_key      string
-	repo_dir     string
-	repos_file   string
-}
-
-pub struct BuildConfig {
-pub:
-	api_key string
-	address string
-}
-
 fn get_env_var(field_name string) ?string {
 	env_var_name := '$env.prefix$field_name.to_upper()'
 	env_file_name := '$env.prefix$field_name.to_upper()$env.file_suffix'
@@ -73,7 +56,7 @@ pub fn load<T>(path string) ?T {
 			s := doc.value(field.name)
 
 			// We currently only support strings
-			if s.type_name() == "string" {
+			if s.type_name() == 'string' {
 				res.$(field.name) = s.string()
 			}
 		}
