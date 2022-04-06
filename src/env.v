@@ -57,10 +57,10 @@ fn get_env_var(field_name string) ?string {
 	}
 }
 
-// load<T> attempts to create the given type from environment variables. For
-// each field, the corresponding env var is its name in uppercase prepended
-// with the hardcoded prefix. If this one isn't present, it looks for the env
-// var with the file_suffix suffix.
+// load<T> attempts to create an object of type T from the given path to a toml
+// file & environment variables. For each field, it will select either a value
+// given from an environment variable, a value defined in the config file or a
+// configured default if present, in that order.
 pub fn load<T>(path string) ?T {
 	mut res := T{}
 
