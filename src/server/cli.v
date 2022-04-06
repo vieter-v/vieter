@@ -10,7 +10,7 @@ pub fn cmd() cli.Command {
 		execute: fn (cmd cli.Command) ? {
 			conf := env.load<env.ServerConfig>() ?
 
-			server.server(conf) ?
+			server(conf) ?
 		}
 	}
 }

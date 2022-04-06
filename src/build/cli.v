@@ -14,4 +14,3 @@ pub fn cmd() cli.Command {
 		}
 	}
 }
-

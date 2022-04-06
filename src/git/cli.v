@@ -14,15 +14,15 @@ pub fn cmd() cli.Command {
 		name: 'repos'
 		description: 'Interact with the repos API.'
 		commands: [
-		cli.Command{
-			name: 'list'
-			description: 'List the current repos.'
-			execute: fn (cmd cli.Command) ? {
-				conf := env.load<Config>() ?
+			cli.Command{
+				name: 'list'
+				description: 'List the current repos.'
+				execute: fn (cmd cli.Command) ? {
+					conf := env.load<Config>() ?
 
-				list(conf) ?
-			}
-		}
+					list(conf) ?
+				}
+			},
 		]
 	}
 }

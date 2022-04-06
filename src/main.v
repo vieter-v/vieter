@@ -21,12 +21,12 @@ fn main() {
 				description: 'Location of Vieter config file; defaults to ~/.vieterrc.'
 				global: true
 				default_value: [os.expand_tilde_to_home('~/.vieterrc')]
-			}
+			},
 		]
 		commands: [
 			server.cmd(),
 			build.cmd(),
-			git.cmd()
+			git.cmd(),
 		]
 	}
 

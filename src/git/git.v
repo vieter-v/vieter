@@ -37,4 +37,3 @@ pub fn write_repos(path string, repos []GitRepo) ? {
 	value := json.encode(repos)
 	f.write_string(value) ?
 }
-
