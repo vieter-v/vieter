@@ -7,6 +7,7 @@ import time
 import rand
 import util
 import net.http
+import response { new_response, new_data_response }
 
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.

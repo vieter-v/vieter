@@ -3,6 +3,9 @@ module git
 import cli
 import env
 import net.http
+import json
+import git
+import response
 
 struct Config {
 	address string [required]
@@ -28,13 +31,13 @@ pub fn cmd() cli.Command {
 			cli.Command{
 				name: 'add'
 				required_args: 2
-				usage: 'url branch'
+				usage: 'url branch arch...'
 				description: 'Add a new repository.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file') ?
 					conf := env.load<Config>(config_file) ?
 
-					add(conf, cmd.args[0], cmd.args[1]) ?
+					add(conf, cmd.args[0], cmd.args[1], cmd.args[2..]) ?
 				}
 			},
 			cli.Command{
@@ -58,12 +61,15 @@ fn list(conf Config) ? {
 	req.add_custom_header('X-API-Key', conf.api_key) ?
 
 	res := req.do() ?
+	data := json.decode(response.Response<map[string]git.GitRepo>, res.text) ?
 
-	println(res.text)
+	for id, details in data.data {
+		println("${id[..8]}\t$details.url\t$details.branch\t$details.arch")
+	}
 }
 
-fn add(conf Config, url string, branch string) ? {
-	mut req := http.new_request(http.Method.post, '$conf.address/api/repos?url=$url&branch=$branch',
+fn add(conf Config, url string, branch string, arch []string) ? {
+	mut req := http.new_request(http.Method.post, '$conf.address/api/repos?url=$url&branch=$branch&arch=${arch.join(',')}',
 		'') ?
 	req.add_custom_header('X-API-Key', conf.api_key) ?
 

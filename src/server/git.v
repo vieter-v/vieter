@@ -4,6 +4,7 @@ import web
 import git
 import net.http
 import rand
+import response { new_response, new_data_response }
 
 const repos_file = 'repos.json'
 
@@ -15,7 +16,7 @@ fn (mut app App) get_repos() web.Result {
 
 	repos := rlock app.git_mutex {
 		git.read_repos(app.conf.repos_file) or {
-			app.lerror('Failed to read repos file.')
+			app.lerror('Failed to read repos file: $err.msg')
 
 			return app.status(http.Status.internal_server_error)
 		}
