@@ -23,13 +23,7 @@ dvieter: $(SOURCES)
 # Run the debug build inside gdb
 .PHONY: gdb
 gdb: dvieter
-	 VIETER_API_KEY=test \
-		VIETER_DOWNLOAD_DIR=data/downloads \
-		VIETER_DATA_DIR=data/repo \
-		VIETER_PKG_DIR=data/pkgs \
-		VIETER_LOG_LEVEL=DEBUG \
-		VIETER_REPOS_FILE=data/repos.json \
-		gdb --args ./dvieter
+		gdb --args './dvieter -f vieter.toml server'
 
 # Optimised production build
 .PHONY: prod
@@ -42,39 +36,15 @@ pvieter: $(SOURCES)
 c:
 	$(V) -o vieter.c $(SRC_DIR)
 
-# Build the CLI tool
-.PHONY: cli
-cli: dvieterctl
-dvieterctl: cli.v
-	$(V_PATH) -showcc -g -o dvieterctl cli.v
-
-.PHONY: cli-prod
-cli-prod: vieterctl
-vieterctl: cli.v
-cli-prod:
-	$(V_PATH) -showcc -o vieterctl -prod cli.v
-
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
 .PHONY: run
 run: vieter
-	 VIETER_API_KEY=test \
-		VIETER_DOWNLOAD_DIR=data/downloads \
-		VIETER_DATA_DIR=data/repo \
-		VIETER_PKG_DIR=data/pkgs \
-		VIETER_LOG_LEVEL=DEBUG \
-		VIETER_REPOS_FILE=data/repos.json \
-		./vieter server
+		./vieter -f vieter.toml server
 
 .PHONY: run-prod
 run-prod: prod
-	VIETER_API_KEY=test \
-		VIETER_DOWNLOAD_DIR=data/downloads \
-		VIETER_DATA_DIR=data/repo \
-		VIETER_PKG_DIR=data/pkgs \
-		VIETER_LOG_LEVEL=DEBUG \
-		VIETER_REPOS_FILE=data/repos.json \
-	./pvieter server
+	./pvieter -f vieter.toml server
 
 # =====OTHER=====
 .PHONY: lint

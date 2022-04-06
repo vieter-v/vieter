@@ -1,12 +1,11 @@
-module main
+module build
 
 import docker
 import encoding.base64
 import time
-import json
-import server
-import env
 import net.http
+import git
+import json
 
 const container_build_dir = '/build'
 
@@ -62,15 +61,13 @@ fn create_build_image() ?string {
 	return image.id
 }
 
-fn build() ? {
-	conf := env.load<env.BuildConfig>() ?
-
+fn build(conf Config) ? {
 	// We get the repos list from the Vieter instance
 	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
 	req.add_custom_header('X-Api-Key', conf.api_key) ?
 
 	res := req.do() ?
-	repos := json.decode([]server.GitRepo, res.text) ?
+	repos := json.decode([]git.GitRepo, res.text) ?
 
 	// No point in doing work if there's no repos present
 	if repos.len == 0 {

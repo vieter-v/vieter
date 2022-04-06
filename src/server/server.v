@@ -4,7 +4,6 @@ import web
 import os
 import log
 import repo
-import env
 import util
 
 const port = 8000
@@ -12,7 +11,7 @@ const port = 8000
 struct App {
 	web.Context
 pub:
-	conf env.ServerConfig [required; web_global]
+	conf Config [required; web_global]
 pub mut:
 	repo repo.RepoGroupManager [required; web_global]
 	// This is used to claim the file lock on the repos file
@@ -20,9 +19,7 @@ pub mut:
 }
 
 // server starts the web server & starts listening for requests
-pub fn server() ? {
-	conf := env.load<env.ServerConfig>() ?
-
+pub fn server(conf Config) ? {
 	// Configure logger
 	log_level := log.level_from_tag(conf.log_level) or {
 		util.exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
