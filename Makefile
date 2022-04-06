@@ -23,13 +23,7 @@ dvieter: $(SOURCES)
 # Run the debug build inside gdb
 .PHONY: gdb
 gdb: dvieter
-	 VIETER_API_KEY=test \
-		VIETER_DOWNLOAD_DIR=data/downloads \
-		VIETER_REPO_DIR=data/repo \
-		VIETER_PKG_DIR=data/pkgs \
-		VIETER_LOG_LEVEL=DEBUG \
-		VIETER_REPOS_FILE=data/repos.json \
-		gdb --args ./dvieter
+		gdb --args './dvieter -f vieter.toml server'
 
 # Optimised production build
 .PHONY: prod
@@ -46,22 +40,11 @@ c:
 # Run the server in the default 'data' directory
 .PHONY: run
 run: vieter
-	 VIETER_API_KEY=test \
-		VIETER_DOWNLOAD_DIR=data/downloads \
-		VIETER_REPO_DIR=data/repo \
-		VIETER_PKG_DIR=data/pkgs \
-		VIETER_LOG_LEVEL=DEBUG \
-		VIETER_REPOS_FILE=data/repos.json \
-		./vieter server
+		./vieter -f vieter.toml server
 
 .PHONY: run-prod
 run-prod: prod
-	VIETER_API_KEY=test \
-		VIETER_DOWNLOAD_DIR=data/downloads \
-		VIETER_REPO_DIR=data/repo \
-		VIETER_PKG_DIR=data/pkgs \
-		VIETER_LOG_LEVEL=DEBUG \
-	./pvieter server
+	./pvieter -f vieter.toml server
 
 # =====OTHER=====
 .PHONY: lint

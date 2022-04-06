@@ -12,8 +12,8 @@ const file_suffix = '_FILE'
 
 pub struct ServerConfig {
 pub:
-	log_level    string [default: WARN]
-	log_file     string [default: 'vieter.log']
+	log_level    string = "WARN"
+	log_file     string = "vieter.log"
 	pkg_dir      string
 	download_dir string
 	api_key      string
@@ -65,7 +65,18 @@ pub fn load<T>(path string) ?T {
 	mut res := T{}
 
 	if os.exists(path) {
-		res = toml.parse_file(path) ?.reflect<T>()
+		// We don't use reflect here because reflect also sets any fields not
+		// in the toml back to "empty", which we don't want
+		doc := toml.parse_file(path) ?
+
+		$for field in T.fields {
+			s := doc.value(field.name)
+
+			// We currently only support strings
+			if s.type_name() == "string" {
+				res.$(field.name) = s.string()
+			}
+		}
 	}
 
 	$for field in T.fields {
@@ -80,21 +91,7 @@ pub fn load<T>(path string) ?T {
 			// If there's no value from the toml file either, we try to find a
 			// default value
 			else if res.$(field.name) == '' {
-				// We use the default instead, if it's present
-				mut default := ''
-
-				for attr in field.attrs {
-					if attr.starts_with('default: ') {
-						default = attr[9..]
-						break
-					}
-				}
-
-				if default == '' {
-					return error("Missing config variable '$field.name' with no provided default. Either add it to the config file or provide it using an environment variable.")
-				}
-
-				res.$(field.name) = default
+				return error("Missing config variable '$field.name' with no provided default. Either add it to the config file or provide it using an environment variable.")
 			}
 		}
 	}
