@@ -191,6 +191,7 @@ pub fn (pkg &Pkg) filename() string {
 	ext := match pkg.compression {
 		0 { '.tar' }
 		1 { '.tar.gz' }
+		6 { '.tar.xz' }
 		14 { '.tar.zst' }
 		else { panic("Another compression code shouldn't be possible. Faulty code: $pkg.compression") }
 	}
