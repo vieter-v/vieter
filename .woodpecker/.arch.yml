@@ -3,10 +3,10 @@ branches: [dev]
 
 pipeline:
   build:
-    image: 'archlinux:latest'
+    image: 'archlinux:base-devel'
     commands:
       # Update packages
-      - pacman -Syu --needed --noconfirm base-devel
+      - pacman -Syu
       # Create non-root user to perform build & switch to their home
       - groupadd -g 1000 builder
       - useradd -mg builder builder
@@ -17,9 +17,9 @@ pipeline:
       - makepkg -s --noconfirm --needed
 
   publish:
-    image: 'archlinux:latest'
+    image: 'curlimages/curl:latest'
     commands:
       # Publish the package
-      - 'for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $VIETER_API_KEY" https://arch.r8r.be/publish; done'
+      - 'for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $VIETER_API_KEY" https://arch.r8r.be/vieter/publish; done'
     secrets:
       - vieter_api_key

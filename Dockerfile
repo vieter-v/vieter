@@ -31,7 +31,7 @@ RUN if [ -n "${CI_COMMIT_SHA}" ]; then \
 FROM busybox:1.35.0
 
 ENV PATH=/bin \
-    VIETER_REPO_DIR=/data/repo \
+    VIETER_REPOS_DIR=/data/repos \
     VIETER_PKG_DIR=/data/pkgs \
     VIETER_DOWNLOAD_DIR=/data/downloads \
     VIETER_REPOS_FILE=/data/repos.json

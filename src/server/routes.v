@@ -16,15 +16,20 @@ pub fn (mut app App) healthcheck() web.Result {
 	return app.json(http.Status.ok, new_response('Healthy.'))
 }
 
-// get_root handles a GET request for a file on the root
-['/:filename'; get; head]
-fn (mut app App) get_root(filename string) web.Result {
+['/:repo/:arch/:filename'; get; head]
+fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Result {
 	mut full_path := ''
 
-	if filename.ends_with('.db') || filename.ends_with('.files') {
-		full_path = os.join_path_single(app.repo.repo_dir, '${filename}.tar.gz')
-	} else if filename.ends_with('.db.tar.gz') || filename.ends_with('.files.tar.gz') {
-		full_path = os.join_path_single(app.repo.repo_dir, '$filename')
+	db_exts := ['.db', '.files', '.db.tar.gz', '.files.tar.gz']
+
+	if db_exts.any(filename.ends_with(it)) {
+		full_path = os.join_path(app.repo.repos_dir, repo, arch, filename)
+
+		// repo-add does this using symlinks, but we just change the requested
+		// path
+		if !full_path.ends_with('.tar.gz') {
+			full_path += '.tar.gz'
+		}
 	} else {
 		full_path = os.join_path_single(app.repo.pkg_dir, filename)
 	}
@@ -41,8 +46,8 @@ fn (mut app App) get_root(filename string) web.Result {
 	return app.file(full_path)
 }
 
-['/publish'; post]
-fn (mut app App) put_package() web.Result {
+['/:repo/publish'; post]
+fn (mut app App) put_package(repo string) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -52,10 +57,6 @@ fn (mut app App) put_package() web.Result {
 	if length := app.req.header.get(.content_length) {
 		// Generate a random filename for the temp file
 		pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
-
-		for os.exists(pkg_path) {
-			pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
-		}
 
 		app.ldebug("Uploading $length bytes (${util.pretty_bytes(length.int())}) to '$pkg_path'.")
 
@@ -77,22 +78,23 @@ fn (mut app App) put_package() web.Result {
 		return app.status(http.Status.length_required)
 	}
 
-	res := app.repo.add_from_path(pkg_path) or {
+	res := app.repo.add_pkg_from_path(repo, pkg_path) or {
 		app.lerror('Error while adding package: $err.msg')
 
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
 		return app.json(http.Status.internal_server_error, new_response('Failed to add package.'))
 	}
+
 	if !res.added {
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
-		app.lwarn("Duplicate package '$res.pkg.full_name()'.")
+		app.lwarn("Duplicate package '$res.pkg.full_name()' in repo '$repo ($res.pkg.info.arch)'.")
 
 		return app.json(http.Status.bad_request, new_response('File already exists.'))
 	}
 
-	app.linfo("Added '$res.pkg.full_name()' to repository.")
+	app.linfo("Added '$res.pkg.full_name()' to repo '$repo ($res.pkg.info.arch)'.")
 
 	return app.json(http.Status.ok, new_response('Package added successfully.'))
 }

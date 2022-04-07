@@ -12,6 +12,8 @@ pub mut:
 	// On which architectures the package is allowed to be built. In reality,
 	// this controls which builders will periodically build the image.
 	arch []string
+	// Which repo the builder should publish packages to
+	repo string
 }
 
 // patch_from_params patches a GitRepo from a map[string]string, usually

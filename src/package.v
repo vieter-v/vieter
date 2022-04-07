@@ -72,14 +72,11 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 			'pkgbase' { pkg_info.base = value }
 			'pkgver' { pkg_info.version = value }
 			'pkgdesc' { pkg_info.description = value }
-			'csize' { continue }
 			'size' { pkg_info.size = value.int() }
 			'url' { pkg_info.url = value }
 			'arch' { pkg_info.arch = value }
 			'builddate' { pkg_info.build_date = value.int() }
 			'packager' { pkg_info.packager = value }
-			'md5sum' { continue }
-			'sha256sum' { continue }
 			'pgpsig' { pkg_info.pgpsig = value }
 			'pgpsigsize' { pkg_info.pgpsigsize = value.int() }
 			// Array values
@@ -92,16 +89,19 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 			'optdepend' { pkg_info.optdepends << value }
 			'makedepend' { pkg_info.makedepends << value }
 			'checkdepend' { pkg_info.checkdepends << value }
-			else { return error("Invalid key '$key'.") }
+			// There's no real point in trying to exactly manage which fields
+			// are allowed, so we just ignore any we don't explicitely need for
+			// in the db file
+			else { continue }
 		}
 	}
 
 	return pkg_info
 }
 
-// read_pkg extracts the file list & .PKGINFO contents from an archive
-// NOTE: this command currently only supports zstd-compressed tarballs
-pub fn read_pkg(pkg_path string) ?Pkg {
+// read_pkg_archive extracts the file list & .PKGINFO contents from an archive
+// NOTE: this command only supports zstd- & gzip-compressed tarballs
+pub fn read_pkg_archive(pkg_path string) ?Pkg {
 	if !os.is_file(pkg_path) {
 		return error("'$pkg_path' doesn't exist or isn't a file.")
 	}
