@@ -6,7 +6,7 @@ pipeline:
     image: 'archlinux:base-devel'
     commands:
       # Update packages
-      - pacman -Syu
+      - 'pacman -Syu'
       # Create non-root user to perform build & switch to their home
       - groupadd -g 1000 builder
       - useradd -mg builder builder
