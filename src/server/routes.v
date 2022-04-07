@@ -7,12 +7,13 @@ import time
 import rand
 import util
 import net.http
+import response { new_response }
 
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
 ['/health'; get]
 pub fn (mut app App) healthcheck() web.Result {
-	return app.text('Healthy')
+	return app.json(http.Status.ok, new_response('Healthy.'))
 }
 
 ['/:repo/:arch/:filename'; get; head]
@@ -36,7 +37,7 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 	// Scuffed way to respond to HEAD requests
 	if app.req.method == http.Method.head {
 		if os.exists(full_path) {
-			return app.ok('')
+			return app.status(http.Status.ok)
 		}
 
 		return app.not_found()
@@ -48,7 +49,7 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 ['/:repo/publish'; post]
 fn (mut app App) put_package(repo string) web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
 	mut pkg_path := ''
@@ -69,14 +70,16 @@ fn (mut app App) put_package(repo string) web.Result {
 		util.reader_to_file(mut app.reader, length.int(), pkg_path) or {
 			app.lwarn("Failed to upload '$pkg_path'")
 
-			return app.text('Failed to upload file.')
+			return app.json(http.Status.internal_server_error, new_response('Failed to upload file.'))
 		}
 
 		sw.stop()
 		app.ldebug("Upload of '$pkg_path' completed in ${sw.elapsed().seconds():.3}s.")
 	} else {
 		app.lwarn('Tried to upload package without specifying a Content-Length.')
-		return app.text("Content-Type header isn't set.")
+
+		// length required
+		return app.status(http.Status.length_required)
 	}
 
 	res := app.repo.add_pkg_from_path(repo, pkg_path) or {
@@ -84,7 +87,7 @@ fn (mut app App) put_package(repo string) web.Result {
 
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
-		return app.text('Failed to add package.')
+		return app.json(http.Status.internal_server_error, new_response('Failed to add package.'))
 	}
 
 	if !res.added {
@@ -92,10 +95,10 @@ fn (mut app App) put_package(repo string) web.Result {
 
 		app.lwarn("Duplicate package '$res.pkg.full_name()' in repo '$repo ($res.pkg.info.arch)'.")
 
-		return app.text('File already exists.')
+		return app.json(http.Status.bad_request, new_response('File already exists.'))
 	}
 
 	app.linfo("Added '$res.pkg.full_name()' to repo '$repo ($res.pkg.info.arch)'.")
 
-	return app.text('Package added successfully.')
+	return app.json(http.Status.ok, new_response('Package added successfully.'))
 }

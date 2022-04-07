@@ -3,9 +3,7 @@ module build
 import docker
 import encoding.base64
 import time
-import net.http
 import git
-import json
 
 const container_build_dir = '/build'
 
@@ -63,11 +61,7 @@ fn create_build_image() ?string {
 
 fn build(conf Config) ? {
 	// We get the repos list from the Vieter instance
-	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
-	req.add_custom_header('X-Api-Key', conf.api_key) ?
-
-	res := req.do() ?
-	repos := json.decode([]git.GitRepo, res.text) ?
+	repos := git.get_repos(conf.address, conf.api_key) ?
 
 	// No point in doing work if there's no repos present
 	if repos.len == 0 {
@@ -77,7 +71,7 @@ fn build(conf Config) ? {
 	// First, we create a base image which has updated repos n stuff
 	image_id := create_build_image() ?
 
-	for repo in repos {
+	for _, repo in repos {
 		// TODO what to do with PKGBUILDs that build multiple packages?
 		commands := [
 			'git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo',

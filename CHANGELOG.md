@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Changed
 
-* Better environment variable support
+* Better config system
+    * Support for both a config file & environment variables
     * Each env var can now be provided from a file by appending it with `_FILE`
       & passing the path to the file as value
+* Revamped web framework
+    * All routes now return proper JSON where applicable & the correct status
+      codes
 
 ## Added
 
