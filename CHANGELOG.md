@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Changed
 
-* Better environment variable support
+* Better config system
+    * Support for both a config file & environment variables
     * Each env var can now be provided from a file by appending it with `_FILE`
       & passing the path to the file as value
 * Revamped web framework
@@ -21,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Very basic build system
     * Build is triggered by separate cron container
     * Packages build on cron container's system
-    * Packages are always rebuilt, even if they haven't changed
     * Hardcoded planning of builds
     * Builds are sequential
 * API for managing Git repositories to build
