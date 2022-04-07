@@ -100,7 +100,7 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 }
 
 // read_pkg_archive extracts the file list & .PKGINFO contents from an archive
-// NOTE: this command only supports zstd- & gzip-compressed tarballs
+// NOTE: this command only supports zstd-, xz- & gzip-compressed tarballs.
 pub fn read_pkg_archive(pkg_path string) ?Pkg {
 	if !os.is_file(pkg_path) {
 		return error("'$pkg_path' doesn't exist or isn't a file.")
@@ -112,6 +112,7 @@ pub fn read_pkg_archive(pkg_path string) ?Pkg {
 	// Sinds 2020, all newly built Arch packages use zstd
 	C.archive_read_support_filter_zstd(a)
 	C.archive_read_support_filter_gzip(a)
+	C.archive_read_support_filter_xz(a)
 	// The content should always be a tarball
 	C.archive_read_support_format_tar(a)
 

@@ -15,6 +15,9 @@ fn C.archive_read_support_filter_zstd(&C.archive)
 // Configure the archive to work with gzip compression
 fn C.archive_read_support_filter_gzip(&C.archive)
 
+// Configure the archive to work with xz compression
+fn C.archive_read_support_filter_xz(&C.archive)
+
 // Configure the archive to work with a tarball content
 fn C.archive_read_support_format_tar(&C.archive)
 
