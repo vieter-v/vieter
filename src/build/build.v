@@ -29,7 +29,7 @@ fn create_build_image() ?string {
 	cmds_str := base64.encode_str(commands.join('\n'))
 
 	c := docker.NewContainer{
-		image: base_image
+		image: build.base_image
 		env: ['BUILD_SCRIPT=$cmds_str']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']

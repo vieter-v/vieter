@@ -10,7 +10,7 @@ fn send_request<T>(method http.Method, address string, url string, api_key strin
 	if params.len > 0 {
 		params_str := params.keys().map('$it=${params[it]}').join('&')
 
-		full_url = "$full_url?$params_str"
+		full_url = '$full_url?$params_str'
 	}
 
 	mut req := http.new_request(method, full_url, '') ?
@@ -24,7 +24,8 @@ fn send_request<T>(method http.Method, address string, url string, api_key strin
 
 // get_repos returns the current list of repos.
 pub fn get_repos(address string, api_key string) ?map[string]GitRepo {
-	data := send_request<map[string]GitRepo>(http.Method.get, address, '/api/repos', api_key, {}) ?
+	data := send_request<map[string]GitRepo>(http.Method.get, address, '/api/repos', api_key,
+		{}) ?
 
 	return data.data
 }
@@ -32,10 +33,10 @@ pub fn get_repos(address string, api_key string) ?map[string]GitRepo {
 // add_repo adds a new repo to the server.
 pub fn add_repo(address string, api_key string, url string, branch string, repo string, arch []string) ?Response<string> {
 	params := {
-		'url': url
+		'url':    url
 		'branch': branch
-		'repo': repo
-		'arch': arch.join(',')
+		'repo':   repo
+		'arch':   arch.join(',')
 	}
 	data := send_request<string>(http.Method.post, address, '/api/repos', api_key, params) ?
 
@@ -44,7 +45,8 @@ pub fn add_repo(address string, api_key string, url string, branch string, repo 
 
 // remove_repo removes the repo with the given ID from the server.
 pub fn remove_repo(address string, api_key string, id string) ?Response<string> {
-	data := send_request<string>(http.Method.delete, address, '/api/repos/$id', api_key, {}) ?
+	data := send_request<string>(http.Method.delete, address, '/api/repos/$id', api_key,
+		{}) ?
 
 	return data
 }
