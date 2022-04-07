@@ -12,9 +12,6 @@ import time
 import json
 import log
 
-// A type which don't get filtered inside templates
-pub type RawHtml = string
-
 // A dummy structure that returns from routes to indicate that you actually sent something to a user
 [noinit]
 pub struct Result {}
@@ -141,8 +138,8 @@ pub const (
 // It has fields for the query, form, files.
 pub struct Context {
 mut:
-	content_type string = 'text/plain'
-	status       string = '200 OK'
+	content_type string      = 'text/plain'
+	status       http.Status = http.Status.ok
 pub:
 	// HTTP Request
 	req http.Request
@@ -187,23 +184,13 @@ struct Route {
 }
 
 // Defining this method is optional.
-// init_server is called at server start.
-// You can use it for initializing globals.
-pub fn (ctx Context) init_server() {
-	eprintln('init_server() has been deprecated, please init your web app in `fn main()`')
-}
-
-// Defining this method is optional.
 // before_request is called before every request (aka middleware).
 // Probably you can use it for check user session cookie or add header.
 pub fn (ctx Context) before_request() {}
 
-pub struct Cookie {
-	name      string
-	value     string
-	expires   time.Time
-	secure    bool
-	http_only bool
+// send_string
+fn send_string(mut conn net.TcpConn, s string) ? {
+	conn.write(s.bytes()) ?
 }
 
 // send_response_to_client sends a response to the client
@@ -225,34 +212,27 @@ pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bo
 		text: res
 	}
 	resp.set_version(.v1_1)
-	resp.set_status(http.status_from_int(ctx.status.int()))
+	resp.set_status(ctx.status)
 	send_string(mut ctx.conn, resp.bytestr()) or { return false }
 	return true
 }
 
-// html HTTP_OK with s as payload with content-type `text/html`
-pub fn (mut ctx Context) html(s string) Result {
-	ctx.send_response_to_client('text/html', s)
-	return Result{}
-}
+// text responds to a request with some plaintext.
+pub fn (mut ctx Context) text(status http.Status, s string) Result {
+	ctx.status = status
 
-// text HTTP_OK with s as payload with content-type `text/plain`
-pub fn (mut ctx Context) text(s string) Result {
 	ctx.send_response_to_client('text/plain', s)
+
 	return Result{}
 }
 
 // json<T> HTTP_OK with json_s as payload with content-type `application/json`
-pub fn (mut ctx Context) json<T>(j T) Result {
+pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
+	ctx.status = status
+
 	json_s := json.encode(j)
 	ctx.send_response_to_client('application/json', json_s)
-	return Result{}
-}
 
-// json_pretty<T> Response HTTP_OK with a pretty-printed JSON result
-pub fn (mut ctx Context) json_pretty<T>(j T) Result {
-	json_s := json.encode_pretty(j)
-	ctx.send_response_to_client('application/json', json_s)
 	return Result{}
 }
 
@@ -302,7 +282,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 		header: header.join(web.headers_close)
 	}
 	resp.set_version(.v1_1)
-	resp.set_status(http.status_from_int(ctx.status.int()))
+	resp.set_status(ctx.status)
 	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
 
 	mut buf := []byte{len: 1_000_000}
@@ -328,10 +308,10 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	return Result{}
 }
 
-// ok Response HTTP_OK with s as payload
-pub fn (mut ctx Context) ok(s string) Result {
-	ctx.send_response_to_client(ctx.content_type, s)
-	return Result{}
+// status responds with an empty textual response, essentially only returning
+// the given status code.
+pub fn (mut ctx Context) status(status http.Status) Result {
+	return ctx.text(status, '')
 }
 
 // server_error Response a server error
@@ -361,64 +341,7 @@ pub fn (mut ctx Context) redirect(url string) Result {
 
 // not_found Send an not_found response
 pub fn (mut ctx Context) not_found() Result {
-	if ctx.done {
-		return Result{}
-	}
-	ctx.done = true
-	send_string(mut ctx.conn, web.http_404.bytestr()) or {}
-	return Result{}
-}
-
-// set_cookie Sets a cookie
-pub fn (mut ctx Context) set_cookie(cookie Cookie) {
-	mut cookie_data := []string{}
-	mut secure := if cookie.secure { 'Secure;' } else { '' }
-	secure += if cookie.http_only { ' HttpOnly' } else { ' ' }
-	cookie_data << secure
-	if cookie.expires.unix > 0 {
-		cookie_data << 'expires=$cookie.expires.utc_string()'
-	}
-	data := cookie_data.join(' ')
-	ctx.add_header('Set-Cookie', '$cookie.name=$cookie.value; $data')
-}
-
-// set_content_type Sets the response content type
-pub fn (mut ctx Context) set_content_type(typ string) {
-	ctx.content_type = typ
-}
-
-// set_cookie_with_expire_date Sets a cookie with a `expire_data`
-pub fn (mut ctx Context) set_cookie_with_expire_date(key string, val string, expire_date time.Time) {
-	ctx.add_header('Set-Cookie', '$key=$val;  Secure; HttpOnly; expires=$expire_date.utc_string()')
-}
-
-// get_cookie Gets a cookie by a key
-pub fn (ctx &Context) get_cookie(key string) ?string { // TODO refactor
-	mut cookie_header := ctx.get_header('cookie')
-	if cookie_header == '' {
-		cookie_header = ctx.get_header('Cookie')
-	}
-	cookie_header = ' ' + cookie_header
-	// println('cookie_header="$cookie_header"')
-	// println(ctx.req.header)
-	cookie := if cookie_header.contains(';') {
-		cookie_header.find_between(' $key=', ';')
-	} else {
-		cookie_header.find_between(' $key=', '\r')
-	}
-	if cookie != '' {
-		return cookie.trim_space()
-	}
-	return error('Cookie not found')
-}
-
-// set_status Sets the response status
-pub fn (mut ctx Context) set_status(code int, desc string) {
-	if code < 100 || code > 599 {
-		ctx.status = '500 Internal Server Error'
-	} else {
-		ctx.status = '$code $desc'
-	}
+	return ctx.status(http.Status.not_found)
 }
 
 // add_header Adds an header to the response with key and val
@@ -560,12 +483,6 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	// Calling middleware...
 	app.before_request()
 
-	// Static handling
-	if serve_if_static<T>(mut app, url) {
-		// successfully served a static file
-		return
-	}
-
 	// Route matching
 	$for method in T.methods {
 		$if method.return_type is Result {
@@ -661,83 +578,6 @@ fn route_matches(url_words []string, route_words []string) ?[]string {
 	return params
 }
 
-// serve_if_static<T> checks if request is for a static file and serves it
-// returns true if we served a static file, false otherwise
-[manualfree]
-fn serve_if_static<T>(mut app T, url urllib.URL) bool {
-	// TODO: handle url parameters properly - for now, ignore them
-	static_file := app.static_files[url.path]
-	mime_type := app.static_mime_types[url.path]
-	if static_file == '' || mime_type == '' {
-		return false
-	}
-	data := os.read_file(static_file) or {
-		send_string(mut app.conn, web.http_404.bytestr()) or {}
-		return true
-	}
-	app.send_response_to_client(mime_type, data)
-	unsafe { data.free() }
-	return true
-}
-
-// scan_static_directory makes a static route for each file in a directory
-fn (mut ctx Context) scan_static_directory(directory_path string, mount_path string) {
-	files := os.ls(directory_path) or { panic(err) }
-	if files.len > 0 {
-		for file in files {
-			full_path := os.join_path(directory_path, file)
-			if os.is_dir(full_path) {
-				ctx.scan_static_directory(full_path, mount_path + '/' + file)
-			} else if file.contains('.') && !file.starts_with('.') && !file.ends_with('.') {
-				ext := os.file_ext(file)
-				// Rudimentary guard against adding files not in mime_types.
-				// Use serve_static directly to add non-standard mime types.
-				if ext in web.mime_types {
-					ctx.serve_static(mount_path + '/' + file, full_path)
-				}
-			}
-		}
-	}
-}
-
-// handle_static Handles a directory static
-// If `root` is set the mount path for the dir will be in '/'
-pub fn (mut ctx Context) handle_static(directory_path string, root bool) bool {
-	if ctx.done || !os.exists(directory_path) {
-		return false
-	}
-	dir_path := directory_path.trim_space().trim_right('/')
-	mut mount_path := ''
-	if dir_path != '.' && os.is_dir(dir_path) && !root {
-		// Mount point hygene, "./assets" => "/assets".
-		mount_path = '/' + dir_path.trim_left('.').trim('/')
-	}
-	ctx.scan_static_directory(dir_path, mount_path)
-	return true
-}
-
-// mount_static_folder_at - makes all static files in `directory_path` and inside it, available at http://server/mount_path
-// For example: suppose you have called .mount_static_folder_at('/var/share/myassets', '/assets'),
-// and you have a file /var/share/myassets/main.css .
-// => That file will be available at URL: http://server/assets/main.css .
-pub fn (mut ctx Context) mount_static_folder_at(directory_path string, mount_path string) bool {
-	if ctx.done || mount_path.len < 1 || mount_path[0] != `/` || !os.exists(directory_path) {
-		return false
-	}
-	dir_path := directory_path.trim_right('/')
-	ctx.scan_static_directory(dir_path, mount_path[1..])
-	return true
-}
-
-// serve_static Serves a file static
-// `url` is the access path on the site, `file_path` is the real path to the file, `mime_type` is the file type
-pub fn (mut ctx Context) serve_static(url string, file_path string) {
-	ctx.static_files[url] = file_path
-	// ctx.static_mime_types[url] = mime_type
-	ext := os.file_ext(file_path)
-	ctx.static_mime_types[url] = web.mime_types[ext]
-}
-
 // ip Returns the ip address from the current user
 pub fn (ctx &Context) ip() string {
 	mut ip := ctx.req.header.get(.x_forwarded_for) or { '' }
@@ -758,16 +598,6 @@ pub fn (ctx &Context) ip() string {
 pub fn (mut ctx Context) error(s string) {
 	println('web error: $s')
 	ctx.form_error = s
-}
-
-// not_found Returns an empty result
-pub fn not_found() Result {
-	return Result{}
-}
-
-// send_string
-fn send_string(mut conn net.TcpConn, s string) ? {
-	conn.write(s.bytes()) ?
 }
 
 // filter Do not delete.

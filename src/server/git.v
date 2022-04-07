@@ -2,92 +2,140 @@ module server
 
 import web
 import git
+import net.http
+import rand
+import response { new_data_response, new_response }
 
 const repos_file = 'repos.json'
 
 ['/api/repos'; get]
 fn (mut app App) get_repos() web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
+	}
+
+	repos := rlock app.git_mutex {
+		git.read_repos(app.conf.repos_file) or {
+			app.lerror('Failed to read repos file: $err.msg')
+
+			return app.status(http.Status.internal_server_error)
+		}
+	}
+
+	return app.json(http.Status.ok, new_data_response(repos))
+}
+
+['/api/repos/:id'; get]
+fn (mut app App) get_single_repo(id string) web.Result {
+	if !app.is_authorized() {
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
 	repos := rlock app.git_mutex {
 		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(http.Status.internal_server_error)
 		}
 	}
 
-	return app.json(repos)
+	if id !in repos {
+		return app.not_found()
+	}
+
+	repo := repos[id]
+
+	return app.json(http.Status.ok, new_data_response(repo))
 }
 
 ['/api/repos'; post]
 fn (mut app App) post_repo() web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	if !('url' in app.query && 'branch' in app.query) {
-		return app.server_error(400)
+	new_repo := git.repo_from_params(app.query) or {
+		return app.json(http.Status.bad_request, new_response(err.msg))
 	}
 
-	new_repo := git.GitRepo{
-		url: app.query['url']
-		branch: app.query['branch']
-	}
+	id := rand.uuid_v4()
 
 	mut repos := rlock app.git_mutex {
 		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(http.Status.internal_server_error)
 		}
 	}
 
 	// We need to check for duplicates
-	for r in repos {
-		if r == new_repo {
-			return app.text('Duplicate repository.')
+	for _, repo in repos {
+		if repo == new_repo {
+			return app.json(http.Status.bad_request, new_response('Duplicate repository.'))
 		}
 	}
 
-	repos << new_repo
+	repos[id] = new_repo
 
 	lock app.git_mutex {
-		git.write_repos(app.conf.repos_file, repos) or { return app.server_error(500) }
+		git.write_repos(app.conf.repos_file, &repos) or {
+			return app.status(http.Status.internal_server_error)
+		}
 	}
 
-	return app.ok('Repo added successfully.')
+	return app.json(http.Status.ok, new_response('Repo added successfully.'))
 }
 
-['/api/repos'; delete]
-fn (mut app App) delete_repo() web.Result {
+['/api/repos/:id'; delete]
+fn (mut app App) delete_repo(id string) web.Result {
 	if !app.is_authorized() {
-		return app.text('Unauthorized.')
-	}
-
-	if !('url' in app.query && 'branch' in app.query) {
-		return app.server_error(400)
-	}
-
-	repo_to_remove := git.GitRepo{
-		url: app.query['url']
-		branch: app.query['branch']
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
 	mut repos := rlock app.git_mutex {
 		git.read_repos(app.conf.repos_file) or {
 			app.lerror('Failed to read repos file.')
 
-			return app.server_error(500)
+			return app.status(http.Status.internal_server_error)
 		}
 	}
-	filtered := repos.filter(it != repo_to_remove)
 
-	lock app.git_mutex {
-		git.write_repos(app.conf.repos_file, filtered) or { return app.server_error(500) }
+	if id !in repos {
+		return app.not_found()
 	}
 
-	return app.ok('Repo removed successfully.')
+	repos.delete(id)
+
+	lock app.git_mutex {
+		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+	}
+
+	return app.json(http.Status.ok, new_response('Repo removed successfully.'))
+}
+
+['/api/repos/:id'; patch]
+fn (mut app App) patch_repo(id string) web.Result {
+	if !app.is_authorized() {
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
+	}
+
+	mut repos := rlock app.git_mutex {
+		git.read_repos(app.conf.repos_file) or {
+			app.lerror('Failed to read repos file.')
+
+			return app.status(http.Status.internal_server_error)
+		}
+	}
+
+	if id !in repos {
+		return app.not_found()
+	}
+
+	repos[id].patch_from_params(app.query)
+
+	lock app.git_mutex {
+		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+	}
+
+	return app.json(http.Status.ok, new_response('Repo updated successfully.'))
 }
