@@ -50,3 +50,12 @@ pub fn remove_repo(address string, api_key string, id string) ?Response<string> 
 
 	return data
 }
+
+// patch_repo sends a PATCH request to the given repo with the params as
+// payload.
+pub fn patch_repo(address string, api_key string, id string, params map[string]string) ?Response<string> {
+	data := send_request<string>(http.Method.patch, address, '/api/repos/$id', api_key,
+		params) ?
+
+	return data
+}
