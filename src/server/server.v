@@ -44,7 +44,7 @@ pub fn server(conf Config) ? {
 	}
 
 	// This also creates the directories if needed
-	repo := repo.new(conf.data_dir, conf.pkg_dir, conf.default_arch) or {
+	repo := repo.new(conf.repos_dir, conf.pkg_dir, conf.default_arch) or {
 		logger.error(err.msg)
 		exit(1)
 	}

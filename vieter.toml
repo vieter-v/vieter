@@ -1,7 +1,7 @@
 # This file contains settings used during development
 api_key = "test"
 download_dir = "data/downloads"
-data_dir = "data"
+repos_dir = "data/repos"
 pkg_dir = "data/pkgs"
 log_level = "DEBUG"
 repos_file = "data/repos.json"

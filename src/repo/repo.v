@@ -11,7 +11,7 @@ mut:
 	mutex shared util.Dummy
 pub:
 	// Where to store repositories' files
-	data_dir string [required]
+	repos_dir string [required]
 	// Where packages are stored; each architecture gets its own subdirectory
 	pkg_dir string [required]
 	// The default architecture to use for a repository. In reality, this value
@@ -27,9 +27,9 @@ pub:
 }
 
 // new creates a new RepoGroupManager & creates the directories as needed
-pub fn new(data_dir string, pkg_dir string, default_arch string) ?RepoGroupManager {
-	if !os.is_dir(data_dir) {
-		os.mkdir_all(data_dir) or { return error('Failed to create repo directory: $err.msg') }
+pub fn new(repos_dir string, pkg_dir string, default_arch string) ?RepoGroupManager {
+	if !os.is_dir(repos_dir) {
+		os.mkdir_all(repos_dir) or { return error('Failed to create repos directory: $err.msg') }
 	}
 
 	if !os.is_dir(pkg_dir) {
@@ -37,7 +37,7 @@ pub fn new(data_dir string, pkg_dir string, default_arch string) ?RepoGroupManag
 	}
 
 	return RepoGroupManager{
-		data_dir: data_dir
+		repos_dir: repos_dir
 		pkg_dir: pkg_dir
 		default_arch: default_arch
 	}
@@ -83,7 +83,7 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
 		return r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)
 	}
 
-	repo_dir := os.join_path_single(r.data_dir, repo)
+	repo_dir := os.join_path_single(r.repos_dir, repo)
 
 	mut arch_repos := []string{}
 
@@ -118,7 +118,7 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
 // changes. The function returns false if the package was already present in
 // the repo, and true otherwise.
 fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &package.Pkg) ?bool {
-	pkg_dir := os.join_path(r.data_dir, repo, arch, '$pkg.info.name-$pkg.info.version')
+	pkg_dir := os.join_path(r.repos_dir, repo, arch, '$pkg.info.name-$pkg.info.version')
 
 	// We can't add the same package twice
 	if os.exists(pkg_dir) {
@@ -150,7 +150,7 @@ fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &pac
 // returns false if the package wasn't present in the database. It also
 // optionally re-syncs the repo archives.
 fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg &package.Pkg, sync bool) ?bool {
-	repo_dir := os.join_path(r.data_dir, repo, arch)
+	repo_dir := os.join_path(r.repos_dir, repo, arch)
 
 	// If the repository doesn't exist yet, the result is automatically false
 	if !os.exists(repo_dir) {

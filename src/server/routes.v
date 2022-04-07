@@ -23,7 +23,7 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 	db_exts := ['.db', '.files', '.db.tar.gz', '.files.tar.gz']
 
 	if db_exts.any(filename.ends_with(it)) {
-		full_path = os.join_path(app.repo.data_dir, repo, arch, filename)
+		full_path = os.join_path(app.repo.repos_dir, repo, arch, filename)
 
 		// repo-add does this using symlinks, but we just change the requested
 		// path

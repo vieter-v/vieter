@@ -31,7 +31,7 @@ fn archive_add_entry(archive &C.archive, entry &C.archive_entry, file_path &stri
 
 // Re-generate the repo archive files
 fn (r &RepoGroupManager) sync(repo string, arch string) ? {
-	subrepo_path := os.join_path(r.data_dir, repo, arch)
+	subrepo_path := os.join_path(r.repos_dir, repo, arch)
 
 	lock r.mutex {
 		a_db := C.archive_write_new()
