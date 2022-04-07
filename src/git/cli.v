@@ -108,11 +108,11 @@ fn get_repo_id_by_prefix(conf Config, id_prefix string) ?string {
 	}
 
 	if res.len == 0 {
-		eprintln('No repo found for given prefix.')
+		return error('No repo found for given prefix.')
 	}
 
 	if res.len > 1 {
-		eprintln('Multiple repos found for given prefix.')
+		return error('Multiple repos found for given prefix.')
 	}
 
 	return res[0]
