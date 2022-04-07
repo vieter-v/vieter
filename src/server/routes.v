@@ -58,10 +58,6 @@ fn (mut app App) put_package(repo string) web.Result {
 		// Generate a random filename for the temp file
 		pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
 
-		for os.exists(pkg_path) {
-			pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
-		}
-
 		app.ldebug("Uploading $length bytes (${util.pretty_bytes(length.int())}) to '$pkg_path'.")
 
 		// This is used to time how long it takes to upload a file

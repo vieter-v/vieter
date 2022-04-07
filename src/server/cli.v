@@ -12,6 +12,7 @@ pub:
 	api_key      string
 	data_dir     string
 	repos_file   string
+	default_arch string
 }
 
 // cmd returns the cli submodule that handles starting the server

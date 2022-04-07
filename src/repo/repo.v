@@ -72,10 +72,13 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 
 // add_pkg_in_repo adds a package to a given repo. This function is responsible
 // for inspecting the package architecture. If said architecture is 'any', the
-// package is added to each arch-repository within the given repo. If none
-// exist, one is created for provided r.default_arch value. If the architecture
-// isn't 'any', the package is only added to the specific architecture.
+// package is added to each arch-repository within the given repo. A package of
+// architecture 'any' will always be added to the arch-repo defined by
+// r.default_arch. If this arch-repo doesn't exist yet, it will be created. If
+// the architecture isn't 'any', the package is only added to the specific
+// architecture.
 fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
+	// A package without arch 'any' can be handled without any further checks
 	if pkg.info.arch != 'any' {
 		return r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)
 	}
@@ -84,15 +87,17 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
 
 	mut arch_repos := []string{}
 
-	// If this is the first package to be added to the repository, it won't
-	// contain any arch-repos yet.
+	// If this is the first package that's added to the repo, the directory
+	// won't exist yet
 	if os.exists(repo_dir) {
 		// We get a listing of all currently present arch-repos in the given repo
 		arch_repos = os.ls(repo_dir) ?.filter(os.is_dir(os.join_path_single(repo_dir,
 			it)))
 	}
 
-	if arch_repos.len == 0 {
+	// The default_arch should always be updated when a package with arch 'any'
+	// is added.
+	if !arch_repos.contains(r.default_arch) {
 		arch_repos << r.default_arch
 	}
 
