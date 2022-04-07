@@ -4,7 +4,6 @@ import cli
 import env
 import net.http
 import json
-import git
 import response
 
 struct Config {
@@ -56,12 +55,12 @@ pub fn cmd() cli.Command {
 	}
 }
 
-fn get_repos(conf Config) ?map[string]git.GitRepo {
+fn get_repos(conf Config) ?map[string]GitRepo {
 	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
 	req.add_custom_header('X-API-Key', conf.api_key) ?
 
 	res := req.do() ?
-	data := json.decode(response.Response<map[string]git.GitRepo>, res.text) ?
+	data := json.decode(response.Response<map[string]GitRepo>, res.text) ?
 
 	return data.data
 }
@@ -70,7 +69,7 @@ fn list(conf Config) ? {
 	repos := get_repos(conf) ?
 
 	for id, details in repos {
-		println("${id[..8]}\t$details.url\t$details.branch\t$details.arch")
+		println('${id[..8]}\t$details.url\t$details.branch\t$details.arch')
 	}
 }
 
@@ -96,12 +95,12 @@ fn remove(conf Config, id_prefix string) ? {
 	}
 
 	if to_remove.len == 0 {
-		eprintln("No repo found for given prefix.")
+		eprintln('No repo found for given prefix.')
 		exit(1)
 	}
 
 	if to_remove.len > 1 {
-		eprintln("Multiple repos found for given prefix.")
+		eprintln('Multiple repos found for given prefix.')
 		exit(1)
 	}
 

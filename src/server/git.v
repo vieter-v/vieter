@@ -4,7 +4,7 @@ import web
 import git
 import net.http
 import rand
-import response { new_response, new_data_response }
+import response { new_data_response, new_response }
 
 const repos_file = 'repos.json'
 
