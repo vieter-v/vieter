@@ -1,6 +1,7 @@
 module response
 
 pub struct Response<T> {
+pub:
 	message string
 	data    T
 }

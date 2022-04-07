@@ -2,9 +2,6 @@ module git
 
 import cli
 import env
-import net.http
-import json
-import response
 
 struct Config {
 	address string [required]
@@ -55,18 +52,8 @@ pub fn cmd() cli.Command {
 	}
 }
 
-fn get_repos(conf Config) ?map[string]GitRepo {
-	mut req := http.new_request(http.Method.get, '$conf.address/api/repos', '') ?
-	req.add_custom_header('X-API-Key', conf.api_key) ?
-
-	res := req.do() ?
-	data := json.decode(response.Response<map[string]GitRepo>, res.text) ?
-
-	return data.data
-}
-
 fn list(conf Config) ? {
-	repos := get_repos(conf) ?
+	repos := get_repos(conf.address, conf.api_key) ?
 
 	for id, details in repos {
 		println('${id[..8]}\t$details.url\t$details.branch\t$details.arch')
@@ -74,17 +61,13 @@ fn list(conf Config) ? {
 }
 
 fn add(conf Config, url string, branch string, arch []string) ? {
-	mut req := http.new_request(http.Method.post, '$conf.address/api/repos?url=$url&branch=$branch&arch=${arch.join(',')}',
-		'') ?
-	req.add_custom_header('X-API-Key', conf.api_key) ?
+	res := add_repo(conf.address, conf.api_key, url, branch, arch) ?
 
-	res := req.do() ?
-
-	println(res.text)
+	println(res.message)
 }
 
 fn remove(conf Config, id_prefix string) ? {
-	repos := get_repos(conf) ?
+	repos := get_repos(conf.address, conf.api_key) ?
 
 	mut to_remove := []string{}
 
@@ -104,11 +87,7 @@ fn remove(conf Config, id_prefix string) ? {
 		exit(1)
 	}
 
-	mut req := http.new_request(http.Method.delete, '$conf.address/api/repos/${to_remove[0]}',
-		'') ?
-	req.add_custom_header('X-API-Key', conf.api_key) ?
+	res := remove_repo(conf.address, conf.api_key, to_remove[0]) ?
 
-	res := req.do() ?
-
-	println(res.text)
+	println(res.message)
 }
