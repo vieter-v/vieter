@@ -17,7 +17,7 @@ pipeline:
       - makepkg -s --noconfirm --needed
 
   publish:
-    image: 'curlimages/curl:latest'
+    image: 'archlinux:base-devel'
     commands:
       # Publish the package
       - 'for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $VIETER_API_KEY" https://arch.r8r.be/vieter/publish; done'
