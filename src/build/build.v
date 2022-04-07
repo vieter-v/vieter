@@ -4,10 +4,13 @@ import docker
 import encoding.base64
 import time
 import git
+import os
 
 const container_build_dir = '/build'
 
 const build_image_repo = 'vieter-build'
+
+const base_image = 'archlinux:latest'
 
 fn create_build_image() ?string {
 	commands := [
@@ -26,7 +29,7 @@ fn create_build_image() ?string {
 	cmds_str := base64.encode_str(commands.join('\n'))
 
 	c := docker.NewContainer{
-		image: 'archlinux:latest'
+		image: base_image
 		env: ['BUILD_SCRIPT=$cmds_str']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
@@ -60,27 +63,34 @@ fn create_build_image() ?string {
 }
 
 fn build(conf Config) ? {
-	// We get the repos list from the Vieter instance
-	repos := git.get_repos(conf.address, conf.api_key) ?
+	build_arch := os.uname().machine
+
+	// We get the repos map from the Vieter instance
+	repos_map := git.get_repos(conf.address, conf.api_key) ?
+
+	// We filter out any repos that aren't allowed to be built on this
+	// architecture
+	filtered_repos := repos_map.keys().map(repos_map[it]).filter(it.arch.contains(build_arch))
 
 	// No point in doing work if there's no repos present
-	if repos.len == 0 {
+	if filtered_repos.len == 0 {
 		return
 	}
 
 	// First, we create a base image which has updated repos n stuff
 	image_id := create_build_image() ?
 
-	for _, repo in repos {
+	for repo in filtered_repos {
 		// TODO what to do with PKGBUILDs that build multiple packages?
 		commands := [
 			'git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo',
 			'cd repo',
 			'makepkg --nobuild --nodeps',
 			'source PKGBUILD',
-			// The build container checks whether the package is already present on the server
-			'curl --head --fail $conf.address/\$pkgname-\$pkgver-\$pkgrel-\$(uname -m).pkg.tar.zst && exit 0',
-			'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/publish; done',
+			// The build container checks whether the package is already
+			// present on the server
+			'curl --head --fail $conf.address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel-${build_arch}.pkg.tar.zst && exit 0',
+			'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/$repo.repo/publish; done',
 		]
 
 		// We convert the list of commands into a base64 string, which then gets
