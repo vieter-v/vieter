@@ -7,6 +7,7 @@ pub struct Config {
 pub:
 	api_key string
 	address string
+	base_image string = 'archlinux:base-devel'
 }
 
 // cmd returns the cli submodule that handles the build process

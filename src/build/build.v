@@ -10,9 +10,7 @@ const container_build_dir = '/build'
 
 const build_image_repo = 'vieter-build'
 
-const base_image = 'archlinux:latest'
-
-fn create_build_image() ?string {
+fn create_build_image(base_image string) ?string {
 	commands := [
 		// Update repos & install required packages
 		'pacman -Syu --needed --noconfirm base-devel git'
@@ -29,14 +27,20 @@ fn create_build_image() ?string {
 	cmds_str := base64.encode_str(commands.join('\n'))
 
 	c := docker.NewContainer{
-		image: build.base_image
+		image: base_image
 		env: ['BUILD_SCRIPT=$cmds_str']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
 	}
 
-	// First, we pull the latest archlinux image
-	docker.pull_image('archlinux', 'latest') ?
+	// This check is needed so the user can pass "archlinux" without passing a
+	// tag & make it still work
+	image_parts := base_image.split_nth(':', 2)
+	image_name := image_parts[0]
+	image_tag := if image_parts.len > 1 { image_parts[1] } else { 'latest' }
+
+	// We pull the provided image
+	docker.pull_image(image_name, image_tag) ?
 
 	id := docker.create_container(c) ?
 	docker.start_container(id) ?
@@ -78,7 +82,7 @@ fn build(conf Config) ? {
 	}
 
 	// First, we create a base image which has updated repos n stuff
-	image_id := create_build_image() ?
+	image_id := create_build_image(conf.base_image) ?
 
 	for repo in filtered_repos {
 		// TODO what to do with PKGBUILDs that build multiple packages?
