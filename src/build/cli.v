@@ -5,8 +5,8 @@ import env
 
 pub struct Config {
 pub:
-	api_key string
-	address string
+	api_key    string
+	address    string
 	base_image string = 'archlinux:base-devel'
 }
 

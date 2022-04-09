@@ -33,11 +33,11 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 			full_path += '.tar.gz'
 		}
 	} else if filename.contains('.pkg') {
-		full_path = os.join_path_single(app.repo.pkg_dir, filename)
+		full_path = os.join_path(app.repo.pkg_dir, repo, filename)
 
-	// Default behavior is to return the desc file for the package, if present.
-	// This can then also be used by the build system to properly check whether
-	// a package is present in an arch-repo.
+		// Default behavior is to return the desc file for the package, if present.
+		// This can then also be used by the build system to properly check whether
+		// a package is present in an arch-repo.
 	} else {
 		full_path = os.join_path(app.repo.repos_dir, repo, arch, filename, 'desc')
 	}

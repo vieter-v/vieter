@@ -12,7 +12,7 @@ mut:
 pub:
 	// Where to store repositories' files
 	repos_dir string [required]
-	// Where packages are stored; each architecture gets its own subdirectory
+	// Where packages are stored; each repository gets its own subdirectory
 	pkg_dir string [required]
 	// The default architecture to use for a repository. In reality, this value
 	// is only required when a package with architecture "any" is added as the
@@ -56,10 +56,12 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 
 	// If the add was successful, we move the file to the packages directory
 	if added {
-		dest_path := os.real_path(os.join_path_single(r.pkg_dir, pkg.filename()))
+		repo_pkg_path := os.real_path(os.join_path_single(r.pkg_dir, repo))
+		dest_path := os.join_path_single(repo_pkg_path, pkg.filename())
 
 		// Only move the file if it's not already in the package directory
 		if dest_path != os.real_path(pkg_path) {
+			os.mkdir_all(repo_pkg_path) ?
 			os.mv(pkg_path, dest_path) ?
 		}
 	}
