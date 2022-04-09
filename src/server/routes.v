@@ -22,7 +22,9 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 
 	db_exts := ['.db', '.files', '.db.tar.gz', '.files.tar.gz']
 
-	if db_exts.any(filename.ends_with(it)) {
+	// There's no point in having the ability to serve db archives with wrong
+	// filenames
+	if db_exts.any(filename == '$repo$it') {
 		full_path = os.join_path(app.repo.repos_dir, repo, arch, filename)
 
 		// repo-add does this using symlinks, but we just change the requested
@@ -30,8 +32,14 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 		if !full_path.ends_with('.tar.gz') {
 			full_path += '.tar.gz'
 		}
-	} else {
+	} else if filename.contains('.pkg') {
 		full_path = os.join_path_single(app.repo.pkg_dir, filename)
+
+	// Default behavior is to return the desc file for the package, if present.
+	// This can then also be used by the build system to properly check whether
+	// a package is present in an arch-repo.
+	} else {
+		full_path = os.join_path(app.repo.repos_dir, repo, arch, filename, 'desc')
 	}
 
 	// Scuffed way to respond to HEAD requests

@@ -93,7 +93,7 @@ fn build(conf Config) ? {
 			'source PKGBUILD',
 			// The build container checks whether the package is already
 			// present on the server
-			'curl --head --fail $conf.address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel-${build_arch}.pkg.tar.zst && exit 0',
+			'curl --head --fail $conf.address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
 			'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $conf.address/$repo.repo/publish; done',
 		]
 
