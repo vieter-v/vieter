@@ -1,10 +1,17 @@
 # Vieter
 
-Vieter is a re-implementation of the Pieter project. The goal is to create a
-simple PKGBUILD-based build system, combined with a self-hosted Arch
-repository. This would allow me to periodically re-build AUR packages (or
-PKGBUILDs I created myself), & make sure I never have to compile anything on my
-own systems, making my updates a lot quicker.
+## Documentation
+
+I host documentation for Vieter over at https://rustybever.be/docs/vieter.
+
+## Overview
+
+Vieter is a restart of the Pieter project. The goal is to create a simple,
+lightweight self-hostable Arch repository server, paired with a system that
+periodically builds & publishes select Arch packages. This would allow me to
+build AUR packages (or PKGBUILDs I created myself) "in the cloud" & make sure I
+never have to compile anything on my own systems, making my updates a lot
+quicker.
 
 ## Why V?
 
@@ -20,27 +27,26 @@ V standard library, and therefore the compiler. The source code for this fork
 can be found [here](https://git.rustybever.be/Chewing_Bever/vieter-v). You can
 obtain this modified version of the compiler by running `make v`, which will
 clone & build the compiler. Afterwards, all make commands that require the V
-compiler will use this new binary.
+compiler will use this new binary. I try to keep this fork as up to date with
+upstream as possible.
 
 ## Features
 
-The project will consist of a server-agent model, where one or more builder
-nodes can register with the server. These agents communicate with the Docker
-daemon to start builds, which are then uploaded to the server's repository. The
-server also allows for non-agents to upload packages, as long as they have the
-required secrets. This allows me to also develop non-git packages, such as my
-terminal, & upload them to the servers using CI.
+* Arch repository server
+    * Support for multiple repositories & multiple architectures
+    * Endpoints for publishing new packages
+    * API for managing repositories to build
+* Build system
+    * Periodic rebuilding of packages
+    * Prevent unnecessary rebuilds
 
-## Directory Structure
+## Building
 
-The data directory consists of three main directories:
+In order to build Vieter, you'll need a couple of libraries:
 
-* `downloads` - This is where packages are initially downloaded. Because vieter
-  moves files from this folder to the `pkgs` folder, these two folders should
-  best be on the same drive
-* `pkgs` - This is where approved package files are stored.
-* `repos` - Each repository gets a subfolder here. The subfolder contains the
-  uncompressed contents of the db file.
-    * Each repo subdirectory contains the compressed db & files archive for the
-      repository, alongside a directory called `files` which contains the
-      uncompressed contents.
+* gc
+* libarchive
+* openssl
+
+Before building Vieter, you'll have to build the compiler using `make v`.
+Afterwards, run `make` to build the debug binary.
