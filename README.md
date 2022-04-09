@@ -2,7 +2,7 @@
 
 ## Documentation
 
-I host documentation for Vieter over at https://rustybever.be/docs/vieter.
+I host documentation for Vieter over at https://rustybever.be/docs/vieter/.
 
 ## Overview
 
