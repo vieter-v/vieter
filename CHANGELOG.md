@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Each package can now only have one version in the repository at once
   (required by Pacman)
 * Packages with unknown fields in .PKGINFO are now allowed
+* Old packages are now properly removed
 
 ## [0.1.0](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.1.0)
 

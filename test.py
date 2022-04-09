@@ -38,7 +38,7 @@ def create_random_pkginfo(words, name_min_len, name_max_len):
     Generates a random .PKGINFO
     """
     name = "-".join(random_words(words, name_min_len, name_max_len))
-    ver = "0.1.0-1"  # doesn't matter what it is anyways
+    ver = "0.1.0-3"  # doesn't matter what it is anyways
 
     # TODO add random dependencies (all types)
 
@@ -46,7 +46,7 @@ def create_random_pkginfo(words, name_min_len, name_max_len):
         "pkgname": name,
         "pkgbase": name,
         "pkgver": ver,
-        "arch": "any"
+        "arch": "x86_64"
     }
 
     return "\n".join(f"{key} = {value}" for key, value in data.items())
