@@ -14,9 +14,9 @@ pub:
 	repos_dir string [required]
 	// Where packages are stored; each repository gets its own subdirectory
 	pkg_dir string [required]
-	// The default architecture to use for a repository. In reality, this value
-	// is only required when a package with architecture "any" is added as the
-	// first package of a repository.
+	// The default architecture to use for a repository. Whenever a package of
+	// arch "any" is added to a repo, it will also be added to this
+	// architecture.
 	default_arch string [required]
 }
 
@@ -45,8 +45,8 @@ pub fn new(repos_dir string, pkg_dir string, default_arch string) ?RepoGroupMana
 
 // add_pkg_from_path adds a package to a given repo, given the file path to the
 // pkg archive. It's a wrapper around add_pkg_in_repo that parses the archive
-// file, passes the result to add_pkg_in_repo, and moves the archive to
-// r.pkg_dir if it was successfully added.
+// file, passes the result to add_pkg_in_repo, and hard links the archive to
+// the right subdirectories in r.pkg_dir if it was successfully added.
 pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?RepoAddResult {
 	pkg := package.read_pkg_archive(pkg_path) or {
 		return error('Failed to read package file: $err.msg')
@@ -55,19 +55,22 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 	added := r.add_pkg_in_repo(repo, pkg) ?
 
 	// If the add was successful, we move the file to the packages directory
-	if added {
-		repo_pkg_path := os.real_path(os.join_path_single(r.pkg_dir, repo))
+	for arch in added {
+		repo_pkg_path := os.real_path(os.join_path(r.pkg_dir, repo, arch))
 		dest_path := os.join_path_single(repo_pkg_path, pkg.filename())
 
-		// Only move the file if it's not already in the package directory
-		if dest_path != os.real_path(pkg_path) {
-			os.mkdir_all(repo_pkg_path) ?
-			os.mv(pkg_path, dest_path) ?
-		}
+		os.mkdir_all(repo_pkg_path) ?
+
+		// We create hard links so that "any" arch packages aren't stored
+		// multiple times
+		os.link(pkg_path, dest_path) ?
 	}
 
+	// After linking, we can remove the original file
+	os.rm(pkg_path) ?
+
 	return RepoAddResult{
-		added: added
+		added: added.len > 0
 		pkg: &pkg
 	}
 }
@@ -75,26 +78,32 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 // add_pkg_in_repo adds a package to a given repo. This function is responsible
 // for inspecting the package architecture. If said architecture is 'any', the
 // package is added to each arch-repository within the given repo. A package of
-// architecture 'any' will always be added to the arch-repo defined by
-// r.default_arch. If this arch-repo doesn't exist yet, it will be created. If
-// the architecture isn't 'any', the package is only added to the specific
+// architecture 'any' is always added to the arch-repo defined by
+// r.default_arch. If this arch-repo doesn't exist yet, it is created. If the
+// architecture isn't 'any', the package is only added to the specific
 // architecture.
-fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
-	// A package without arch 'any' can be handled without any further checks
+fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]string {
+	// A package not of arch 'any' can be handled easily by adding it to the
+	// respective repo
 	if pkg.info.arch != 'any' {
-		return r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)
+		if r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg) ? {
+			return [pkg.info.arch]
+		} else {
+			return []
+		}
 	}
 
-	repo_dir := os.join_path_single(r.repos_dir, repo)
-
 	mut arch_repos := []string{}
+
+	// If it is an "any" package, the package gets added to every currently
+	// present arch-repo. It will always get added to the r.default_arch repo,
+	// even if no or multiple others are present.
+	repo_dir := os.join_path_single(r.repos_dir, repo)
 
 	// If this is the first package that's added to the repo, the directory
 	// won't exist yet
 	if os.exists(repo_dir) {
-		// We get a listing of all currently present arch-repos in the given repo
-		arch_repos = os.ls(repo_dir) ?.filter(os.is_dir(os.join_path_single(repo_dir,
-			it)))
+		arch_repos = os.ls(repo_dir) ?
 	}
 
 	// The default_arch should always be updated when a package with arch 'any'
@@ -103,12 +112,14 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
 		arch_repos << r.default_arch
 	}
 
-	mut added := false
+	mut added := []string{}
 
 	// We add the package to each repository. If any of the repositories
 	// return true, the result of the function is also true.
 	for arch in arch_repos {
-		added = added || r.add_pkg_in_arch_repo(repo, arch, pkg) ?
+		if r.add_pkg_in_arch_repo(repo, arch, pkg) ? {
+			added << arch
+		}
 	}
 
 	return added
@@ -122,13 +133,8 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?bool {
 fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &package.Pkg) ?bool {
 	pkg_dir := os.join_path(r.repos_dir, repo, arch, '$pkg.info.name-$pkg.info.version')
 
-	// We can't add the same package twice
-	if os.exists(pkg_dir) {
-		return false
-	}
-
-	// We remove the older package version first, if present
-	r.remove_pkg_from_arch_repo(repo, arch, pkg, false) ?
+	// Remove the previous version of the package, if present
+	r.remove_pkg_from_arch_repo(repo, arch, pkg.info.name, false) ?
 
 	os.mkdir_all(pkg_dir) or { return error('Failed to create package directory.') }
 
@@ -151,7 +157,7 @@ fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &pac
 // remove_pkg_from_arch_repo removes a package from an arch-repo's database. It
 // returns false if the package wasn't present in the database. It also
 // optionally re-syncs the repo archives.
-fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg &package.Pkg, sync bool) ?bool {
+fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg_name string, sync bool) ?bool {
 	repo_dir := os.join_path(r.repos_dir, repo, arch)
 
 	// If the repository doesn't exist yet, the result is automatically false
@@ -167,13 +173,24 @@ fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg
 		// not the version.
 		name := d.split('-')#[..-2].join('-')
 
-		if name == pkg.info.name {
+		if name == pkg_name {
 			// We lock the mutex here to prevent other routines from creating a
 			// new archive while we remove an entry
 			lock r.mutex {
 				os.rmdir_all(os.join_path_single(repo_dir, d)) ?
 			}
 
+			// Also remove the package archive
+			repo_pkg_dir := os.join_path(r.pkg_dir, repo, arch)
+
+			archives := os.ls(repo_pkg_dir) ?.filter(it.split('-')#[..-3].join('-') == name)
+
+			for archive_name in archives {
+				full_path := os.join_path_single(repo_pkg_dir, archive_name)
+				os.rm(full_path) ?
+			}
+
+			// Sync the db archives if requested
 			if sync {
 				r.sync(repo, arch) ?
 			}
