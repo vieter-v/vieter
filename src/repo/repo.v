@@ -12,7 +12,8 @@ mut:
 pub:
 	// Where to store repositories' files
 	repos_dir string [required]
-	// Where packages are stored; each repository gets its own subdirectory
+	// Where packages are stored; each arch-repository gets its own
+	// subdirectory
 	pkg_dir string [required]
 	// The default architecture to use for a repository. Whenever a package of
 	// arch "any" is added to a repo, it will also be added to this
