@@ -26,7 +26,7 @@ fn main() {
 			server.cmd(),
 			build.cmd(),
 			git.cmd(),
-			cron.cmd()
+			cron.cmd(),
 		]
 	}
 

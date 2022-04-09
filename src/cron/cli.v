@@ -5,10 +5,10 @@ import env
 
 struct Config {
 pub:
-	log_level    string = 'WARN'
-	log_file     string = 'vieter.log'
-	api_key      string
-	address string
+	log_level  string = 'WARN'
+	log_file   string = 'vieter.log'
+	api_key    string
+	address    string
 	base_image string = 'archlinux:base-devel'
 }
 
