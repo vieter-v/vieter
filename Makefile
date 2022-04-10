@@ -60,6 +60,10 @@ fmt:
 vet:
 	$(V) vet -W $(SRC_DIR)
 
+.PHONY: test
+test:
+	$(V) test $(SRC_DIR)
+
 # Build & patch the V compiler
 .PHONY: v
 v: v/v

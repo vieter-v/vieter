@@ -44,6 +44,7 @@ pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 		for to_write > 0 {
 			// TODO don't just loop infinitely here
 			bytes_written := file.write(buf[bytes_read - to_write..bytes_read]) or { continue }
+			// file.flush()
 
 			to_write = to_write - bytes_written
 		}
