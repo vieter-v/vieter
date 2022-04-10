@@ -1,6 +1,7 @@
 module cron
 
 import math
+import time
 
 struct CronExpression {
 	minutes []u32
@@ -8,7 +9,32 @@ struct CronExpression {
 	days    []u32
 }
 
-// parse_range parses a given string into a range of integers, if possible.
+// next calculates the earliest time this cron expression is valid.
+pub fn (ce &CronExpression) next(ref &time.Time) time.Time {
+	res := time.Time{}
+
+	mut day := 0
+	mut hour := 0
+	mut minute := 0
+
+	// Find the next minute
+	// If ref.minute is greater than 
+	if ref.minute >= ce.minutes[ce.minutes.len - 1] || ref.minute < ce.minutes[0] {
+		minute = ce.minutes[0]
+	}else{
+		for i in 0..ce.minutes.len {
+			if ce.minutes[i] > ref.minute {
+				minute = ce.minutes[i]
+				break
+			}
+		}
+	}
+
+	return res
+}
+
+// parse_range parses a given string into a range of sorted integers, if
+// possible.
 fn parse_range(s string, min u32, max u32) ?[]u32 {
 	mut out := []u32{}
 	mut start := min
@@ -27,6 +53,10 @@ fn parse_range(s string, min u32, max u32) ?[]u32 {
 		else {
 			return [start]
 		}
+	}
+
+	if interval == 0 {
+		return []
 	}
 
 	for start <= max {
