@@ -5,7 +5,7 @@ import datatypes
 import time
 
 struct ScheduledBuild {
-	repo git.GitRepo
+	repo      git.GitRepo
 	timestamp time.Time
 }
 
@@ -27,6 +27,6 @@ pub fn cron(conf Config) ? {
 	// }
 
 	// println(queue)
-	exp := "10/2 5 *"
+	exp := '10/2 5 *'
 	println(parse_expression(exp) ?)
 }

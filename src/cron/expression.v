@@ -4,8 +4,8 @@ import math
 
 struct CronExpression {
 	minutes []u32
-	hours []u32
-	days []u32
+	hours   []u32
+	days    []u32
 }
 
 // parse_range parses a given string into a range of integers, if possible.
@@ -22,7 +22,7 @@ fn parse_range(s string, min u32, max u32) ?[]u32 {
 		}
 		// Here, s solely consists of a number, so that's the only value we
 		// should return.
-		else{
+		else {
 			return [exps[0].u32()]
 		}
 
@@ -44,7 +44,7 @@ fn parse_expression(exp string) ?CronExpression {
 	parts := exp.split(' ')
 
 	if parts.len != 3 {
-		return error("Expression must contain 5 space-separated parts.")
+		return error('Expression must contain 5 space-separated parts.')
 	}
 
 	return CronExpression{
