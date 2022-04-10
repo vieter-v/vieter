@@ -17,17 +17,15 @@ fn parse_range(s string, min u32, max u32) ?[]u32 {
 	if s != '*' {
 		exps := s.split('/')
 
+		start = math.min(max, math.max(exps[0].u32(), min))
+
 		if exps.len > 1 {
 			interval = exps[1].u32()
 		}
 		// Here, s solely consists of a number, so that's the only value we
 		// should return.
 		else {
-			return [exps[0].u32()]
-		}
-
-		if exps[0] != '*' {
-			start = math.max(exps[0].u32(), min)
+			return [start]
 		}
 	}
 
