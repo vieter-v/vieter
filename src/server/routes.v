@@ -97,7 +97,7 @@ fn (mut app App) put_package(repo string) web.Result {
 	if !res.added {
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
 
-		app.lwarn("Duplicate package '$res.pkg.full_name()' in repo '$repo ($res.pkg.info.arch)'.")
+		app.lwarn("Duplicate package '$res.pkg.full_name()' in repo '$repo'.")
 
 		return app.json(http.Status.bad_request, new_response('File already exists.'))
 	}
