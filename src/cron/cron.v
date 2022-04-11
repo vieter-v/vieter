@@ -48,7 +48,7 @@ pub fn cron(conf Config) ? {
 	// mut t := time.now()
 	println(t)
 
-	for _ in 1..25 {
+	for _ in 1 .. 25 {
 		t = ce.next(t) ?
 		println(t)
 	}

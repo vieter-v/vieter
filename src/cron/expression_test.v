@@ -40,5 +40,3 @@ fn test_parse_step_number_too_large() ? {
 fn test_parse_step_number_too_small() ? {
 	assert parse_range('2/4', 5, 10) ? == [5, 9]
 }
-
-

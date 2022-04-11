@@ -78,11 +78,11 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	// month, e.g. day 30 in February. When this occurs, we reset day back to
 	// the smallest value & loop over to the next month that does have this
 	// day.
-	if day > days_in_month[ce.months[month_index % ce.months.len] - 1] {
+	if day > cron.days_in_month[ce.months[month_index % ce.months.len] - 1] {
 		day = ce.days[0]
 		month_index += 1
 
-		for day > days_in_month[ce.months[month_index & ce.months.len] - 1] {
+		for day > cron.days_in_month[ce.months[month_index & ce.months.len] - 1] {
 			month_index += 1
 
 			// If for whatever reason the day value ends up being something
@@ -93,7 +93,6 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 			}
 		}
 	}
-
 
 	month := ce.months[month_index % ce.months.len]
 	mut year := ref.year
@@ -118,8 +117,7 @@ fn (ce &CronExpression) next_from_now() ?time.Time {
 
 // parse_range parses a given string into a range of sorted integers, if
 // possible.
-fn parse_range(s string, min int, max int) ?[]int {
-	mut out := []int{}
+fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 	mut start := min
 	mut interval := 1
 
@@ -134,17 +132,34 @@ fn parse_range(s string, min int, max int) ?[]int {
 		// Here, s solely consists of a number, so that's the only value we
 		// should return.
 		else {
-			return [start]
+			bitv[start - min - 1] = true
+			return
 		}
 	}
 
 	if interval == 0 {
-		return []
+		return
 	}
 
 	for start <= max {
-		out << start
+		bitv[start - min - 1] = true
 		start += interval
+	}
+}
+
+fn parse_part(s string, min int, max int) ?[]int {
+	mut bitv := []bool{init: false, len: max - min + 1}
+
+	for range in s.split(',') {
+		parse_range(range, min, max, mut bitv) ?
+	}
+
+	mut out := []int{}
+
+	for i in 0..max + 1 {
+		if bitv[i] {
+			out << min + i
+		}
 	}
 
 	return out
@@ -165,9 +180,9 @@ fn parse_expression(exp string) ?CronExpression {
 	}
 
 	return CronExpression{
-		minutes: parse_range(parts[0], 0, 59) ?
-		hours: parse_range(parts[1], 0, 23) ?
-		days: parse_range(parts[2], 1, 31) ?
-		months: parse_range(parts[3], 1, 12) ?
+		minutes: parse_part(parts[0], 0, 59) ?
+		hours: parse_part(parts[1], 0, 23) ?
+		days: parse_part(parts[2], 1, 31) ?
+		months: parse_part(parts[3], 1, 12) ?
 	}
 }
