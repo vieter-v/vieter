@@ -39,7 +39,7 @@ pub fn cron(conf Config) ? {
 	// }
 	mut t := time.Time{
 		year: 2022
-		month: 2
+		month: 12
 		minute: 9
 		hour: 13
 		day: 12

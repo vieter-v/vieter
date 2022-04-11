@@ -12,13 +12,24 @@ struct CronExpression {
 	months  []int
 }
 
-// next calculates the earliest time this cron expression is valid.
+// next calculates the earliest time this cron expression is valid. It will
+// always pick a moment in the future, even if ref matches completely up to the
+// minute. This function conciously does not take gap years into account.
 pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
+	// For all of these values, the rule is the following: if their value is
+	// the length of their respective array in the CronExpression object, that
+	// means we've looped back around. This means that the "bigger" value has
+	// to be incremented by one. For example, if the minutes have looped
+	// around, that means that the hour has to be incremented as well.
 	mut minute_index := 0
 	mut hour_index := 0
 	mut day_index := 0
 	mut month_index := 0
 
+	// This chain is the same logic multiple times, namely that if a "bigger"
+	// value loops around, then the smaller value will always reset as well.
+	// For example, if we're going to a new day, the hour & minute will always
+	// be their smallest value again.
 	for month_index < ce.months.len && ref.month > ce.months[month_index] {
 		month_index++
 	}
@@ -34,7 +45,9 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 			}
 
 			if hour_index < ce.hours.len {
-				// For each unit, we calculate what the next value is
+				// Minute is the only value where we explicitely make sure we
+				// can't match ref's value exactly. This is to ensure we only
+				// return values in the future.
 				for minute_index < ce.minutes.len && ref.minute >= ce.minutes[minute_index] {
 					minute_index++
 				}
@@ -42,8 +55,9 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 		}
 	}
 
-
-	// Sometime we have to shift values one more
+	// Here, we increment the "bigger" values by one if the smaller ones loop
+	// around. The order is important, as it allows a sort-of waterfall effect
+	// to occur which updates all values if required.
 	if minute_index == ce.minutes.len && hour_index < ce.hours.len {
 		hour_index += 1
 	}
@@ -60,19 +74,20 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	mut hour := ce.hours[hour_index % ce.hours.len]
 	mut day := ce.days[day_index % ce.days.len]
 
-	mut reset := false
-
-	// If the day can't be planned in the current month, we go to the next one
-	// and go back to day one
+	// Sometimes, we end up with a day that does not exist within the selected
+	// month, e.g. day 30 in February. When this occurs, we reset day back to
+	// the smallest value & loop over to the next month that does have this
+	// day.
 	if day > days_in_month[ce.months[month_index % ce.months.len] - 1] {
-		month_index += 1
 		day = ce.days[0]
+		month_index += 1
 
-		// Make sure we only plan in a month that the day occurs in
 		for day > days_in_month[ce.months[month_index & ce.months.len] - 1] {
 			month_index += 1
 
-			// Prevent scenario where there are no months that can be scheduled.
+			// If for whatever reason the day value ends up being something
+			// that can't be scheduled in any month, we have to make sure we
+			// don't create an infinite loop.
 			if month_index == 2 * ce.months.len {
 				return error('No schedulable moment.')
 			}
@@ -83,6 +98,7 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	month := ce.months[month_index % ce.months.len]
 	mut year := ref.year
 
+	// If the month loops over, we need to increment the year.
 	if month_index >= ce.months.len {
 		year++
 	}
