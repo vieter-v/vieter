@@ -27,6 +27,29 @@ pub fn cron(conf Config) ? {
 	// }
 
 	// println(queue)
-	exp := '10/2 5 *'
-	println(parse_expression(exp) ?)
+	// exp := '10/2 5 *'
+	// println(parse_expression(exp) ?)
+	ce := parse_expression('0 3 */2') ?
+	println(ce)
+	// ce := CronExpression{
+	// 	minutes: [0]
+	// 	hours: [3]
+	// 	days: [1, 2, 3, 4, 5, 6]
+	// 	months: [1, 2]
+	// }
+	mut t := time.Time{
+		year: 2022
+		month: 2
+		minute: 9
+		hour: 13
+		day: 12
+	}
+
+	// mut t := time.now()
+	println(t)
+
+	for _ in 1..25 {
+		t = ce.next(t) ?
+		println(t)
+	}
 }
