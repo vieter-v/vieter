@@ -2,9 +2,8 @@
 SRC_DIR := src
 SOURCES != find '$(SRC_DIR)' -iname '*.v'
 
-V_RELEASE := weekly.2022.05
-V_PATH ?= v-$(V_RELEASE)/v
-V := $(V_PATH) -showcc
+V_PATH ?= v/v
+V := $(V_PATH) -showcc -gc boehm
 
 all: vieter
 
@@ -14,10 +13,17 @@ vieter: $(SOURCES)
 	$(V) -g -o vieter $(SRC_DIR)
 
 # Debug build using gcc
+# The debug build can't use the boehm garbage collector, as that is
+# multi-threaded and causes issues when running vieter inside gdb.
 .PHONY: debug
 debug: dvieter
 dvieter: $(SOURCES)
-	$(V) -keepc -cg -cc gcc -o dvieter $(SRC_DIR)
+	$(V_PATH) -showcc -keepc -cg -o dvieter $(SRC_DIR)
+
+# Run the debug build inside gdb
+.PHONY: gdb
+gdb: dvieter
+		gdb --args './dvieter -f vieter.toml server'
 
 # Optimised production build
 .PHONY: prod
@@ -30,22 +36,15 @@ pvieter: $(SOURCES)
 c:
 	$(V) -o vieter.c $(SRC_DIR)
 
-
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
 .PHONY: run
 run: vieter
-	 API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG ./vieter
+		./vieter -f vieter.toml server
 
 .PHONY: run-prod
 run-prod: prod
-	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG ./pvieter
-
-# Same as run, but restart when the source code changes
-.PHONY: watch
-watch:
-	API_KEY=test DOWNLOAD_DIR=data/downloads REPO_DIR=data/repo PKG_DIR=data/pkgs LOG_LEVEL=DEBUG $(V) watch run vieter
-
+	./pvieter -f vieter.toml server
 
 # =====OTHER=====
 .PHONY: lint
@@ -63,11 +62,10 @@ vet:
 
 # Build & patch the V compiler
 .PHONY: v
-v: v-$(V_RELEASE)/v
-v-$(V_RELEASE)/v:
-	curl -Lo - 'https://github.com/vlang/v/archive/refs/tags/$(V_RELEASE).tar.gz' | tar xzf -
-	cd patches && sh patch.sh '../v-$(V_RELEASE)'
-	make -C 'v-$(V_RELEASE)'
+v: v/v
+v/v:
+	git clone --single-branch --branch patches https://git.rustybever.be/Chewing_Bever/vieter-v v
+	make -C v
 
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'v-$(V_RELEASE)'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter'

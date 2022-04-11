@@ -38,7 +38,7 @@ def create_random_pkginfo(words, name_min_len, name_max_len):
     Generates a random .PKGINFO
     """
     name = "-".join(random_words(words, name_min_len, name_max_len))
-    ver = "0.1.0-1"  # doesn't matter what it is anyways
+    ver = "0.1.0-3"  # doesn't matter what it is anyways
 
     # TODO add random dependencies (all types)
 
@@ -97,7 +97,7 @@ async def upload_random_package(tar_path, sem):
     async with sem:
         with open(tar_path, 'rb') as f:
             async with aiohttp.ClientSession() as s:
-                async with s.post("http://localhost:8000/publish", data=f.read(), headers={"x-api-key": "test"}) as r:
+                async with s.post("http://localhost:8000/vieter/publish", data=f.read(), headers={"x-api-key": "test"}) as r:
                     return await check_output(r)
 
 

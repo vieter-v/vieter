@@ -1,103 +1,33 @@
 module main
 
-import web
 import os
-import log
-import io
-import repo
-
-const port = 8000
-
-const buf_size = 1_000_000
-
-const db_name = 'pieter.db'
-
-struct App {
-	web.Context
-pub:
-	api_key string [required; web_global]
-	dl_dir  string [required; web_global]
-pub mut:
-	repo repo.Repo [required; web_global]
-}
-
-[noreturn]
-fn exit_with_message(code int, msg string) {
-	eprintln(msg)
-	exit(code)
-}
-
-fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
-	mut file := os.create(path) ?
-	defer {
-		file.close()
-	}
-
-	mut buf := []byte{len: buf_size}
-	mut bytes_left := length
-
-	// Repeat as long as the stream still has data
-	for bytes_left > 0 {
-		// TODO check if just breaking here is safe
-		bytes_read := reader.read(mut buf) or { break }
-		bytes_left -= bytes_read
-
-		mut to_write := bytes_read
-
-		for to_write > 0 {
-			// TODO don't just loop infinitely here
-			bytes_written := file.write(buf[bytes_read - to_write..bytes_read]) or { continue }
-
-			to_write = to_write - bytes_written
-		}
-	}
-}
+import server
+import cli
+import build
+import git
 
 fn main() {
-	// Configure logger
-	log_level_str := os.getenv_opt('LOG_LEVEL') or { 'WARN' }
-	log_level := log.level_from_tag(log_level_str) or {
-		exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
-	}
-	log_file := os.getenv_opt('LOG_FILE') or { 'vieter.log' }
-
-	mut logger := log.Log{
-		level: log_level
-	}
-
-	logger.set_full_logpath(log_file)
-	logger.log_to_console_too()
-
-	defer {
-		logger.info('Flushing log file')
-		logger.flush()
-		logger.close()
-	}
-
-	// Configure web server
-	key := os.getenv_opt('API_KEY') or { exit_with_message(1, 'No API key was provided.') }
-	repo_dir := os.getenv_opt('REPO_DIR') or {
-		exit_with_message(1, 'No repo directory was configured.')
-	}
-	pkg_dir := os.getenv_opt('PKG_DIR') or {
-		exit_with_message(1, 'No package directory was configured.')
-	}
-	dl_dir := os.getenv_opt('DOWNLOAD_DIR') or {
-		exit_with_message(1, 'No download directory was configured.')
+	mut app := cli.Command{
+		name: 'vieter'
+		description: 'Vieter is a lightweight implementation of an Arch repository server.'
+		version: '0.2.0'
+		flags: [
+			cli.Flag{
+				flag: cli.FlagType.string
+				name: 'config-file'
+				abbrev: 'f'
+				description: 'Location of Vieter config file; defaults to ~/.vieterrc.'
+				global: true
+				default_value: [os.expand_tilde_to_home('~/.vieterrc')]
+			},
+		]
+		commands: [
+			server.cmd(),
+			build.cmd(),
+			git.cmd(),
+		]
 	}
 
-	// This also creates the directories if needed
-	repo := repo.new(repo_dir, pkg_dir) or {
-		logger.error(err.msg)
-		exit(1)
-	}
-
-	os.mkdir_all(dl_dir) or { exit_with_message(1, 'Failed to create download directory.') }
-
-	web.run(&App{
-		logger: logger
-		api_key: key
-		dl_dir: dl_dir
-		repo: repo
-	}, port)
+	app.setup()
+	app.parse(os.args)
 }

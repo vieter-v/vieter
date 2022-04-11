@@ -2,7 +2,8 @@ matrix:
   PLATFORM:
     - linux/amd64
     - linux/arm64
-    - linux/arm/v7
+    # I just don't have a performant enough runner for this platform
+    # - linux/arm/v7
 
 # These checks already get performed on the feature branches
 platform: ${PLATFORM}
@@ -42,12 +43,12 @@ pipeline:
     commands:
       # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f
       - export URL=s3.rustybever.be
-      - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:g')"
       - export DATE="$(date -R --utc)"
       - export CONTENT_TYPE='application/zstd'
+
+      - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:g')"
       - export SIG_STRING="PUT\n\n$CONTENT_TYPE\n$DATE\n$OBJ_PATH"
       - export SIGNATURE=`echo -en $SIG_STRING | openssl sha1 -hmac $S3_PASSWORD -binary | base64`
-
       - >
         curl 
         --silent

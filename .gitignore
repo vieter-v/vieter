@@ -5,6 +5,8 @@ data/
 vieter
 dvieter
 pvieter
+dvieterctl
+vieterctl
 vieter.c
 
 # Ignore testing files
@@ -17,4 +19,7 @@ libarchive-*
 test/
 
 # V compiler directory
-v-*/
+v/
+
+# gdb log file
+gdb.txt

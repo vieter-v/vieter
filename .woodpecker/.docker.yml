@@ -1,7 +1,6 @@
 branches: [main, dev]
 platform: linux/amd64
 depends_on:
-  - builder
   - build
 
 pipeline:
@@ -10,9 +9,8 @@ pipeline:
     secrets: [ docker_username, docker_password ]
     settings:
       repo: chewingbever/vieter
-      dockerfile: Dockerfile.ci
       tag: dev
-      platforms: [ linux/arm/v7, linux/arm64/v8, linux/amd64 ]
+      platforms: [ linux/arm64/v8, linux/amd64 ]
       build_args_from_env:
         - CI_COMMIT_SHA
     when:
@@ -24,9 +22,8 @@ pipeline:
     secrets: [ docker_username, docker_password ]
     settings:
       repo: chewingbever/vieter
-      dockerfile: Dockerfile.ci
       auto_tag: true
-      platforms: [ linux/arm/v7, linux/arm64/v8, linux/amd64 ]
+      platforms: [ linux/arm64/v8, linux/amd64 ]
       build_args_from_env:
         - CI_COMMIT_SHA
     when:
