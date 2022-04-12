@@ -2,8 +2,6 @@ module cron
 
 import time
 
-const days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
 struct CronExpression {
 	minutes []int
 	hours   []int
@@ -15,6 +13,13 @@ struct CronExpression {
 // always pick a moment in the future, even if ref matches completely up to the
 // minute. This function conciously does not take gap years into account.
 pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
+	// If the given ref matches the next cron occurence up to the minute, it
+	// will return that value. Because we always want to return a value in the
+	// future, we artifically shift the ref 60 seconds to make sure we always
+	// match in the future. A shift of 60 seconds is enough because the cron
+	// expression does not allow for accuracy smaller than one minute.
+	sref := ref
+
 	// For all of these values, the rule is the following: if their value is
 	// the length of their respective array in the CronExpression object, that
 	// means we've looped back around. This means that the "bigger" value has
@@ -29,25 +34,25 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	// value loops around, then the smaller value will always reset as well.
 	// For example, if we're going to a new day, the hour & minute will always
 	// be their smallest value again.
-	for month_index < ce.months.len && ref.month > ce.months[month_index] {
+	for month_index < ce.months.len && sref.month > ce.months[month_index] {
 		month_index++
 	}
 
 	if month_index < ce.months.len {
-		for day_index < ce.days.len && ref.day > ce.days[day_index] {
+		for day_index < ce.days.len && sref.day > ce.days[day_index] {
 			day_index++
 		}
 
 		if day_index < ce.days.len {
-			for hour_index < ce.hours.len && ref.hour > ce.hours[hour_index] {
+			for hour_index < ce.hours.len && sref.hour > ce.hours[hour_index] {
 				hour_index++
 			}
 
 			if hour_index < ce.hours.len {
 				// Minute is the only value where we explicitely make sure we
-				// can't match ref's value exactly. This is to ensure we only
+				// can't match sref's value exactly. This is to ensure we only
 				// return values in the future.
-				for minute_index < ce.minutes.len && ref.minute >= ce.minutes[minute_index] {
+				for minute_index < ce.minutes.len && sref.minute >= ce.minutes[minute_index] {
 					minute_index++
 				}
 			}
@@ -60,7 +65,6 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	if minute_index == ce.minutes.len && hour_index < ce.hours.len {
 		hour_index += 1
 	}
-
 	if hour_index == ce.hours.len && day_index < ce.days.len {
 		day_index += 1
 	}
@@ -77,11 +81,11 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	// month, e.g. day 30 in February. When this occurs, we reset day back to
 	// the smallest value & loop over to the next month that does have this
 	// day.
-	if day > cron.days_in_month[ce.months[month_index % ce.months.len] - 1] {
+	if day > time.month_days[ce.months[month_index % ce.months.len] - 1] {
 		day = ce.days[0]
 		month_index += 1
 
-		for day > cron.days_in_month[ce.months[month_index & ce.months.len] - 1] {
+		for day > time.month_days[ce.months[month_index & ce.months.len] - 1] {
 			month_index += 1
 
 			// If for whatever reason the day value ends up being something
@@ -94,7 +98,7 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	}
 
 	month := ce.months[month_index % ce.months.len]
-	mut year := ref.year
+	mut year := sref.year
 
 	// If the month loops over, we need to increment the year.
 	if month_index >= ce.months.len {

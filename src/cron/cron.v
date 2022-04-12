@@ -17,17 +17,10 @@ fn (r1 ScheduledBuild) < (r2 ScheduledBuild) bool {
 pub fn cron(conf Config) ? {
 	mut queue := datatypes.MinHeap<time.Time>{}
 
-	for _ in 0..5000 {
-		minute := rand.int_in_range(0, 60) ?
-		hour := rand.int_in_range(0, 23) ?
-		ce := parse_expression('$minute $hour') ?
+	ce := parse_expression('0 3') ?
+	t := time.parse('2002-01-01 00:00:00') ?
 
-		t := ce.next_from_now() ?
-		// println(t)
-		queue.insert(t)
-	}
-
-	for queue.len() > 0 {
-		println(queue.pop() ?)
-	}
+	println(t)
+	t2 := ce.next(t) ?
+	println(t2)
 }
