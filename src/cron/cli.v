@@ -12,6 +12,7 @@ pub:
 	base_image string = 'archlinux:base-devel'
 }
 
+// cmd returns the cli module that handles the cron daemon.
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'cron'
