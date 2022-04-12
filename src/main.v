@@ -5,6 +5,7 @@ import server
 import cli
 import build
 import git
+import cron
 
 fn main() {
 	mut app := cli.Command{
@@ -25,6 +26,7 @@ fn main() {
 			server.cmd(),
 			build.cmd(),
 			git.cmd(),
+			cron.cmd(),
 		]
 	}
 
