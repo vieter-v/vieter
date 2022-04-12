@@ -1,6 +1,5 @@
 module cron
 
-import math
 import time
 
 const days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -121,28 +120,50 @@ fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 	mut start := min
 	mut interval := 1
 
-	if s != '*' {
-		exps := s.split('/')
+	exps := s.split('/')
 
-		start = math.min(max, math.max(exps[0].int(), min))
+	if exps[0] != '*' {
+		start = exps[0].int()
 
-		if exps.len > 1 {
-			interval = exps[1].int()
+		// The builtin parsing functions return zero if the string can't be
+		// parsed into a number, so we have to explicitely check whether they
+		// actually entered zero or if it's an invalid number.
+		if start == 0 && exps[0] != '0' {
+			return error('Invalid number.')
 		}
-		// Here, s solely consists of a number, so that's the only value we
-		// should return.
-		else {
-			bitv[start - min - 1] = true
-			return
+
+		// Check whether the start value is out of range
+		if start < min || start > max {
+			return error('Out of range.')
 		}
 	}
 
-	if interval == 0 {
+	if exps.len > 1 {
+		interval = exps[1].int()
+
+		// interval being zero is always invalid, but we want to check why
+		// it's invalid for better error messages.
+		if interval == 0 {
+			if exps[1] != '0' {
+				return error('Invalid number.')
+			}else{
+				return error('Step size zero not allowed.')
+			}
+		}
+
+		if interval > max - min {
+			return error('Step size too large.')
+		}
+	}
+	// Here, s solely consists of a number, so that's the only value we
+	// should return.
+	else if exps[0] != '*' {
+		bitv[start - min] = true
 		return
 	}
 
 	for start <= max {
-		bitv[start - min - 1] = true
+		bitv[start - min] = true
 		start += interval
 	}
 }
@@ -171,7 +192,8 @@ fn parse_part(s string, min int, max int) ?[]int {
 
 // min hour day month day-of-week
 fn parse_expression(exp string) ?CronExpression {
-	mut parts := exp.split(' ')
+	// The filter allows for multiple spaces between parts
+	mut parts := exp.split(' ').filter(it != '')
 
 	if parts.len < 2 || parts.len > 4 {
 		return error('Expression must contain between 2 and 4 space-separated parts.')
