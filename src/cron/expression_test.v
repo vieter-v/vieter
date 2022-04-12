@@ -1,6 +1,6 @@
 module cron
 
-import time { new_time, Time, parse }
+import time { parse }
 
 fn test_next_simple() ? {
 	ce := parse_expression('0 3') ?
