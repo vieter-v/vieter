@@ -147,6 +147,18 @@ fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 	}
 }
 
+fn bitv_to_ints(bitv []bool, min int) []int {
+	mut out := []int{}
+
+	for i in 0..bitv.len {
+		if bitv[i] {
+			out << min + i
+		}
+	}
+
+	return out
+}
+
 fn parse_part(s string, min int, max int) ?[]int {
 	mut bitv := []bool{init: false, len: max - min + 1}
 
@@ -154,15 +166,7 @@ fn parse_part(s string, min int, max int) ?[]int {
 		parse_range(range, min, max, mut bitv) ?
 	}
 
-	mut out := []int{}
-
-	for i in 0..max + 1 {
-		if bitv[i] {
-			out << min + i
-		}
-	}
-
-	return out
+	return bitv_to_ints(bitv, min)
 }
 
 // min hour day month day-of-week
