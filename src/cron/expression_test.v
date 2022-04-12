@@ -2,38 +2,27 @@ module cron
 
 import time { parse }
 
+fn util_test_time(exp string, t1_str string, t2_str string) ? {
+	ce := parse_expression(exp) ?
+	t1 := parse(t1_str) ?
+	t2 := parse(t2_str) ?
+
+	t3 := ce.next(t1) ?
+
+	assert t2.year == t3.year
+	assert t2.month == t3.month
+	assert t2.day == t3.day
+	assert t2.hour == t3.hour
+	assert t2.minute == t3.minute
+}
+
 fn test_next_simple() ? {
-	ce := parse_expression('0 3') ?
-	t := parse('2002-01-01 00:00:00') ?
-	t2 := ce.next(t) ?
+	// Very simple
+	util_test_time('0 3', '2002-01-01 00:00:00', '2002-01-01 03:00:00') ?
 
-	assert t2.year == 2002
-	assert t2.month == 1
-	assert t2.day == 1
-	assert t2.hour == 3
-	assert t2.minute == 0
-}
+	// Overlap to next day
+	util_test_time('0 3', '2002-01-01 03:00:00', '2002-01-02 03:00:00') ?
+	util_test_time('0 3', '2002-01-01 04:00:00', '2002-01-02 03:00:00') ?
 
-fn test_next_identical() ? {
-	ce := parse_expression('0 3') ?
-	t := parse('2002-01-01 03:00:00') ?
-	t2 := ce.next(t) ?
-
-	assert t2.year == 2002
-	assert t2.month == 1
-	assert t2.day == 2
-	assert t2.hour == 3
-	assert t2.minute == 0
-}
-
-fn test_next_next_day() ? {
-	ce := parse_expression('0 3') ?
-	t := parse('2002-01-01 04:00:00') ?
-	t2 := ce.next(t) ?
-
-	assert t2.year == 2002
-	assert t2.month == 1
-	assert t2.day == 2
-	assert t2.hour == 3
-	assert t2.minute == 0
+	util_test_time('0 3/4', '2002-01-01 04:00:00', '2002-01-01 07:00:00') ?
 }

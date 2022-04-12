@@ -38,17 +38,17 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 		month_index++
 	}
 
-	if month_index < ce.months.len {
+	if month_index < ce.months.len && sref.month == ce.months[month_index] {
 		for day_index < ce.days.len && sref.day > ce.days[day_index] {
 			day_index++
 		}
 
-		if day_index < ce.days.len {
+		if day_index < ce.days.len && ce.days[day_index] == sref.day {
 			for hour_index < ce.hours.len && sref.hour > ce.hours[hour_index] {
 				hour_index++
 			}
 
-			if hour_index < ce.hours.len {
+			if hour_index < ce.hours.len && ce.hours[hour_index] == sref.hour {
 				// Minute is the only value where we explicitely make sure we
 				// can't match sref's value exactly. This is to ensure we only
 				// return values in the future.
