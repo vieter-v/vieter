@@ -3,6 +3,8 @@ matrix:
     - linux/amd64
     - linux/arm64
 
+branches:
+  exclude: [main, dev]
 platform: ${PLATFORM}
 
 pipeline:
