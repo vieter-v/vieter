@@ -101,13 +101,13 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 		year++
 	}
 
-	return time.Time{
+	return time.new_time(time.Time{
 		year: year
 		month: month
 		day: day
 		minute: minute
 		hour: hour
-	}
+	})
 }
 
 fn (ce &CronExpression) next_from_now() ?time.Time {
