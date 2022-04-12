@@ -3,25 +3,23 @@ module cron
 // parse_range_error returns the returned error message. If the result is '',
 // that means the function didn't error.
 fn parse_range_error(s string, min int, max int) string {
-	mut bitv := []bool{init: false, len: max - min + 1}
+	mut bitv := []bool{len: max - min + 1, init: false}
 
-	parse_range(s, min, max, mut bitv) or {
-		return err.msg
-	}
+	parse_range(s, min, max, mut bitv) or { return err.msg }
 
 	return ''
 }
 
 // =====parse_range=====
 fn test_range_star_range() ? {
-	mut bitv := []bool{init: false, len: 6}
+	mut bitv := []bool{len: 6, init: false}
 	parse_range('*', 0, 5, mut bitv) ?
 
 	assert bitv == [true, true, true, true, true, true]
 }
 
 fn test_range_number() ? {
-	mut bitv := []bool{init: false, len: 6}
+	mut bitv := []bool{len: 6, init: false}
 	parse_range('4', 0, 5, mut bitv) ?
 
 	assert bitv_to_ints(bitv, 0) == [4]
@@ -40,14 +38,14 @@ fn test_range_number_invalid() ? {
 }
 
 fn test_range_step_star_1() ? {
-	mut bitv := []bool{init: false, len: 21}
+	mut bitv := []bool{len: 21, init: false}
 	parse_range('*/4', 0, 20, mut bitv) ?
 
 	assert bitv_to_ints(bitv, 0) == [0, 4, 8, 12, 16, 20]
 }
 
 fn test_range_step_star_2() ? {
-	mut bitv := []bool{init: false, len: 9}
+	mut bitv := []bool{len: 8, init: false}
 	parse_range('*/3', 1, 8, mut bitv) ?
 
 	assert bitv_to_ints(bitv, 1) == [1, 4, 7]
@@ -62,7 +60,7 @@ fn test_range_step_zero() ? {
 }
 
 fn test_range_step_number() ? {
-	mut bitv := []bool{init: false, len: 21}
+	mut bitv := []bool{len: 21, init: false}
 	parse_range('5/4', 2, 22, mut bitv) ?
 
 	assert bitv_to_ints(bitv, 2) == [5, 9, 13, 17, 21]
@@ -74,6 +72,20 @@ fn test_range_step_number_too_large() ? {
 
 fn test_range_step_number_too_small() ? {
 	assert parse_range_error('2/4', 5, 10) == 'Out of range.'
+}
+
+fn test_range_dash() ? {
+	mut bitv := []bool{len: 10, init: false}
+	parse_range('4-8', 0, 9, mut bitv) ?
+
+	assert bitv_to_ints(bitv, 0) == [4, 5, 6, 7, 8]
+}
+
+fn test_range_dash_step() ? {
+	mut bitv := []bool{len: 10, init: false}
+	parse_range('4-8/2', 0, 9, mut bitv) ?
+
+	assert bitv_to_ints(bitv, 0) == [4, 6, 8]
 }
 
 // =====parse_part=====

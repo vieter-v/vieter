@@ -29,7 +29,7 @@ pub fn cron(conf Config) ? {
 	// println(queue)
 	// exp := '10/2 5 *'
 	// println(parse_expression(exp) ?)
-	ce := parse_expression('0 3 */2') ?
+	ce := parse_expression('0 35 */2') ?
 	println(ce)
 	// ce := CronExpression{
 	// 	minutes: [0]

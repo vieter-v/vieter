@@ -118,23 +118,46 @@ fn (ce &CronExpression) next_from_now() ?time.Time {
 // possible.
 fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 	mut start := min
+	mut end := max
 	mut interval := 1
 
 	exps := s.split('/')
 
+	if exps.len > 2 {
+		return error('Invalid expression.')
+	}
+
 	if exps[0] != '*' {
-		start = exps[0].int()
+		dash_parts := exps[0].split('-')
+
+		if dash_parts.len > 2 {
+			return error('Invalid expression.')
+		}
+
+		start = dash_parts[0].int()
 
 		// The builtin parsing functions return zero if the string can't be
 		// parsed into a number, so we have to explicitely check whether they
 		// actually entered zero or if it's an invalid number.
-		if start == 0 && exps[0] != '0' {
+		if start == 0 && dash_parts[0] != '0' {
 			return error('Invalid number.')
 		}
 
 		// Check whether the start value is out of range
 		if start < min || start > max {
 			return error('Out of range.')
+		}
+
+		if dash_parts.len == 2 {
+			end = dash_parts[1].int()
+
+			if end == 0 && dash_parts[1] != '0' {
+				return error('Invalid number.')
+			}
+
+			if end < start || end > max {
+				return error('Out of range.')
+			}
 		}
 	}
 
@@ -146,7 +169,7 @@ fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 		if interval == 0 {
 			if exps[1] != '0' {
 				return error('Invalid number.')
-			}else{
+			} else {
 				return error('Step size zero not allowed.')
 			}
 		}
@@ -157,12 +180,12 @@ fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 	}
 	// Here, s solely consists of a number, so that's the only value we
 	// should return.
-	else if exps[0] != '*' {
+	else if exps[0] != '*' && !exps[0].contains('-') {
 		bitv[start - min] = true
 		return
 	}
 
-	for start <= max {
+	for start <= end {
 		bitv[start - min] = true
 		start += interval
 	}
@@ -171,7 +194,7 @@ fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 fn bitv_to_ints(bitv []bool, min int) []int {
 	mut out := []int{}
 
-	for i in 0..bitv.len {
+	for i in 0 .. bitv.len {
 		if bitv[i] {
 			out << min + i
 		}
@@ -181,7 +204,7 @@ fn bitv_to_ints(bitv []bool, min int) []int {
 }
 
 fn parse_part(s string, min int, max int) ?[]int {
-	mut bitv := []bool{init: false, len: max - min + 1}
+	mut bitv := []bool{len: max - min + 1, init: false}
 
 	for range in s.split(',') {
 		parse_range(range, min, max, mut bitv) ?
@@ -190,7 +213,8 @@ fn parse_part(s string, min int, max int) ?[]int {
 	return bitv_to_ints(bitv, min)
 }
 
-// min hour day month day-of-week
+// parse_expression parses an entire cron expression string into a
+// CronExpression object, if possible.
 fn parse_expression(exp string) ?CronExpression {
 	// The filter allows for multiple spaces between parts
 	mut parts := exp.split(' ').filter(it != '')
@@ -205,10 +229,22 @@ fn parse_expression(exp string) ?CronExpression {
 		parts << '*'
 	}
 
+	mut part_results := [][]int{}
+
+	mins := [0, 0, 1, 1]
+	maxs := [59, 23, 31, 12]
+
+	// This for loop allows us to more clearly propagate the error to the user.
+	for i, min in mins {
+		part_results << parse_part(parts[i], min, maxs[i]) or {
+			return error('An error occurred with part $i: $err.msg')
+		}
+	}
+
 	return CronExpression{
-		minutes: parse_part(parts[0], 0, 59) ?
-		hours: parse_part(parts[1], 0, 23) ?
-		days: parse_part(parts[2], 1, 31) ?
-		months: parse_part(parts[3], 1, 12) ?
+		minutes: part_results[0]
+		hours: part_results[1]
+		days: part_results[2]
+		months: part_results[3]
 	}
 }
