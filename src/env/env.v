@@ -55,27 +55,41 @@ pub fn load<T>(path string) ?T {
 		$for field in T.fields {
 			s := doc.value(field.name)
 
-			// We currently only support strings
-			if s.type_name() == 'string' {
-				res.$(field.name) = s.string()
+			if s !is toml.Null {
+				$if field.typ is string {
+					res.$(field.name) = s.string()
+				}$else $if field.typ is int {
+					res.$(field.name) = s.int()
+				}
 			}
 		}
 	}
 
 	$for field in T.fields {
-		$if field.typ is string {
-			env_value := get_env_var(field.name) ?
+		env_value := get_env_var(field.name) ?
 
-			// The value of the env var will always be chosen over the config
-			// file
-			if env_value != '' {
+		// The value of an env var will always take precedence over the toml
+		// file.
+		if env_value != '' {
+			$if field.typ is string {
 				res.$(field.name) = env_value
+			} $else $if field.typ is int {
+				res.$(field.name) = env_value.int()
 			}
-			// If there's no value from the toml file either, we try to find a
-			// default value
-			else if res.$(field.name) == '' {
-				return error("Missing config variable '$field.name' with no provided default. Either add it to the config file or provide it using an environment variable.")
-			}
+		}
+
+		// Now, we check whether a value is present. If there isn't, that means
+		// it isn't in the config file, nor is there a default or an env var.
+		mut has_value := false
+
+		$if field.typ is string {
+			has_value = res.$(field.name) != ''
+		} $else $if field.typ is int {
+			has_value = res.$(field.name) != 0
+		}
+
+		if !has_value {
+			return error("Missing config variable '$field.name' with no provided default. Either add it to the config file or provide it using an environment variable.")
 		}
 	}
 	return res
