@@ -58,7 +58,7 @@ pub fn load<T>(path string) ?T {
 			if s !is toml.Null {
 				$if field.typ is string {
 					res.$(field.name) = s.string()
-				}$else $if field.typ is int {
+				} $else $if field.typ is int {
 					res.$(field.name) = s.int()
 				}
 			}

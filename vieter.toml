@@ -8,3 +8,6 @@ repos_file = "data/repos.json"
 default_arch = "x86_64"
 
 address = "http://localhost:8000"
+
+global_schedule = '0 3'
+

@@ -5,14 +5,14 @@ import env
 
 struct Config {
 pub:
-	log_level  string = 'WARN'
-	log_file   string = 'vieter.log'
-	api_key    string
-	address    string
-	base_image string = 'archlinux:base-devel'
-	max_concurrent_builds int = 1
-	api_update_frequency int = 60
-	global_schedule string
+	log_level             string = 'WARN'
+	log_file              string = 'vieter.log'
+	api_key               string
+	address               string
+	base_image            string = 'archlinux:base-devel'
+	max_concurrent_builds int    = 1
+	api_update_frequency  int    = 60
+	global_schedule       string
 }
 
 // cmd returns the cli module that handles the cron daemon.

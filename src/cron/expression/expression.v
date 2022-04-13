@@ -1,8 +1,8 @@
-module cron
+module expression
 
 import time
 
-struct CronExpression {
+pub struct CronExpression {
 	minutes []int
 	hours   []int
 	days    []int
@@ -219,7 +219,7 @@ fn parse_part(s string, min int, max int) ?[]int {
 
 // parse_expression parses an entire cron expression string into a
 // CronExpression object, if possible.
-fn parse_expression(exp string) ?CronExpression {
+pub fn parse_expression(exp string) ?CronExpression {
 	// The filter allows for multiple spaces between parts
 	mut parts := exp.split(' ').filter(it != '')
 
