@@ -241,7 +241,7 @@ fn parse_expression(exp string) ?CronExpression {
 	// This for loop allows us to more clearly propagate the error to the user.
 	for i, min in mins {
 		part_results << parse_part(parts[i], min, maxs[i]) or {
-			return error('An error occurred with part $i: $err.msg')
+			return error('An error occurred with part $i: $err.msg()')
 		}
 	}
 

@@ -14,6 +14,8 @@ pub mut:
 	arch []string
 	// Which repo the builder should publish packages to
 	repo string
+	// Cron schedule describing how frequently to build the repo.
+	schedule string
 }
 
 // patch_from_params patches a GitRepo from a map[string]string, usually
