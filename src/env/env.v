@@ -36,7 +36,7 @@ fn get_env_var(field_name string) ?string {
 
 	// Otherwise, we process the file
 	return os.read_file(env_file) or {
-		error('Failed to read file defined in $env_file_name: ${err.msg}.')
+		error('Failed to read file defined in $env_file_name: ${err.msg()}.')
 	}
 }
 

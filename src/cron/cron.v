@@ -1,9 +1,6 @@
 module cron
 
-import git
-import time
 import log
-import util
 import cron.daemon
 import cron.expression
 

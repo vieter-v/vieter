@@ -58,6 +58,7 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 
 pub fn (mut d Daemon) run() ? {
 	println(d.queue)
+	println('i am running')
 }
 
 fn (mut d Daemon) renew_repos() ? {
@@ -81,12 +82,12 @@ fn (mut d Daemon) renew_queue() ? {
 		new_queue.insert(d.queue.pop() ?)
 	}
 
-	println('hey')
-	println(d.repos_map)
+	eprintln('hey')
+	eprintln(d.repos_map)
 	// For each repository in repos_map, parse their cron expression (or use
 	// the default one if not present) & add them to the queue
 	for id, repo in d.repos_map {
-		println('hey')
+		eprintln('hey')
 		ce := parse_expression(repo.schedule) or { d.global_schedule }
 		// A repo that can't be scheduled will just be skipped for now
 		timestamp := ce.next(now) or { continue }
