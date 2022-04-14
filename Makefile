@@ -7,6 +7,7 @@ V := $(V_PATH) -showcc -gc boehm
 
 all: vieter
 
+
 # =====COMPILATION=====
 # Regular binary
 vieter: $(SOURCES)
@@ -33,18 +34,20 @@ pvieter: $(SOURCES)
 
 # Only generate C code
 .PHONY: c
-c:
+c: $(SOURCES)
 	$(V) -o vieter.c $(SRC_DIR)
+
 
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
 .PHONY: run
 run: vieter
-		./vieter -f vieter.toml server
+	./vieter -f vieter.toml server
 
 .PHONY: run-prod
 run-prod: prod
 	./pvieter -f vieter.toml server
+
 
 # =====OTHER=====
 .PHONY: lint
@@ -72,4 +75,16 @@ v/v:
 	make -C v
 
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'pkg' 'src/vieter' 'afvieter' 'suvieter'
+
+
+# =====EXPERIMENTAL=====
+.PHONY: autofree
+autofree: afvieter
+afvieter: $(SOURCES)
+	$(V_PATH) -showcc -autofree -o afvieter $(SRC_DIR)
+
+.PHONY: skip-unused
+skip-unused: suvieter
+suvieter: $(SOURCES)
+	$(V_PATH) -showcc -skip-unused -o suvieter $(SRC_DIR)
