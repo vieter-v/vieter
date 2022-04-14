@@ -61,8 +61,13 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 // run starts the actual daemon process. It runs builds when possible &
 // periodically refreshes the list of repositories to ensure we stay in sync.
 pub fn (mut d Daemon) run() ? {
-	println(d.queue)
-	println('i am running')
+	for {
+		d.update_builds() ?
+		println(d.queue)
+		println(d.atomics)
+
+		time.sleep(60 * time.second)
+	}
 }
 
 fn (mut d Daemon) renew_repos() ? {
