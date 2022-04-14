@@ -37,6 +37,8 @@ mut:
 	logger  shared log.Log
 }
 
+// init_daemon initializes a new Daemon object. It renews the repositories &
+// populates the build queue for the first time.
 pub fn init_daemon(logger log.Log, address string, api_key string, base_image string, global_schedule CronExpression, max_concurrent_builds int, api_update_frequency int) ?Daemon {
 	mut d := Daemon{
 		address: address
@@ -56,6 +58,8 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 	return d
 }
 
+// run starts the actual daemon process. It runs builds when possible &
+// periodically refreshes the list of repositories to ensure we stay in sync.
 pub fn (mut d Daemon) run() ? {
 	println(d.queue)
 	println('i am running')
@@ -78,16 +82,23 @@ fn (mut d Daemon) renew_queue() ? {
 	// the new one
 	now := time.now()
 
-	for d.queue.len() > 0 && d.queue.peek() ?.timestamp < now {
-		new_queue.insert(d.queue.pop() ?)
+	// For some reason, using
+	// ```v
+	// for d.queue.len() > 0 && d.queue.peek() ?.timestamp < now {
+	//```
+	// here causes the function to prematurely just exit, without any errors or anything, very weird
+	// https://github.com/vlang/v/issues/14042
+	for d.queue.len() > 0 {
+		if d.queue.peek() ?.timestamp < now {
+			new_queue.insert(d.queue.pop() ?)
+		} else {
+			break
+		}
 	}
 
-	eprintln('hey')
-	eprintln(d.repos_map)
 	// For each repository in repos_map, parse their cron expression (or use
 	// the default one if not present) & add them to the queue
 	for id, repo in d.repos_map {
-		eprintln('hey')
 		ce := parse_expression(repo.schedule) or { d.global_schedule }
 		// A repo that can't be scheduled will just be skipped for now
 		timestamp := ce.next(now) or { continue }
