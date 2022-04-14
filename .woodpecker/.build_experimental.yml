@@ -12,6 +12,8 @@ pipeline:
     group: 'build'
     commands:
       - make autofree
+      - readelf -d afvieter
+      - du -h afvieter
     when:
       event: push
 
@@ -21,5 +23,20 @@ pipeline:
     group: 'build'
     commands:
       - make skip-unused
+      - readelf -d suvieter
+      - du -h suvieter
+    when:
+      event: push
+
+  skip-unused-static:
+    image: 'chewingbever/vlang:latest'
+    pull: true
+    environment:
+      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
+    group: 'build'
+    commands:
+      - make skip-unused
+      - readelf -d suvieter
+      - du -h suvieter
     when:
       event: push
