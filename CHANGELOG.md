@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/Chewing_Bever/vieter)
 
+* Moved away from compiler fork
+
 ## [0.2.0](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.2.0)
 
 ### Changed
