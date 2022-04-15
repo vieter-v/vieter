@@ -2,7 +2,7 @@
 
 pkgbase='vieter'
 pkgname='vieter'
-pkgver=0.1.0.rc1.r117.gc3ac00f
+pkgver=0.2.0.r24.g9a56bd0
 pkgrel=1
 depends=('glibc' 'openssl' 'libarchive' 'gc')
 makedepends=('git' 'gcc')
@@ -23,7 +23,7 @@ build() {
     # Build the compiler
     CFLAGS= make v
 
-    make prod
+    V_PATH=v/v make prod
 }
 
 package() {

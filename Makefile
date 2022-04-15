@@ -2,7 +2,7 @@
 SRC_DIR := src
 SOURCES != find '$(SRC_DIR)' -iname '*.v'
 
-V_PATH ?= v/v
+V_PATH ?= v
 V := $(V_PATH) -showcc -gc boehm
 
 all: vieter
@@ -71,11 +71,11 @@ test:
 .PHONY: v
 v: v/v
 v/v:
-	git clone --single-branch --branch patches https://git.rustybever.be/Chewing_Bever/vieter-v v
+	git clone --single-branch https://git.rustybever.be/Chewing_Bever/v v
 	make -C v
 
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'pkg' 'src/vieter' 'afvieter' 'suvieter'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst
 
 
 # =====EXPERIMENTAL=====
