@@ -24,7 +24,7 @@ dvieter: $(SOURCES)
 # Run the debug build inside gdb
 .PHONY: gdb
 gdb: dvieter
-		gdb --args './dvieter -f vieter.toml server'
+		gdb --args ./dvieter -f vieter.toml server
 
 # Optimised production build
 .PHONY: prod
@@ -75,7 +75,7 @@ v/v:
 	make -C v
 
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter'
 
 
 # =====EXPERIMENTAL=====

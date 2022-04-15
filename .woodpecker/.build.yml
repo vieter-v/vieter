@@ -9,15 +9,16 @@ matrix:
 platform: ${PLATFORM}
 
 pipeline:
-  # The default build isn't needed, as alpine switches to gcc for the compiler anyways
   debug:
     image: 'chewingbever/vlang:latest'
     pull: true
     group: 'build'
     commands:
-      - make debug
+      - make
     when:
       event: push
+      branch:
+        exclude: [main, dev]
 
   prod:
     image: 'chewingbever/vlang:latest'
