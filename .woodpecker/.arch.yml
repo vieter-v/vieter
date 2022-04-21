@@ -10,6 +10,8 @@ pipeline:
   build:
     image: 'menci/archlinuxarm:base-devel'
     commands:
+      # Add the vieter repository so we can use the compiler
+      - echo -e '[vieter]\nServer = https://arch.r8r.be/$repo/$arch\nSigLevel = Optional' >> /etc/pacman.conf
       # Update packages
       - pacman -Syu --noconfirm
       # Create non-root user to perform build & switch to their home
