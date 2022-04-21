@@ -12,7 +12,6 @@ pipeline:
   debug:
     image: 'chewingbever/vlang:latest'
     pull: true
-    group: 'build'
     commands:
       - make
     when:
@@ -25,7 +24,6 @@ pipeline:
     pull: true
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
-    group: 'build'
     commands:
       - make prod
       # Make sure the binary is actually statically built
