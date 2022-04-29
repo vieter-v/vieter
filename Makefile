@@ -74,8 +74,14 @@ v/v:
 	git clone --single-branch https://git.rustybever.be/Chewing_Bever/v v
 	make -C v
 
+.PHONY: clean
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs'
+
+.PHONY: docs
+docs:
+	rm -rf '$(SRC_DIR)/_docs'
+	cd '$(SRC_DIR)' && v doc -all -f html -m -readme .
 
 
 # =====EXPERIMENTAL=====

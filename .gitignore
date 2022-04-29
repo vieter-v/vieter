@@ -23,3 +23,6 @@ v/
 
 # gdb log file
 gdb.txt
+
+# Generated docs
+_docs/
