@@ -2,7 +2,6 @@ module daemon
 
 import time
 import sync.stdatomic
-import rand
 import build
 
 const build_empty = 0
@@ -63,9 +62,9 @@ fn (mut d Daemon) start_build(sb ScheduledBuild) bool {
 
 // run_build actually starts the build process for a given repo.
 fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) ? {
-	d.linfo('started build: ${sb.repo.url} ${sb.repo.branch}')
+	d.linfo('started build: $sb.repo.url $sb.repo.branch')
 
-	build.build_repo(d.address, d.api_key, d.builder_image, &sb.repo) ?
+	build.build_repo(d.address, d.api_key, d.builder_images.last(), &sb.repo) ?
 
 	stdatomic.store_u64(&d.atomics[build_index], daemon.build_done)
 }

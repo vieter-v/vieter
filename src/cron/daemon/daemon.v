@@ -7,6 +7,7 @@ import datatypes { MinHeap }
 import cron.expression { CronExpression, parse_expression }
 import math
 import build
+import docker
 
 struct ScheduledBuild {
 pub:
@@ -24,7 +25,7 @@ mut:
 	address                 string
 	api_key                 string
 	base_image              string
-	builder_image           string
+	builder_images          []string
 	global_schedule         CronExpression
 	api_update_frequency    int
 	image_rebuild_frequency int
@@ -92,6 +93,9 @@ pub fn (mut d Daemon) run() ? {
 		// made sure it isn't being used anymore.
 		if time.now() >= d.image_build_timestamp {
 			d.rebuild_base_image() ?
+			// In theory, executing this function here allows an old builder
+			// image to exist for at most image_rebuild_frequency minutes.
+			d.clean_old_base_images()
 		}
 
 		// Schedules new builds when possible
@@ -144,7 +148,7 @@ fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) ? {
 }
 
 fn (mut d Daemon) renew_repos() ? {
-	d.ldebug('Renewing repos...')
+	d.linfo('Renewing repos...')
 	mut new_repos := git.get_repos(d.address, d.api_key) ?
 
 	d.repos_map = new_repos.move()
@@ -155,7 +159,7 @@ fn (mut d Daemon) renew_repos() ? {
 // renew_queue replaces the old queue with a new one that reflects the newest
 // values in repos_map.
 fn (mut d Daemon) renew_queue() ? {
-	d.ldebug('Renewing queue...')
+	d.linfo('Renewing queue...')
 	mut new_queue := MinHeap<ScheduledBuild>{}
 
 	// Move any jobs that should have already started from the old queue onto
@@ -186,8 +190,23 @@ fn (mut d Daemon) renew_queue() ? {
 }
 
 fn (mut d Daemon) rebuild_base_image() ? {
-	d.linfo("Rebuilding builder image....")
+	d.linfo('Rebuilding builder image....')
 
-	d.builder_image = build.create_build_image(d.base_image) ?
+	d.builder_images << build.create_build_image(d.base_image) ?
 	d.image_build_timestamp = time.now().add_seconds(60 * d.image_rebuild_frequency)
+}
+
+fn (mut d Daemon) clean_old_base_images() {
+	mut i := 0
+
+	for i < d.builder_images.len - 1 {
+		// For each builder image, we try to remove it by calling the Docker
+		// API. If the function returns an error or false, that means the image
+		// wasn't deleted. Therefore, we move the index over. If the function
+		// returns true, the array's length has decreased by one so we don't
+		// move the index.
+		if !docker.remove_image(d.builder_images[i]) or { false } {
+			i += 1
+		}
+	}
 }
