@@ -175,6 +175,7 @@ pub fn read_pkg_archive(pkg_path string) ?Pkg {
 	}
 }
 
+// format_entry returns a string properly formatted to be added to a desc file.
 fn format_entry(key string, value string) string {
 	return '\n%$key%\n$value\n'
 }

@@ -7,7 +7,5 @@ pipeline:
   lint:
     image: 'chewingbever/vlang:latest'
     pull: true
-    group: lint
     commands:
       - make lint
-      - make vet

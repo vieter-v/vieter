@@ -2,7 +2,9 @@
 
 ## Documentation
 
-I host documentation for Vieter over at https://rustybever.be/docs/vieter/.
+I host documentation for Vieter over at https://rustybever.be/docs/vieter/. API
+documentation for the current codebase can be found at
+https://rustybever.be/api-docs/vieter/.
 
 ## Overview
 

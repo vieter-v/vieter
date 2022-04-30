@@ -16,6 +16,9 @@ pub fn (mut app App) healthcheck() web.Result {
 	return app.json(http.Status.ok, new_response('Healthy.'))
 }
 
+// get_repo_file handles all Pacman-related routes. It returns both the
+// repository's archives, but also package archives or the contents of a
+// package's desc file.
 ['/:repo/:arch/:filename'; get; head]
 fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Result {
 	mut full_path := ''
@@ -54,6 +57,7 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 	return app.file(full_path)
 }
 
+// put_package handles publishing a package to a repository.
 ['/:repo/publish'; post]
 fn (mut app App) put_package(repo string) web.Result {
 	if !app.is_authorized() {
@@ -87,15 +91,15 @@ fn (mut app App) put_package(repo string) web.Result {
 	}
 
 	res := app.repo.add_pkg_from_path(repo, pkg_path) or {
-		app.lerror('Error while adding package: $err.msg')
+		app.lerror('Error while adding package: $err.msg()')
 
-		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
+		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg()") }
 
 		return app.json(http.Status.internal_server_error, new_response('Failed to add package.'))
 	}
 
 	if !res.added {
-		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg") }
+		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg()") }
 
 		app.lwarn("Duplicate package '$res.pkg.full_name()' in repo '$repo'.")
 

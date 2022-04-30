@@ -249,7 +249,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 
 	// ext := os.file_ext(f_path)
 	// data := os.read_file(f_path) or {
-	// 	eprint(err.msg)
+	// 	eprint(err.msg())
 	// 	ctx.server_error(500)
 	// 	return Result{}
 	// }
@@ -267,7 +267,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	file_size := os.file_size(f_path)
 
 	file := os.open(f_path) or {
-		eprintln(err.msg)
+		eprintln(err.msg())
 		ctx.server_error(500)
 		return Result{}
 	}
@@ -285,7 +285,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	resp.set_status(ctx.status)
 	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
 
-	mut buf := []byte{len: 1_000_000}
+	mut buf := []u8{len: 1_000_000}
 	mut bytes_left := file_size
 
 	// Repeat as long as the stream still has data
@@ -361,7 +361,7 @@ interface DbInterface {
 // run runs the app
 [manualfree]
 pub fn run<T>(global_app &T, port int) {
-	mut l := net.listen_tcp(.ip6, ':$port') or { panic('failed to listen $err.code $err') }
+	mut l := net.listen_tcp(.ip6, ':$port') or { panic('failed to listen $err.code() $err') }
 
 	// Parsing methods attributes
 	mut routes := map[string]Route{}
@@ -393,7 +393,7 @@ pub fn run<T>(global_app &T, port int) {
 		request_app.Context = global_app.Context // copy the context ref that contains static files map etc
 		mut conn := l.accept() or {
 			// failures should not panic
-			eprintln('accept() failed with error: $err.msg')
+			eprintln('accept() failed with error: $err.msg()')
 			continue
 		}
 		go handle_conn<T>(mut conn, mut request_app, routes)

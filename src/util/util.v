@@ -30,7 +30,7 @@ pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 		file.close()
 	}
 
-	mut buf := []byte{len: util.reader_buf_size}
+	mut buf := []u8{len: util.reader_buf_size}
 	mut bytes_left := length
 
 	// Repeat as long as the stream still has data
@@ -60,7 +60,7 @@ pub fn hash_file(path &string) ?(string, string) {
 	mut sha256sum := sha256.new()
 
 	buf_size := int(1_000_000)
-	mut buf := []byte{len: buf_size}
+	mut buf := []u8{len: buf_size}
 	mut bytes_left := os.file_size(path)
 
 	for bytes_left > 0 {

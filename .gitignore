@@ -5,8 +5,8 @@ data/
 vieter
 dvieter
 pvieter
-dvieterctl
-vieterctl
+suvieter
+afvieter
 vieter.c
 
 # Ignore testing files
@@ -23,3 +23,6 @@ v/
 
 # gdb log file
 gdb.txt
+
+# Generated docs
+_docs/

@@ -9,6 +9,8 @@ const socket = '/var/run/docker.sock'
 
 const buf_len = 1024
 
+// send writes a request to the Docker socket, waits for a response & returns
+// it.
 fn send(req &string) ?http.Response {
 	// Open a connection to the socket
 	mut s := unix.connect_stream(docker.socket) or {
@@ -28,8 +30,8 @@ fn send(req &string) ?http.Response {
 	s.wait_for_write() ?
 
 	mut c := 0
-	mut buf := []byte{len: docker.buf_len}
-	mut res := []byte{}
+	mut buf := []u8{len: docker.buf_len}
+	mut res := []u8{}
 
 	for {
 		c = s.read(mut buf) or { return error('Failed to read data from socket ${docker.socket}.') }
@@ -52,7 +54,7 @@ fn send(req &string) ?http.Response {
 
 	// We loop until we've encountered the end of the chunked response
 	// A chunked HTTP response always ends with '0\r\n\r\n'.
-	for res.len < 5 || res#[-5..] != [byte(`0`), `\r`, `\n`, `\r`, `\n`] {
+	for res.len < 5 || res#[-5..] != [u8(`0`), `\r`, `\n`, `\r`, `\n`] {
 		// Wait for the server to respond
 		s.wait_for_write() ?
 
@@ -72,12 +74,14 @@ fn send(req &string) ?http.Response {
 	return http.parse_response(res.bytestr())
 }
 
+// request_with_body sends a request to the Docker socket with the given body.
 fn request_with_body(method string, url urllib.URL, content_type string, body string) ?http.Response {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: $content_type\nContent-Length: $body.len\n\n$body\n\n'
 
 	return send(req)
 }
 
+// request sends a request to the Docker socket with an empty body.
 fn request(method string, url urllib.URL) ?http.Response {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\n\n'
 

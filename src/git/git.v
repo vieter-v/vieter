@@ -14,6 +14,8 @@ pub mut:
 	arch []string
 	// Which repo the builder should publish packages to
 	repo string
+	// Cron schedule describing how frequently to build the repo.
+	schedule string [optional]
 }
 
 // patch_from_params patches a GitRepo from a map[string]string, usually
@@ -72,7 +74,7 @@ pub fn repo_from_params(params map[string]string) ?GitRepo {
 	// If we're creating a new GitRepo, we want all fields to be present before
 	// "patching".
 	$for field in GitRepo.fields {
-		if field.name !in params {
+		if field.name !in params && !field.attrs.contains('optional') {
 			return error('Missing parameter: ${field.name}.')
 		}
 	}

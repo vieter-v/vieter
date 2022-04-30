@@ -2,10 +2,10 @@
 
 pkgbase='vieter'
 pkgname='vieter'
-pkgver=0.2.0.r24.g9a56bd0
+pkgver=0.2.0.r25.g20112b8
 pkgrel=1
 depends=('glibc' 'openssl' 'libarchive' 'gc')
-makedepends=('git' 'gcc')
+makedepends=('git' 'gcc' 'vieter-v')
 arch=('x86_64' 'aarch64' 'armv7')
 url='https://git.rustybever.be/Chewing_Bever/vieter'
 license=('AGPL3')
@@ -20,10 +20,7 @@ pkgver() {
 build() {
     cd "$pkgname"
 
-    # Build the compiler
-    CFLAGS= make v
-
-    V_PATH=v/v make prod
+    make prod
 }
 
 package() {

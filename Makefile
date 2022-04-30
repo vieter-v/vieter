@@ -7,6 +7,7 @@ V := $(V_PATH) -showcc -gc boehm
 
 all: vieter
 
+
 # =====COMPILATION=====
 # Regular binary
 vieter: $(SOURCES)
@@ -23,7 +24,7 @@ dvieter: $(SOURCES)
 # Run the debug build inside gdb
 .PHONY: gdb
 gdb: dvieter
-		gdb --args './dvieter -f vieter.toml server'
+		gdb --args ./dvieter -f vieter.toml server
 
 # Optimised production build
 .PHONY: prod
@@ -33,32 +34,33 @@ pvieter: $(SOURCES)
 
 # Only generate C code
 .PHONY: c
-c:
+c: $(SOURCES)
 	$(V) -o vieter.c $(SRC_DIR)
+
 
 # =====EXECUTION=====
 # Run the server in the default 'data' directory
 .PHONY: run
 run: vieter
-		./vieter -f vieter.toml server
+	./vieter -f vieter.toml server
 
 .PHONY: run-prod
 run-prod: prod
 	./pvieter -f vieter.toml server
 
+
 # =====OTHER=====
 .PHONY: lint
 lint:
 	$(V) fmt -verify $(SRC_DIR)
+	$(V) vet -W $(SRC_DIR)
+	$(V_PATH) missdoc -p $(SRC_DIR)
+	@ [ $$($(V_PATH) missdoc -p $(SRC_DIR) | wc -l) = 0 ]
 
 # Format the V codebase
 .PHONY: fmt
 fmt:
 	$(V) fmt -w $(SRC_DIR)
-
-.PHONY: vet
-vet:
-	$(V) vet -W $(SRC_DIR)
 
 .PHONY: test
 test:
@@ -71,5 +73,23 @@ v/v:
 	git clone --single-branch https://git.rustybever.be/Chewing_Bever/v v
 	make -C v
 
+.PHONY: clean
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs'
+
+.PHONY: api-docs
+api-docs:
+	rm -rf '$(SRC_DIR)/_docs'
+	cd '$(SRC_DIR)' && v doc -all -f html -m -readme .
+
+
+# =====EXPERIMENTAL=====
+.PHONY: autofree
+autofree: afvieter
+afvieter: $(SOURCES)
+	$(V_PATH) -showcc -autofree -o afvieter $(SRC_DIR)
+
+.PHONY: skip-unused
+skip-unused: suvieter
+suvieter: $(SOURCES)
+	$(V_PATH) -showcc -skip-unused -o suvieter $(SRC_DIR)

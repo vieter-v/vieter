@@ -1,8 +1,8 @@
-module cron
+module expression
 
 import time
 
-struct CronExpression {
+pub struct CronExpression {
 	minutes []int
 	hours   []int
 	days    []int
@@ -65,6 +65,7 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	if minute_index == ce.minutes.len && hour_index < ce.hours.len {
 		hour_index += 1
 	}
+
 	if hour_index == ce.hours.len && day_index < ce.days.len {
 		day_index += 1
 	}
@@ -114,7 +115,9 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	})
 }
 
-fn (ce &CronExpression) next_from_now() ?time.Time {
+// next_from_now returns the result of ce.next(ref) where ref is the result of
+// time.now().
+pub fn (ce &CronExpression) next_from_now() ?time.Time {
 	return ce.next(time.now())
 }
 
@@ -195,6 +198,8 @@ fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 	}
 }
 
+// bitv_to_ints converts a bit vector into an array containing the
+// corresponding values.
 fn bitv_to_ints(bitv []bool, min int) []int {
 	mut out := []int{}
 
@@ -207,6 +212,8 @@ fn bitv_to_ints(bitv []bool, min int) []int {
 	return out
 }
 
+// parse_part parses a given part of a cron expression & returns the
+// corresponding array of ints.
 fn parse_part(s string, min int, max int) ?[]int {
 	mut bitv := []bool{len: max - min + 1, init: false}
 
@@ -219,7 +226,7 @@ fn parse_part(s string, min int, max int) ?[]int {
 
 // parse_expression parses an entire cron expression string into a
 // CronExpression object, if possible.
-fn parse_expression(exp string) ?CronExpression {
+pub fn parse_expression(exp string) ?CronExpression {
 	// The filter allows for multiple spaces between parts
 	mut parts := exp.split(' ').filter(it != '')
 
@@ -241,7 +248,7 @@ fn parse_expression(exp string) ?CronExpression {
 	// This for loop allows us to more clearly propagate the error to the user.
 	for i, min in mins {
 		part_results << parse_part(parts[i], min, maxs[i]) or {
-			return error('An error occurred with part $i: $err.msg')
+			return error('An error occurred with part $i: $err.msg()')
 		}
 	}
 

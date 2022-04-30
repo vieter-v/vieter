@@ -1,0 +1,29 @@
+# These builds are not important for the project, but might be valuable for
+# fixing bugs in the V compiler.
+
+platform: linux/amd64
+branches:
+  exclude: [master, dev]
+
+pipeline:
+  autofree:
+    image: 'chewingbever/vlang:latest'
+    pull: true
+    group: 'build'
+    commands:
+      - make autofree
+      - readelf -d afvieter
+      - du -h afvieter
+    when:
+      event: push
+
+  skip-unused:
+    image: 'chewingbever/vlang:latest'
+    pull: true
+    group: 'build'
+    commands:
+      - make skip-unused
+      - readelf -d suvieter
+      - du -h suvieter
+    when:
+      event: push

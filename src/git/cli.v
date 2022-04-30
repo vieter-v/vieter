@@ -96,6 +96,8 @@ pub fn cmd() cli.Command {
 	}
 }
 
+// get_repo_id_by_prefix tries to find the repo with the given prefix in its
+// ID. If multiple or none are found, an error is raised.
 fn get_repo_id_by_prefix(conf Config, id_prefix string) ?string {
 	repos := get_repos(conf.address, conf.api_key) ?
 
@@ -118,6 +120,7 @@ fn get_repo_id_by_prefix(conf Config, id_prefix string) ?string {
 	return res[0]
 }
 
+// list prints out a list of all repositories.
 fn list(conf Config) ? {
 	repos := get_repos(conf.address, conf.api_key) ?
 
@@ -126,12 +129,14 @@ fn list(conf Config) ? {
 	}
 }
 
+// add adds a new repository to the server's list.
 fn add(conf Config, url string, branch string, repo string, arch []string) ? {
 	res := add_repo(conf.address, conf.api_key, url, branch, repo, arch) ?
 
 	println(res.message)
 }
 
+// remove removes a repository from the server's list.
 fn remove(conf Config, id_prefix string) ? {
 	id := get_repo_id_by_prefix(conf, id_prefix) ?
 	res := remove_repo(conf.address, conf.api_key, id) ?
@@ -139,6 +144,7 @@ fn remove(conf Config, id_prefix string) ? {
 	println(res.message)
 }
 
+// patch patches a given repository with the provided params.
 fn patch(conf Config, id_prefix string, params map[string]string) ? {
 	id := get_repo_id_by_prefix(conf, id_prefix) ?
 	res := patch_repo(conf.address, conf.api_key, id, params) ?

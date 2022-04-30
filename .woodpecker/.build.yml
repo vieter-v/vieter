@@ -9,22 +9,21 @@ matrix:
 platform: ${PLATFORM}
 
 pipeline:
-  # The default build isn't needed, as alpine switches to gcc for the compiler anyways
   debug:
     image: 'chewingbever/vlang:latest'
     pull: true
-    group: 'build'
     commands:
-      - make debug
+      - make
     when:
       event: push
+      branch:
+        exclude: [main, dev]
 
   prod:
     image: 'chewingbever/vlang:latest'
     pull: true
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
-    group: 'build'
     commands:
       - make prod
       # Make sure the binary is actually statically built
