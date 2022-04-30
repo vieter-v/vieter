@@ -114,6 +114,8 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	})
 }
 
+// next_from_now returns the result of ce.next(ref) where ref is the result of
+// time.now().
 pub fn (ce &CronExpression) next_from_now() ?time.Time {
 	return ce.next(time.now())
 }

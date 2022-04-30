@@ -10,4 +10,5 @@ default_arch = "x86_64"
 address = "http://localhost:8000"
 
 global_schedule = '* *'
-
+api_update_frequency = 2
+max_concurrent_builds = 3

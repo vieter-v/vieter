@@ -2,6 +2,7 @@ module daemon
 
 import time
 import sync.stdatomic
+import rand
 
 const build_empty = 0
 
@@ -9,21 +10,23 @@ const build_running = 1
 
 const build_done = 2
 
-// reschedule_builds looks for any builds with status code 2 & re-adds them to
-// the queue.
-fn (mut d Daemon) reschedule_builds() ? {
+// clean_finished_builds removes finished builds from the build slots & returns
+// them.
+fn (mut d Daemon) clean_finished_builds() ?[]ScheduledBuild {
+	mut out := []ScheduledBuild{}
+
 	for i in 0 .. d.atomics.len {
 		if stdatomic.load_u64(&d.atomics[i]) == daemon.build_done {
 			stdatomic.store_u64(&d.atomics[i], daemon.build_empty)
-			sb := d.builds[i]
-
-			d.schedule_build(sb.repo_id, sb.repo) ?
+			out << d.builds[i]
 		}
 	}
+
+	return out
 }
 
 // update_builds starts as many builds as possible.
-fn (mut d Daemon) update_builds() ? {
+fn (mut d Daemon) start_new_builds() ? {
 	now := time.now()
 
 	for d.queue.len() > 0 {
@@ -31,8 +34,8 @@ fn (mut d Daemon) update_builds() ? {
 			sb := d.queue.pop() ?
 
 			// If this build couldn't be scheduled, no more will be possible.
-			// TODO a build that couldn't be scheduled should be re-added to the queue.
 			if !d.start_build(sb) {
+				d.queue.insert(sb)
 				break
 			}
 		} else {
@@ -60,7 +63,20 @@ fn (mut d Daemon) start_build(sb ScheduledBuild) bool {
 // run_build actually starts the build process for a given repo.
 fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) ? {
 	d.linfo('build $sb.repo.url')
-	time.sleep(10 * time.second)
+	time.sleep(rand.int_in_range(1, 6) ? * time.second)
 
 	stdatomic.store_u64(&d.atomics[build_index], daemon.build_done)
+}
+
+// current_build_count returns how many builds are currently running.
+fn (mut d Daemon) current_build_count() int {
+	mut res := 0
+
+	for i in 0 .. d.atomics.len {
+		if stdatomic.load_u64(&d.atomics[i]) == daemon.build_running {
+			res += 1
+		}
+	}
+
+	return res
 }

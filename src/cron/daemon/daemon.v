@@ -6,7 +6,6 @@ import log
 import datatypes { MinHeap }
 import cron.expression { CronExpression, parse_expression }
 import math
-import arrays
 
 struct ScheduledBuild {
 pub:
@@ -64,40 +63,51 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 // periodically refreshes the list of repositories to ensure we stay in sync.
 pub fn (mut d Daemon) run() ? {
 	for {
+		finished_builds := d.clean_finished_builds() ?
+
 		// Update the API's contents if needed & renew the queue
 		if time.now() >= d.api_update_timestamp {
 			d.renew_repos() ?
 			d.renew_queue() ?
 		}
-
-		// Cleans up finished builds, opening up spots for new builds
-		d.reschedule_builds() ?
+		// The finished builds should only be rescheduled if the API contents
+		// haven't been renewed.
+		else {
+			for sb in finished_builds {
+				d.schedule_build(sb.repo_id, sb.repo) ?
+			}
+		}
 
 		// TODO rebuild builder image when needed
 
 		// Schedules new builds when possible
-		d.update_builds() ?
+		d.start_new_builds() ?
+
+		// If there are builds currently running, the daemon should refresh
+		// every second to clean up any finished builds & start new ones.
+		mut delay := time.Duration(1 * time.second)
 
 		// Sleep either until we have to refresh the repos or when the next
 		// build has to start, with a minimum of 1 second.
-		now := time.now()
+		if d.current_build_count() == 0 {
+			now := time.now()
+			delay = d.api_update_timestamp - now
 
-		mut delay := d.api_update_timestamp - now
+			if d.queue.len() > 0 {
+				time_until_next_job := d.queue.peek() ?.timestamp - now
 
-		if d.queue.len() > 0 {
-			time_until_next_job := d.queue.peek() ?.timestamp - now
-
-			delay = math.min(delay, time_until_next_job)
+				delay = math.min(delay, time_until_next_job)
+			}
 		}
-
-		d.ldebug('Sleeping for ${delay}...')
-
-		// TODO if there are builds active, the sleep time should be much lower to clean up the builds when they're finished.
 
 		// We sleep for at least one second. This is to prevent the program
 		// from looping agressively when a cronjob can be scheduled, but
 		// there's no spots free for it to be started.
-		time.sleep(math.max(delay, 1 * time.second))
+		delay = math.max(delay, 1 * time.second)
+
+		d.ldebug('Sleeping for ${delay}...')
+
+		time.sleep(delay)
 	}
 }
 
