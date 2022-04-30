@@ -14,6 +14,7 @@ md5sums=('SKIP')
 
 pkgver() {
     cd "$pkgname"
+
     git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
@@ -25,7 +26,7 @@ build() {
 
 package() {
     pkgdesc="Vieter is a lightweight implementation of an Arch repository server."
-    install -dm755 "$pkgdir/usr/bin"
 
+    install -dm755 "$pkgdir/usr/bin"
     install -Dm755 "$pkgbase/pvieter" "$pkgdir/usr/bin/vieter"
 }
