@@ -16,6 +16,7 @@ pub:
 	timestamp time.Time
 }
 
+// Overloaded operator for comparing ScheduledBuild objects
 fn (r1 ScheduledBuild) < (r2 ScheduledBuild) bool {
 	return r1.timestamp < r2.timestamp
 }
@@ -147,6 +148,8 @@ fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) ? {
 	})
 }
 
+// renew_repos requests the newest list of Git repos from the server & replaces
+// the old one.
 fn (mut d Daemon) renew_repos() ? {
 	d.linfo('Renewing repos...')
 	mut new_repos := git.get_repos(d.address, d.api_key) ?
@@ -189,6 +192,7 @@ fn (mut d Daemon) renew_queue() ? {
 	}
 }
 
+// rebuild_base_image recreates the builder image.
 fn (mut d Daemon) rebuild_base_image() ? {
 	d.linfo('Rebuilding builder image....')
 
@@ -196,6 +200,8 @@ fn (mut d Daemon) rebuild_base_image() ? {
 	d.image_build_timestamp = time.now().add_seconds(60 * d.image_rebuild_frequency)
 }
 
+// clean_old_base_images tries to remove any old but still present builder
+// images.
 fn (mut d Daemon) clean_old_base_images() {
 	mut i := 0
 

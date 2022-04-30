@@ -9,6 +9,8 @@ const socket = '/var/run/docker.sock'
 
 const buf_len = 1024
 
+// send writes a request to the Docker socket, waits for a response & returns
+// it.
 fn send(req &string) ?http.Response {
 	// Open a connection to the socket
 	mut s := unix.connect_stream(docker.socket) or {
@@ -72,12 +74,14 @@ fn send(req &string) ?http.Response {
 	return http.parse_response(res.bytestr())
 }
 
+// request_with_body sends a request to the Docker socket with the given body.
 fn request_with_body(method string, url urllib.URL, content_type string, body string) ?http.Response {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: $content_type\nContent-Length: $body.len\n\n$body\n\n'
 
 	return send(req)
 }
 
+// request sends a request to the Docker socket with an empty body.
 fn request(method string, url urllib.URL) ?http.Response {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\n\n'
 

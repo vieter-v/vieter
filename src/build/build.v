@@ -10,6 +10,11 @@ const container_build_dir = '/build'
 
 const build_image_repo = 'vieter-build'
 
+// create_build_image creates a builder image given some base image which can
+// then be used to build & package Arch images. It mostly just updates the
+// system, install some necessary packages & creates a non-root user to run
+// makepkg with. The base image should be some Linux distribution that uses
+// Pacman as its package manager.
 pub fn create_build_image(base_image string) ?string {
 	commands := [
 		// Update repos & install required packages
@@ -67,6 +72,9 @@ pub fn create_build_image(base_image string) ?string {
 	return image.id
 }
 
+// build_repo builds, packages & publishes a given Arch package based on the
+// provided GitRepo. The base image ID should be of an image previously created
+// by create_build_image.
 pub fn build_repo(address string, api_key string, base_image_id string, repo &git.GitRepo) ? {
 	build_arch := os.uname().machine
 
@@ -113,6 +121,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &gi
 	docker.remove_container(id) ?
 }
 
+// build builds every Git repo in the server's list.
 fn build(conf Config) ? {
 	build_arch := os.uname().machine
 

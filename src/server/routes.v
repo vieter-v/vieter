@@ -16,6 +16,9 @@ pub fn (mut app App) healthcheck() web.Result {
 	return app.json(http.Status.ok, new_response('Healthy.'))
 }
 
+// get_repo_file handles all Pacman-related routes. It returns both the
+// repository's archives, but also package archives or the contents of a
+// package's desc file.
 ['/:repo/:arch/:filename'; get; head]
 fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Result {
 	mut full_path := ''
@@ -54,6 +57,7 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 	return app.file(full_path)
 }
 
+// put_package handles publishing a package to a repository.
 ['/:repo/publish'; post]
 fn (mut app App) put_package(repo string) web.Result {
 	if !app.is_authorized() {

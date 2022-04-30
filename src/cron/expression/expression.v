@@ -65,6 +65,7 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 	if minute_index == ce.minutes.len && hour_index < ce.hours.len {
 		hour_index += 1
 	}
+
 	if hour_index == ce.hours.len && day_index < ce.days.len {
 		day_index += 1
 	}
@@ -197,6 +198,8 @@ fn parse_range(s string, min int, max int, mut bitv []bool) ? {
 	}
 }
 
+// bitv_to_ints converts a bit vector into an array containing the
+// corresponding values.
 fn bitv_to_ints(bitv []bool, min int) []int {
 	mut out := []int{}
 
@@ -209,6 +212,8 @@ fn bitv_to_ints(bitv []bool, min int) []int {
 	return out
 }
 
+// parse_part parses a given part of a cron expression & returns the
+// corresponding array of ints.
 fn parse_part(s string, min int, max int) ?[]int {
 	mut bitv := []bool{len: max - min + 1, init: false}
 

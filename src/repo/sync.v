@@ -2,6 +2,8 @@ module repo
 
 import os
 
+// archive_add_entry writes a file to an archive, given its path & inner path
+// inside the archive.
 fn archive_add_entry(archive &C.archive, entry &C.archive_entry, file_path &string, inner_path &string) {
 	st := C.stat{}
 
@@ -29,7 +31,7 @@ fn archive_add_entry(archive &C.archive, entry &C.archive_entry, file_path &stri
 	}
 }
 
-// Re-generate the repo archive files
+// sync regenerates the repository archive files.
 fn (r &RepoGroupManager) sync(repo string, arch string) ? {
 	subrepo_path := os.join_path(r.repos_dir, repo, arch)
 

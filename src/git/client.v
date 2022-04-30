@@ -4,6 +4,9 @@ import json
 import response { Response }
 import net.http
 
+// send_request<T> is a convenience method for sending requests to the repos
+// API. It mostly does string manipulation to create a query string containing
+// the provided params.
 fn send_request<T>(method http.Method, address string, url string, api_key string, params map[string]string) ?Response<T> {
 	mut full_url := '$address$url'
 
