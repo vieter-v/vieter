@@ -285,7 +285,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	resp.set_status(ctx.status)
 	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
 
-	mut buf := []byte{len: 1_000_000}
+	mut buf := []u8{len: 1_000_000}
 	mut bytes_left := file_size
 
 	// Repeat as long as the stream still has data

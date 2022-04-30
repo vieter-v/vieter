@@ -28,8 +28,8 @@ fn send(req &string) ?http.Response {
 	s.wait_for_write() ?
 
 	mut c := 0
-	mut buf := []byte{len: docker.buf_len}
-	mut res := []byte{}
+	mut buf := []u8{len: docker.buf_len}
+	mut res := []u8{}
 
 	for {
 		c = s.read(mut buf) or { return error('Failed to read data from socket ${docker.socket}.') }
@@ -52,7 +52,7 @@ fn send(req &string) ?http.Response {
 
 	// We loop until we've encountered the end of the chunked response
 	// A chunked HTTP response always ends with '0\r\n\r\n'.
-	for res.len < 5 || res#[-5..] != [byte(`0`), `\r`, `\n`, `\r`, `\n`] {
+	for res.len < 5 || res#[-5..] != [u8(`0`), `\r`, `\n`, `\r`, `\n`] {
 		// Wait for the server to respond
 		s.wait_for_write() ?
 

@@ -19,7 +19,7 @@ fn archive_add_entry(archive &C.archive, entry &C.archive_entry, file_path &stri
 	}
 
 	// Write the file to the archive
-	buf := [8192]byte{}
+	buf := [8192]u8{}
 	mut len := C.read(fd, &buf, sizeof(buf))
 
 	for len > 0 {
