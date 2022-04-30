@@ -114,7 +114,6 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &gi
 			break
 		}
 
-		// Wait for 5 seconds
 		time.sleep(1 * time.second)
 	}
 

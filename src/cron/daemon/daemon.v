@@ -132,12 +132,17 @@ pub fn (mut d Daemon) run() ? {
 
 // schedule_build adds the next occurence of the given repo build to the queue.
 fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) ? {
-	ce := parse_expression(repo.schedule) or {
-		// TODO This shouldn't return an error if the expression is empty.
-		d.lerror("Error while parsing cron expression '$repo.schedule' ($repo_id): $err.msg()")
+	ce := if repo.schedule != '' {
+		parse_expression(repo.schedule) or {
+			// TODO This shouldn't return an error if the expression is empty.
+			d.lerror("Error while parsing cron expression '$repo.schedule' ($repo_id): $err.msg()")
 
+			d.global_schedule
+		}
+	} else {
 		d.global_schedule
 	}
+
 	// A repo that can't be scheduled will just be skipped for now
 	timestamp := ce.next_from_now() ?
 

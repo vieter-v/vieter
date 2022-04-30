@@ -77,8 +77,8 @@ v/v:
 clean:
 	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs'
 
-.PHONY: docs
-docs:
+.PHONY: api-docs
+api-docs:
 	rm -rf '$(SRC_DIR)/_docs'
 	cd '$(SRC_DIR)' && v doc -all -f html -m -readme .
 
