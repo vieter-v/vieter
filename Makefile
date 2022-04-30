@@ -53,15 +53,14 @@ run-prod: prod
 .PHONY: lint
 lint:
 	$(V) fmt -verify $(SRC_DIR)
+	$(V) vet -W $(SRC_DIR)
+	$(V_PATH) missdoc -p $(SRC_DIR)
+	@ [ $$($(V_PATH) missdoc -p $(SRC_DIR) | wc -l) = 0 ]
 
 # Format the V codebase
 .PHONY: fmt
 fmt:
 	$(V) fmt -w $(SRC_DIR)
-
-.PHONY: vet
-vet:
-	$(V) vet -W $(SRC_DIR)
 
 .PHONY: test
 test:
