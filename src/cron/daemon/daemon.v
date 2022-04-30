@@ -6,6 +6,7 @@ import log
 import datatypes { MinHeap }
 import cron.expression { CronExpression, parse_expression }
 import math
+import build
 
 struct ScheduledBuild {
 pub:
@@ -20,16 +21,19 @@ fn (r1 ScheduledBuild) < (r2 ScheduledBuild) bool {
 
 pub struct Daemon {
 mut:
-	address              string
-	api_key              string
-	base_image           string
-	global_schedule      CronExpression
-	api_update_frequency int
+	address                 string
+	api_key                 string
+	base_image              string
+	builder_image           string
+	global_schedule         CronExpression
+	api_update_frequency    int
+	image_rebuild_frequency int
 	// Repos currently loaded from API.
 	repos_map map[string]git.GitRepo
 	// At what point to update the list of repositories.
-	api_update_timestamp time.Time
-	queue                MinHeap<ScheduledBuild>
+	api_update_timestamp  time.Time
+	image_build_timestamp time.Time
+	queue                 MinHeap<ScheduledBuild>
 	// Which builds are currently running
 	builds []ScheduledBuild
 	// Atomic variables used to detect when a build has finished; length is the
@@ -40,13 +44,14 @@ mut:
 
 // init_daemon initializes a new Daemon object. It renews the repositories &
 // populates the build queue for the first time.
-pub fn init_daemon(logger log.Log, address string, api_key string, base_image string, global_schedule CronExpression, max_concurrent_builds int, api_update_frequency int) ?Daemon {
+pub fn init_daemon(logger log.Log, address string, api_key string, base_image string, global_schedule CronExpression, max_concurrent_builds int, api_update_frequency int, image_rebuild_frequency int) ?Daemon {
 	mut d := Daemon{
 		address: address
 		api_key: api_key
 		base_image: base_image
 		global_schedule: global_schedule
 		api_update_frequency: api_update_frequency
+		image_rebuild_frequency: image_rebuild_frequency
 		atomics: []u64{len: max_concurrent_builds}
 		builds: []ScheduledBuild{len: max_concurrent_builds}
 		logger: logger
@@ -55,6 +60,7 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 	// Initialize the repos & queue
 	d.renew_repos() ?
 	d.renew_queue() ?
+	d.rebuild_base_image() ?
 
 	return d
 }
@@ -78,7 +84,15 @@ pub fn (mut d Daemon) run() ? {
 			}
 		}
 
-		// TODO rebuild builder image when needed
+		// TODO remove old builder images.
+		// This issue is less trivial than it sounds, because a build could
+		// still be running when the image has to be rebuilt. That would
+		// prevent the image from being removed. Therefore, we will need to
+		// keep track of a list or something & remove an image once we have
+		// made sure it isn't being used anymore.
+		if time.now() >= d.image_build_timestamp {
+			d.rebuild_base_image() ?
+		}
 
 		// Schedules new builds when possible
 		d.start_new_builds() ?
@@ -169,4 +183,11 @@ fn (mut d Daemon) renew_queue() ? {
 	for id, repo in d.repos_map {
 		d.schedule_build(id, repo) ?
 	}
+}
+
+fn (mut d Daemon) rebuild_base_image() ? {
+	d.linfo("Rebuilding builder image....")
+
+	d.builder_image = build.create_build_image(d.base_image) ?
+	d.image_build_timestamp = time.now().add_seconds(60 * d.image_rebuild_frequency)
 }
