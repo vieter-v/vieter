@@ -1,0 +1,42 @@
+platform: 'linux/amd64'
+branches:
+  exclude: [ main ]
+
+pipeline:
+  docs:
+    image: 'klakegg/hugo:alpine'
+    group: 'generate'
+    commands:
+      - apk add git
+      - make docs
+      - 'cd docs/public && tar czvf ../../docs.tar.gz *'
+
+  api-docs:
+    image: 'chewingbever/vlang:latest'
+    pull: true
+    group: 'generate'
+    commands:
+      - make api-docs
+      - 'cd src/_docs && tar czvf ../../api-docs.tar.gz *'
+
+  deploy-docs:
+    image: 'curlimages/curl'
+    group: 'deploy'
+    secrets:
+      - 'site_api_key'
+    commands:
+      - 'curl -XPOST --fail -s -H "Authorization: Bearer $SITE_API_KEY" -T docs.tar.gz https://rustybever.be/api/deploy?dir=vieter-docs'
+    when:
+      event: push
+      branch: dev
+
+  deploy-api-docs:
+    image: 'curlimages/curl'
+    group: 'deploy'
+    secrets:
+      - 'site_api_key'
+    commands:
+      - 'curl -XPOST --fail -s -H "Authorization: Bearer $SITE_API_KEY" -T api-docs.tar.gz https://rustybever.be/api/deploy?dir=vieter-api-docs'
+    when:
+      event: push
+      branch: dev
