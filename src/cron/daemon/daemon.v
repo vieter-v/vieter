@@ -30,7 +30,7 @@ mut:
 	api_update_timestamp time.Time
 	queue                MinHeap<ScheduledBuild>
 	// Which builds are currently running
-	builds []git.GitRepo
+	builds []ScheduledBuild
 	// Atomic variables used to detect when a build has finished; length is the
 	// same as builds
 	atomics []u64
@@ -47,7 +47,7 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 		global_schedule: global_schedule
 		api_update_frequency: api_update_frequency
 		atomics: []u64{len: max_concurrent_builds}
-		builds: []git.GitRepo{len: max_concurrent_builds}
+		builds: []ScheduledBuild{len: max_concurrent_builds}
 		logger: logger
 	}
 
@@ -62,12 +62,35 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 // periodically refreshes the list of repositories to ensure we stay in sync.
 pub fn (mut d Daemon) run() ? {
 	for {
+		println('1')
+		// Cleans up finished builds, opening up spots for new builds
+		d.reschedule_builds() ?
+		println('2')
+		// Schedules new builds when possible
 		d.update_builds() ?
+
 		println(d.queue)
 		println(d.atomics)
 
-		time.sleep(60 * time.second)
+		time.sleep(10 * time.second)
 	}
+}
+
+// schedule_build adds the next occurence of the given repo build to the queue.
+fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) ? {
+	ce := parse_expression(repo.schedule) or {
+		d.lerror("Error while parsing cron expression '$repo.schedule' ($repo_id): $err.msg()")
+
+		d.global_schedule
+	}
+	// A repo that can't be scheduled will just be skipped for now
+	timestamp := ce.next_from_now() ?
+
+	d.queue.insert(ScheduledBuild{
+		repo_id: repo_id
+		repo: repo
+		timestamp: timestamp
+	})
 }
 
 fn (mut d Daemon) renew_repos() ? {
@@ -101,19 +124,11 @@ fn (mut d Daemon) renew_queue() ? {
 		}
 	}
 
+	d.queue = new_queue
+
 	// For each repository in repos_map, parse their cron expression (or use
 	// the default one if not present) & add them to the queue
 	for id, repo in d.repos_map {
-		ce := parse_expression(repo.schedule) or { d.global_schedule }
-		// A repo that can't be scheduled will just be skipped for now
-		timestamp := ce.next(now) or { continue }
-
-		new_queue.insert(ScheduledBuild{
-			repo_id: id
-			repo: repo
-			timestamp: timestamp
-		})
+		d.schedule_build(id, repo) ?
 	}
-
-	d.queue = new_queue
 }
