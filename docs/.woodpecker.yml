@@ -1,0 +1,17 @@
+platform: 'linux/amd64'
+branches: 'main'
+
+pipeline:
+  release:
+    image: 'klakegg/hugo:alpine'
+    commands:
+      - apk add git
+      - hugo
+      - 'cd public && tar czvf ../public.tar.gz *'
+
+  deploy:
+    image: 'curlimages/curl'
+    secrets:
+      - 'api_key'
+    commands:
+      - 'curl -XPOST --fail -s -H "Authorization: Bearer $API_KEY" -T public.tar.gz https://rustybever.be/api/deploy?dir=docs'
