@@ -25,7 +25,8 @@ pipeline:
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
     commands:
-      - make prod
+      # Apparently this -D is *very* important
+      - CFLAGS='-DGC_THREADS=1' make prod
       # Make sure the binary is actually statically built
       - readelf -d pvieter
       - du -h pvieter
