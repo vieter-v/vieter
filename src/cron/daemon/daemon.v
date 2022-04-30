@@ -5,6 +5,8 @@ import time
 import log
 import datatypes { MinHeap }
 import cron.expression { CronExpression, parse_expression }
+import math
+import arrays
 
 struct ScheduledBuild {
 pub:
@@ -62,23 +64,47 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 // periodically refreshes the list of repositories to ensure we stay in sync.
 pub fn (mut d Daemon) run() ? {
 	for {
-		println('1')
+		// Update the API's contents if needed & renew the queue
+		if time.now() >= d.api_update_timestamp {
+			d.renew_repos() ?
+			d.renew_queue() ?
+		}
+
 		// Cleans up finished builds, opening up spots for new builds
 		d.reschedule_builds() ?
-		println('2')
+
+		// TODO rebuild builder image when needed
+
 		// Schedules new builds when possible
 		d.update_builds() ?
 
-		println(d.queue)
-		println(d.atomics)
+		// Sleep either until we have to refresh the repos or when the next
+		// build has to start, with a minimum of 1 second.
+		now := time.now()
 
-		time.sleep(10 * time.second)
+		mut delay := d.api_update_timestamp - now
+
+		if d.queue.len() > 0 {
+			time_until_next_job := d.queue.peek() ?.timestamp - now
+
+			delay = math.min(delay, time_until_next_job)
+		}
+
+		d.ldebug('Sleeping for ${delay}...')
+
+		// TODO if there are builds active, the sleep time should be much lower to clean up the builds when they're finished.
+
+		// We sleep for at least one second. This is to prevent the program
+		// from looping agressively when a cronjob can be scheduled, but
+		// there's no spots free for it to be started.
+		time.sleep(math.max(delay, 1 * time.second))
 	}
 }
 
 // schedule_build adds the next occurence of the given repo build to the queue.
 fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) ? {
 	ce := parse_expression(repo.schedule) or {
+		// TODO This shouldn't return an error if the expression is empty.
 		d.lerror("Error while parsing cron expression '$repo.schedule' ($repo_id): $err.msg()")
 
 		d.global_schedule
@@ -94,6 +120,7 @@ fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) ? {
 }
 
 fn (mut d Daemon) renew_repos() ? {
+	d.ldebug('Renewing repos...')
 	mut new_repos := git.get_repos(d.address, d.api_key) ?
 
 	d.repos_map = new_repos.move()
@@ -104,6 +131,7 @@ fn (mut d Daemon) renew_repos() ? {
 // renew_queue replaces the old queue with a new one that reflects the newest
 // values in repos_map.
 fn (mut d Daemon) renew_queue() ? {
+	d.ldebug('Renewing queue...')
 	mut new_queue := MinHeap<ScheduledBuild>{}
 
 	// Move any jobs that should have already started from the old queue onto

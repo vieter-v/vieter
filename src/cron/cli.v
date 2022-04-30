@@ -11,8 +11,9 @@ pub:
 	address               string
 	base_image            string = 'archlinux:base-devel'
 	max_concurrent_builds int    = 1
-	api_update_frequency  int    = 60
-	global_schedule       string
+	api_update_frequency  int    = 15
+	// Replicates the behavior of the original cron system
+	global_schedule string = '0 3'
 }
 
 // cmd returns the cli module that handles the cron daemon.
