@@ -5,6 +5,7 @@ import os
 import log
 import repo
 import util
+import db
 
 const port = 8000
 
@@ -16,6 +17,7 @@ pub mut:
 	repo repo.RepoGroupManager [required; web_global]
 	// This is used to claim the file lock on the repos file
 	git_mutex shared util.Dummy
+	db        db.VieterDb
 }
 
 // server starts the web server & starts listening for requests
@@ -53,9 +55,12 @@ pub fn server(conf Config) ? {
 		util.exit_with_message(1, 'Failed to create download directory.')
 	}
 
+	db := db.init('test.db') or { util.exit_with_message(1, 'Failed to initialize database.') }
+
 	web.run(&App{
 		logger: logger
 		conf: conf
 		repo: repo
+		db: db
 	}, server.port)
 }

@@ -23,7 +23,7 @@ pipeline:
     image: 'chewingbever/vlang:latest'
     pull: true
     environment:
-      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
+      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static
     commands:
       # Apparently this -D is *very* important
       - CFLAGS='-DGC_THREADS=1' make prod
