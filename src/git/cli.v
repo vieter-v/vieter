@@ -2,6 +2,7 @@ module git
 
 import cli
 import env
+import cron.expression { parse_expression }
 
 struct Config {
 	address string [required]
@@ -74,6 +75,11 @@ pub fn cmd() cli.Command {
 						description: 'Comma-separated list of architectures to build on.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'schedule'
+						description: 'Cron schedule for repository.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file') ?
@@ -125,7 +131,7 @@ fn list(conf Config) ? {
 	repos := get_repos(conf.address, conf.api_key) ?
 
 	for id, details in repos {
-		println('${id[..8]}\t$details.url\t$details.branch\t$details.repo\t$details.arch')
+		println('${id[..8]}\t$details.url\t$details.branch\t$details.repo\t$details.arch\t$details.schedule')
 	}
 }
 
@@ -146,6 +152,14 @@ fn remove(conf Config, id_prefix string) ? {
 
 // patch patches a given repository with the provided params.
 fn patch(conf Config, id_prefix string, params map[string]string) ? {
+	// We check the cron expression first because it's useless to send an
+	// invalid one to the server.
+	if 'schedule' in params {
+		parse_expression(params['schedule']) or {
+			return error('Invalid cron expression: $err.msg()')
+		}
+	}
+
 	id := get_repo_id_by_prefix(conf, id_prefix) ?
 	res := patch_repo(conf.address, conf.api_key, id, params) ?
 
