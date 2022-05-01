@@ -1,0 +1,16 @@
+branches: 'dev'
+platform: 'linux/amd64'
+depends_on:
+  - 'docker'
+
+skip_clone: true
+
+pipeline:
+  webhooks:
+    image: 'curlimages/curl'
+    secrets:
+      - 'webhook_app'
+      - 'webhook_cron'
+    commands:
+      - 'curl -XPOST -s --fail $WEBHOOK_APP'
+      - 'curl -XPOST -s --fail $WEBHOOK_CRON'
