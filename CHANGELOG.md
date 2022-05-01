@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/Chewing_Bever/vieter)
 
-* Moved away from compiler fork
+### Changed
+
+* Switched from compiler fork to fully vanilla compiler mirror
+
+### Added
+
+* Implemented own cron daemon for builder
+    * Build schedule can be configured globally or individually per repository
+* Added CLI command to show detailed information per repo
+
+### Fixed
+
+* Binary no longer panics when an env var is missing
 
 ## [0.2.0](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.2.0)
 
