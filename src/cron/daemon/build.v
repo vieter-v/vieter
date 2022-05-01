@@ -12,7 +12,7 @@ const build_done = 2
 
 // clean_finished_builds removes finished builds from the build slots & returns
 // them.
-fn (mut d Daemon) clean_finished_builds() ?[]ScheduledBuild {
+fn (mut d Daemon) clean_finished_builds() []ScheduledBuild {
 	mut out := []ScheduledBuild{}
 
 	for i in 0 .. d.atomics.len {
@@ -26,12 +26,22 @@ fn (mut d Daemon) clean_finished_builds() ?[]ScheduledBuild {
 }
 
 // update_builds starts as many builds as possible.
-fn (mut d Daemon) start_new_builds() ? {
+fn (mut d Daemon) start_new_builds() {
 	now := time.now()
 
 	for d.queue.len() > 0 {
-		if d.queue.peek() ?.timestamp < now {
-			sb := d.queue.pop() ?
+		elem := d.queue.peek() or {
+			d.lerror("queue.peek() unexpectedly returned an error. This shouldn't happen.")
+
+			break
+		}
+
+		if elem.timestamp < now {
+			sb := d.queue.pop() or {
+				d.lerror("queue.pop() unexpectedly returned an error. This shouldn't happen.")
+
+				break
+			}
 
 			// If this build couldn't be scheduled, no more will be possible.
 			if !d.start_build(sb) {
@@ -61,10 +71,19 @@ fn (mut d Daemon) start_build(sb ScheduledBuild) bool {
 }
 
 // run_build actually starts the build process for a given repo.
-fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) ? {
+fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) {
 	d.linfo('started build: $sb.repo.url $sb.repo.branch')
 
-	build.build_repo(d.address, d.api_key, d.builder_images.last(), &sb.repo) ?
+	// 0 means success, 1 means failure
+	mut status := 0
+
+	build.build_repo(d.address, d.api_key, d.builder_images.last(), &sb.repo) or { status = 1 }
+
+	if status == 0 {
+		d.linfo('finished build: $sb.repo.url $sb.repo.branch')
+	} else {
+		d.linfo('failed build: $sb.repo.url $sb.repo.branch')
+	}
 
 	stdatomic.store_u64(&d.atomics[build_index], daemon.build_done)
 }
