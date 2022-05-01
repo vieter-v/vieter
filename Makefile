@@ -49,6 +49,18 @@ run-prod: prod
 	./pvieter -f vieter.toml server
 
 
+# =====DOCS=====
+.PHONY: docs
+docs:
+	rm -rf 'docs/public'
+	cd docs && hugo
+
+.PHONY: api-docs
+api-docs:
+	rm -rf '$(SRC_DIR)/_docs'
+	cd '$(SRC_DIR)' && v doc -all -f html -m -readme .
+
+
 # =====OTHER=====
 .PHONY: lint
 lint:
@@ -75,12 +87,7 @@ v/v:
 
 .PHONY: clean
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs'
-
-.PHONY: api-docs
-api-docs:
-	rm -rf '$(SRC_DIR)/_docs'
-	cd '$(SRC_DIR)' && v doc -all -f html -m -readme .
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs' 'docs/public'
 
 
 # =====EXPERIMENTAL=====

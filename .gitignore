@@ -1,13 +1,13 @@
 *.c
-data/
+/data/
 
 # Build artifacts
-vieter
-dvieter
-pvieter
-suvieter
-afvieter
-vieter.c
+/vieter
+/dvieter
+/pvieter
+/suvieter
+/afvieter
+/vieter.c
 
 # Ignore testing files
 *.pkg*
