@@ -26,14 +26,14 @@ pub fn cmd() cli.Command {
 			},
 			cli.Command{
 				name: 'add'
-				required_args: 4
-				usage: 'url branch repo arch...'
+				required_args: 3
+				usage: 'url branch repo'
 				description: 'Add a new repository.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file') ?
 					conf := env.load<Config>(config_file) ?
 
-					add(conf, cmd.args[0], cmd.args[1], cmd.args[2], cmd.args[3..]) ?
+					add(conf, cmd.args[0], cmd.args[1], cmd.args[2]) ?
 				}
 			},
 			cli.Command{
@@ -130,8 +130,8 @@ fn list(conf Config) ? {
 }
 
 // add adds a new repository to the server's list.
-fn add(conf Config, url string, branch string, repo string, arch []string) ? {
-	res := add_repo(conf.address, conf.api_key, url, branch, repo, arch) ?
+fn add(conf Config, url string, branch string, repo string) ? {
+	res := add_repo(conf.address, conf.api_key, url, branch, repo, []) ?
 
 	println(res.message)
 }

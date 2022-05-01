@@ -35,12 +35,16 @@ pub fn get_repos(address string, api_key string) ?map[string]GitRepo {
 
 // add_repo adds a new repo to the server.
 pub fn add_repo(address string, api_key string, url string, branch string, repo string, arch []string) ?Response<string> {
-	params := {
+	mut params := {
 		'url':    url
 		'branch': branch
 		'repo':   repo
-		'arch':   arch.join(',')
 	}
+
+	if arch.len > 0 {
+		params['arch'] = arch.join(',')
+	}
+
 	data := send_request<string>(http.Method.post, address, '/api/repos', api_key, params) ?
 
 	return data
