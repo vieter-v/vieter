@@ -57,7 +57,15 @@ fn (mut app App) post_repo() web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	new_repo := git.repo_from_params(app.query) or {
+	mut params := app.query.clone()
+
+	// If a repo is created without specifying the arch, we assume it's meant
+	// for the default architecture.
+	if 'arch' !in params {
+		params['arch'] = app.conf.default_arch
+	}
+
+	new_repo := git.repo_from_params(params) or {
 		return app.json(http.Status.bad_request, new_response(err.msg()))
 	}
 

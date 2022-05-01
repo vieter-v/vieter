@@ -2,6 +2,7 @@ module git
 
 import cli
 import env
+import cron.expression { parse_expression }
 
 struct Config {
 	address string [required]
@@ -26,14 +27,14 @@ pub fn cmd() cli.Command {
 			},
 			cli.Command{
 				name: 'add'
-				required_args: 4
-				usage: 'url branch repo arch...'
+				required_args: 3
+				usage: 'url branch repo'
 				description: 'Add a new repository.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file') ?
 					conf := env.load<Config>(config_file) ?
 
-					add(conf, cmd.args[0], cmd.args[1], cmd.args[2], cmd.args[3..]) ?
+					add(conf, cmd.args[0], cmd.args[1], cmd.args[2]) ?
 				}
 			},
 			cli.Command{
@@ -46,6 +47,18 @@ pub fn cmd() cli.Command {
 					conf := env.load<Config>(config_file) ?
 
 					remove(conf, cmd.args[0]) ?
+				}
+			},
+			cli.Command{
+				name: 'info'
+				required_args: 1
+				usage: 'id'
+				description: 'Show detailed information for the repo matching the ID prefix.'
+				execute: fn (cmd cli.Command) ? {
+					config_file := cmd.flags.get_string('config-file') ?
+					conf := env.load<Config>(config_file) ?
+
+					info(conf, cmd.args[0]) ?
 				}
 			},
 			cli.Command{
@@ -74,6 +87,11 @@ pub fn cmd() cli.Command {
 						description: 'Comma-separated list of architectures to build on.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'schedule'
+						description: 'Cron schedule for repository.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file') ?
@@ -96,16 +114,16 @@ pub fn cmd() cli.Command {
 	}
 }
 
-// get_repo_id_by_prefix tries to find the repo with the given prefix in its
+// get_repo_by_prefix tries to find the repo with the given prefix in its
 // ID. If multiple or none are found, an error is raised.
-fn get_repo_id_by_prefix(conf Config, id_prefix string) ?string {
+fn get_repo_by_prefix(conf Config, id_prefix string) ?(string, GitRepo) {
 	repos := get_repos(conf.address, conf.api_key) ?
 
-	mut res := []string{}
+	mut res := map[string]GitRepo{}
 
-	for id, _ in repos {
+	for id, repo in repos {
 		if id.starts_with(id_prefix) {
-			res << id
+			res[id] = repo
 		}
 	}
 
@@ -117,7 +135,7 @@ fn get_repo_id_by_prefix(conf Config, id_prefix string) ?string {
 		return error('Multiple repos found for given prefix.')
 	}
 
-	return res[0]
+	return res.keys()[0], res[res.keys()[0]]
 }
 
 // list prints out a list of all repositories.
@@ -125,20 +143,20 @@ fn list(conf Config) ? {
 	repos := get_repos(conf.address, conf.api_key) ?
 
 	for id, details in repos {
-		println('${id[..8]}\t$details.url\t$details.branch\t$details.repo\t$details.arch')
+		println('${id[..8]}\t$details.url\t$details.branch\t$details.repo')
 	}
 }
 
 // add adds a new repository to the server's list.
-fn add(conf Config, url string, branch string, repo string, arch []string) ? {
-	res := add_repo(conf.address, conf.api_key, url, branch, repo, arch) ?
+fn add(conf Config, url string, branch string, repo string) ? {
+	res := add_repo(conf.address, conf.api_key, url, branch, repo, []) ?
 
 	println(res.message)
 }
 
 // remove removes a repository from the server's list.
 fn remove(conf Config, id_prefix string) ? {
-	id := get_repo_id_by_prefix(conf, id_prefix) ?
+	id, _ := get_repo_by_prefix(conf, id_prefix) ?
 	res := remove_repo(conf.address, conf.api_key, id) ?
 
 	println(res.message)
@@ -146,8 +164,28 @@ fn remove(conf Config, id_prefix string) ? {
 
 // patch patches a given repository with the provided params.
 fn patch(conf Config, id_prefix string, params map[string]string) ? {
-	id := get_repo_id_by_prefix(conf, id_prefix) ?
+	// We check the cron expression first because it's useless to send an
+	// invalid one to the server.
+	if 'schedule' in params {
+		parse_expression(params['schedule']) or {
+			return error('Invalid cron expression: $err.msg()')
+		}
+	}
+
+	id, _ := get_repo_by_prefix(conf, id_prefix) ?
 	res := patch_repo(conf.address, conf.api_key, id, params) ?
 
 	println(res.message)
+}
+
+// info shows detailed information for a given repo.
+fn info(conf Config, id_prefix string) ? {
+	id, repo := get_repo_by_prefix(conf, id_prefix) ?
+
+	println('id: $id')
+
+	$for field in GitRepo.fields {
+		val := repo.$(field.name)
+		println('$field.name: $val')
+	}
 }
