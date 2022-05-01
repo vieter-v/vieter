@@ -166,7 +166,7 @@ fn remove(conf Config, id_prefix string) ? {
 fn patch(conf Config, id_prefix string, params map[string]string) ? {
 	// We check the cron expression first because it's useless to send an
 	// invalid one to the server.
-	if 'schedule' in params {
+	if 'schedule' in params && params['schedule'] != '' {
 		parse_expression(params['schedule']) or {
 			return error('Invalid cron expression: $err.msg()')
 		}
