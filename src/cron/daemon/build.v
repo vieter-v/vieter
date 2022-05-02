@@ -77,7 +77,10 @@ fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) {
 	// 0 means success, 1 means failure
 	mut status := 0
 
-	build.build_repo(d.address, d.api_key, d.builder_images.last(), &sb.repo) or { status = 1 }
+	build.build_repo(d.address, d.api_key, d.builder_images.last(), &sb.repo) or {
+		d.ldebug('build_repo error: $err.msg()')
+		status = 1
+	}
 
 	if status == 0 {
 		d.linfo('finished build: $sb.repo.url $sb.repo.branch')
