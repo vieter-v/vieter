@@ -134,28 +134,36 @@ fn (mut app App) delete_repo(id int) web.Result {
 
 // patch_repo updates a repo's data with the given query params.
 ['/api/repos/:id'; patch]
-fn (mut app App) patch_repo(id string) web.Result {
+fn (mut app App) patch_repo(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	mut repos := rlock app.git_mutex {
-		git.read_repos(app.conf.repos_file) or {
-			app.lerror('Failed to read repos file.')
+	app.db.update_git_repo(id, app.query)
 
-			return app.status(http.Status.internal_server_error)
+		if 'arch' in app.query {
+			arch_objs := app.query['arch'].split(',').map(db.GitRepoArch{value: it})
+
+			app.db.update_git_repo_archs(id, arch_objs)
 		}
-	}
 
-	if id !in repos {
-		return app.not_found()
-	}
+/* 	mut repos := rlock app.git_mutex { */
+/* 		git.read_repos(app.conf.repos_file) or { */
+/* 			app.lerror('Failed to read repos file.') */
 
-	repos[id].patch_from_params(app.query)
+/* 			return app.status(http.Status.internal_server_error) */
+/* 		} */
+/* 	} */
 
-	lock app.git_mutex {
-		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
-	}
+/* 	if id !in repos { */
+/* 		return app.not_found() */
+/* 	} */
+
+/* 	repos[id].patch_from_params(app.query) */
+
+/* 	lock app.git_mutex { */
+/* 		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) } */
+/* 	} */
 
 	return app.json(http.Status.ok, new_response('Repo updated successfully.'))
 }
