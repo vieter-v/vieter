@@ -68,7 +68,7 @@ fn (mut app App) put_package(repo string) web.Result {
 
 	if length := app.req.header.get(.content_length) {
 		// Generate a random filename for the temp file
-		pkg_path = os.join_path_single(app.conf.download_dir, rand.uuid_v4())
+		pkg_path = os.join_path_single(app.repo.pkg_dir, rand.uuid_v4())
 
 		app.ldebug("Uploading $length bytes (${util.pretty_bytes(length.int())}) to '$pkg_path'.")
 

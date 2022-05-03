@@ -4,11 +4,11 @@ import time
 import sync.stdatomic
 import build
 
-const build_empty = 0
-
-const build_running = 1
-
-const build_done = 2
+const (
+	build_empty   = 0
+	build_running = 1
+	build_done    = 2
+)
 
 // clean_finished_builds removes finished builds from the build slots & returns
 // them.

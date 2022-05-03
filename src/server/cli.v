@@ -6,12 +6,9 @@ import env
 struct Config {
 pub:
 	log_level    string = 'WARN'
-	log_file     string = 'vieter.log'
 	pkg_dir      string
-	download_dir string
+	data_dir     string
 	api_key      string
-	repos_dir    string
-	repos_file   string
 	default_arch string
 }
 
