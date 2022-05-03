@@ -3,7 +3,6 @@ module git
 import cli
 import env
 import cron.expression { parse_expression }
-import db { GitRepo, GitRepoArch }
 
 struct Config {
 	address string [required]
@@ -123,7 +122,7 @@ fn list(conf Config) ? {
 	repos := get_repos(conf.address, conf.api_key) ?
 
 	for repo in repos {
-		println('${repo.id}\t$repo.url\t$repo.branch\t$repo.repo')
+		println('$repo.id\t$repo.url\t$repo.branch\t$repo.repo')
 	}
 }
 

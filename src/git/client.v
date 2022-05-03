@@ -28,8 +28,8 @@ fn send_request<T>(method http.Method, address string, url string, api_key strin
 
 // get_repos returns the current list of repos.
 pub fn get_repos(address string, api_key string) ?[]db.GitRepo {
-	data := send_request<[]db.GitRepo>(http.Method.get, address, '/api/repos',
-		api_key, {}) ?
+	data := send_request<[]db.GitRepo>(http.Method.get, address, '/api/repos', api_key,
+		{}) ?
 
 	return data.data
 }

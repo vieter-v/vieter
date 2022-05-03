@@ -20,9 +20,7 @@ pub:
 	conf Config [required; web_global]
 pub mut:
 	repo repo.RepoGroupManager [required; web_global]
-	// This is used to claim the file lock on the repos file
-	git_mutex shared util.Dummy
-	db        db.VieterDb
+	db   db.VieterDb
 }
 
 // server starts the web server & starts listening for requests

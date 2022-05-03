@@ -10,11 +10,12 @@ import build
 import docker
 import db
 
-// How many seconds to wait before retrying to update API if failed
-const api_update_retry_timeout = 5
-
-// How many seconds to wait before retrying to rebuild image if failed
-const rebuild_base_image_retry_timout = 30
+const (
+	// How many seconds to wait before retrying to update API if failed
+	api_update_retry_timeout        = 5
+	// How many seconds to wait before retrying to rebuild image if failed
+	rebuild_base_image_retry_timout = 30
+)
 
 struct ScheduledBuild {
 pub:

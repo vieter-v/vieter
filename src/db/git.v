@@ -29,12 +29,12 @@ pub mut:
 
 pub fn (gr &GitRepo) str() string {
 	mut parts := [
-		"id: $gr.id",
-		"url: $gr.url",
-		"branch: $gr.branch",
-		"repo: $gr.repo",
-		"schedule: $gr.schedule",
-		"arch: ${gr.arch.map(it.value).join(', ')}"
+		'id: $gr.id',
+		'url: $gr.url',
+		'branch: $gr.branch',
+		'repo: $gr.repo',
+		'schedule: $gr.schedule',
+		'arch: ${gr.arch.map(it.value).join(', ')}',
 	]
 	str := parts.join('\n')
 
@@ -121,18 +121,12 @@ pub fn (db &VieterDb) update_git_repo(repo_id int, params map[string]string) {
 			// Any fields that are array types require their own update method
 			$if field.typ is string {
 				values << "$field.name = '${params[field.name]}'"
-				// r.$(field.name) = params[field.name]
-				// This specific type check is needed for the compiler to ensure
-				// our types are correct
 			}
-			//$else $if field.typ is []GitRepoArch {
-			//	r.$(field.name) = params[field.name].split(',').map(GitRepoArch{ value: it })
-			//}
 		}
 	}
 	values_str := values.join(', ')
 	query := 'update GitRepo set $values_str where id == $repo_id'
-	println(query)
+
 	db.conn.exec_none(query)
 }
 
