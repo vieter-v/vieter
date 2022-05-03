@@ -34,6 +34,7 @@ pub fn get_repos(address string, api_key string) ?[]db.GitRepo {
 	return data.data
 }
 
+// get_repo returns the repo for a specific ID.
 pub fn get_repo(address string, api_key string, id int) ?db.GitRepo {
 	data := send_request<db.GitRepo>(http.Method.get, address, '/api/repos/$id', api_key,
 		{}) ?

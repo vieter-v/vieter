@@ -7,6 +7,7 @@ pub:
 	value   string [nonull]
 }
 
+// str returns a string representation.
 pub fn (gra &GitRepoArch) str() string {
 	return gra.value
 }
@@ -27,6 +28,7 @@ pub mut:
 	arch []GitRepoArch [fkey: 'repo_id']
 }
 
+// str returns a string representation.
 pub fn (gr &GitRepo) str() string {
 	mut parts := [
 		'id: $gr.id',
@@ -57,7 +59,7 @@ pub fn (mut r GitRepo) patch_from_params(params map[string]string) {
 	}
 }
 
-// repo_from_params creates a GitRepo from a map[string]string, usually
+// git_repo_from_params creates a GitRepo from a map[string]string, usually
 // provided from a web.App's params
 pub fn git_repo_from_params(params map[string]string) ?GitRepo {
 	mut repo := GitRepo{}
@@ -74,6 +76,7 @@ pub fn git_repo_from_params(params map[string]string) ?GitRepo {
 	return repo
 }
 
+// get_git_repos returns all GitRepo's in the database.
 pub fn (db &VieterDb) get_git_repos() []GitRepo {
 	res := sql db.conn {
 		select from GitRepo order by id
@@ -82,6 +85,7 @@ pub fn (db &VieterDb) get_git_repos() []GitRepo {
 	return res
 }
 
+// get_git_repo tries to return a specific GitRepo.
 pub fn (db &VieterDb) get_git_repo(repo_id int) ?GitRepo {
 	res := sql db.conn {
 		select from GitRepo where id == repo_id
@@ -97,12 +101,14 @@ pub fn (db &VieterDb) get_git_repo(repo_id int) ?GitRepo {
 	return res
 }
 
+// add_git_repo inserts the given GitRepo into the database.
 pub fn (db &VieterDb) add_git_repo(repo GitRepo) {
 	sql db.conn {
 		insert repo into GitRepo
 	}
 }
 
+// delete_git_repo deletes the repo with the given ID from the database.
 pub fn (db &VieterDb) delete_git_repo(repo_id int) {
 	sql db.conn {
 		delete from GitRepo where id == repo_id
@@ -110,6 +116,7 @@ pub fn (db &VieterDb) delete_git_repo(repo_id int) {
 	}
 }
 
+// update_git_repo updates any non-array values for a given GitRepo.
 pub fn (db &VieterDb) update_git_repo(repo_id int, params map[string]string) {
 	// sql db.conn {
 	//	update GitRepo set repo
@@ -130,6 +137,7 @@ pub fn (db &VieterDb) update_git_repo(repo_id int, params map[string]string) {
 	db.conn.exec_none(query)
 }
 
+// update_git_repo_archs updates a given GitRepo's arch value.
 pub fn (db &VieterDb) update_git_repo_archs(repo_id int, archs []GitRepoArch) {
 	archs_with_id := archs.map(GitRepoArch{
 		...it

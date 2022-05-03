@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Switched from compiler fork to fully vanilla compiler mirror
+* `download_dir`, `repos_file` & `repos_dir` config values have been replaced
+  with `data_dir`
+* Storage of metadata (e.g. Git repositories) is now done using Sqlite
 
 ### Added
 
