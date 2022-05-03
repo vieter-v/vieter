@@ -110,24 +110,24 @@ fn (mut app App) delete_repo(id int) web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	/* mut repos := rlock app.git_mutex { */
-	/* 	git.read_repos(app.conf.repos_file) or { */
-	/* 		app.lerror('Failed to read repos file.') */
+	// mut repos := rlock app.git_mutex {
+	//	git.read_repos(app.conf.repos_file) or {
+	//		app.lerror('Failed to read repos file.')
 
-	/* 		return app.status(http.Status.internal_server_error) */
-	/* 	} */
-	/* } */
+	//		return app.status(http.Status.internal_server_error)
+	//	}
+	//}
 
-	/* if id !in repos { */
-	/* 	return app.not_found() */
-	/* } */
+	// if id !in repos {
+	//	return app.not_found()
+	//}
 
-	/* repos.delete(id) */
+	// repos.delete(id)
 	app.db.delete_git_repo(id)
 
-/* 	lock app.git_mutex { */
-/* 		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) } */
-/* 	} */
+	//	lock app.git_mutex {
+	//		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+	//	}
 
 	return app.json(http.Status.ok, new_response('Repo removed successfully.'))
 }
@@ -141,29 +141,29 @@ fn (mut app App) patch_repo(id int) web.Result {
 
 	app.db.update_git_repo(id, app.query)
 
-		if 'arch' in app.query {
-			arch_objs := app.query['arch'].split(',').map(db.GitRepoArch{value: it})
+	if 'arch' in app.query {
+		arch_objs := app.query['arch'].split(',').map(db.GitRepoArch{ value: it })
 
-			app.db.update_git_repo_archs(id, arch_objs)
-		}
+		app.db.update_git_repo_archs(id, arch_objs)
+	}
 
-/* 	mut repos := rlock app.git_mutex { */
-/* 		git.read_repos(app.conf.repos_file) or { */
-/* 			app.lerror('Failed to read repos file.') */
+	//	mut repos := rlock app.git_mutex {
+	//		git.read_repos(app.conf.repos_file) or {
+	//			app.lerror('Failed to read repos file.')
 
-/* 			return app.status(http.Status.internal_server_error) */
-/* 		} */
-/* 	} */
+	//			return app.status(http.Status.internal_server_error)
+	//		}
+	//	}
 
-/* 	if id !in repos { */
-/* 		return app.not_found() */
-/* 	} */
+	//	if id !in repos {
+	//		return app.not_found()
+	//	}
 
-/* 	repos[id].patch_from_params(app.query) */
+	//	repos[id].patch_from_params(app.query)
 
-/* 	lock app.git_mutex { */
-/* 		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) } */
-/* 	} */
+	//	lock app.git_mutex {
+	//		git.write_repos(app.conf.repos_file, &repos) or { return app.server_error(500) }
+	//	}
 
 	return app.json(http.Status.ok, new_response('Repo updated successfully.'))
 }

@@ -5,6 +5,7 @@ import encoding.base64
 import time
 import git
 import os
+import db
 
 const container_build_dir = '/build'
 
@@ -75,7 +76,7 @@ pub fn create_build_image(base_image string) ?string {
 // build_repo builds, packages & publishes a given Arch package based on the
 // provided GitRepo. The base image ID should be of an image previously created
 // by create_build_image.
-pub fn build_repo(address string, api_key string, base_image_id string, repo &git.GitRepo) ? {
+pub fn build_repo(address string, api_key string, base_image_id string, repo &db.GitRepo) ? {
 	build_arch := os.uname().machine
 
 	// TODO what to do with PKGBUILDs that build multiple packages?
@@ -125,11 +126,11 @@ fn build(conf Config) ? {
 	build_arch := os.uname().machine
 
 	// We get the repos map from the Vieter instance
-	repos_map := git.get_repos(conf.address, conf.api_key) ?
+	repos := git.get_repos(conf.address, conf.api_key) ?
 
 	// We filter out any repos that aren't allowed to be built on this
 	// architecture
-	filtered_repos := repos_map.keys().map(repos_map[it]).filter(it.arch.contains(build_arch))
+	filtered_repos := repos.filter(it.arch.map(it.value).contains(build_arch))
 
 	// No point in doing work if there's no repos present
 	if filtered_repos.len == 0 {

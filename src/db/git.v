@@ -3,8 +3,12 @@ module db
 pub struct GitRepoArch {
 pub:
 	id      int    [primary; sql: serial]
-	repo_id int
-	value   string
+	repo_id int    [nonull]
+	value   string [nonull]
+}
+
+pub fn (gra &GitRepoArch) str() string {
+	return gra.value
 }
 
 pub struct GitRepo {
@@ -21,6 +25,20 @@ pub mut:
 	// On which architectures the package is allowed to be built. In reality,
 	// this controls which builders will periodically build the image.
 	arch []GitRepoArch [fkey: 'repo_id']
+}
+
+pub fn (gr &GitRepo) str() string {
+	mut parts := [
+		"id: $gr.id",
+		"url: $gr.url",
+		"branch: $gr.branch",
+		"repo: $gr.repo",
+		"schedule: $gr.schedule",
+		"arch: ${gr.arch.map(it.value).join(', ')}"
+	]
+	str := parts.join('\n')
+
+	return str
 }
 
 // patch_from_params patches a GitRepo from a map[string]string, usually
@@ -93,44 +111,39 @@ pub fn (db &VieterDb) delete_git_repo(repo_id int) {
 }
 
 pub fn (db &VieterDb) update_git_repo(repo_id int, params map[string]string) {
-	/* sql db.conn { */
-	/* 	update GitRepo set repo */
-	/* } */
+	// sql db.conn {
+	//	update GitRepo set repo
+	//}
 	mut values := []string{}
 
 	$for field in GitRepo.fields {
 		if field.name in params {
 			// Any fields that are array types require their own update method
 			$if field.typ is string {
-				values << "${field.name} = '${params[field.name]}'"
-				/* r.$(field.name) = params[field.name] */
+				values << "$field.name = '${params[field.name]}'"
+				// r.$(field.name) = params[field.name]
 				// This specific type check is needed for the compiler to ensure
 				// our types are correct
 			}
-			/* $else $if field.typ is []GitRepoArch { */
-			/* 	r.$(field.name) = params[field.name].split(',').map(GitRepoArch{ value: it }) */
-			/* } */
+			//$else $if field.typ is []GitRepoArch {
+			//	r.$(field.name) = params[field.name].split(',').map(GitRepoArch{ value: it })
+			//}
 		}
 	}
-
 	values_str := values.join(', ')
-	query := "update GitRepo set $values_str where id == $repo_id"
+	query := 'update GitRepo set $values_str where id == $repo_id'
 	println(query)
 	db.conn.exec_none(query)
-
 }
 
 pub fn (db &VieterDb) update_git_repo_archs(repo_id int, archs []GitRepoArch) {
-archs_with_id := archs.map(GitRepoArch{
-	...it
-	repo_id: repo_id
-   })
+	archs_with_id := archs.map(GitRepoArch{
+		...it
+		repo_id: repo_id
+	})
 
 	sql db.conn {
-		// Remove all old values
 		delete from GitRepoArch where repo_id == repo_id
-		// Insert all the new ones
-		/* insert archs_with_id into GitRepoArch */
 	}
 
 	for arch in archs_with_id {
