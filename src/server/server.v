@@ -5,8 +5,14 @@ import os
 import log
 import repo
 import util
+import db
 
-const port = 8000
+const (
+	port          = 8000
+	log_file_name = 'vieter.log'
+	repo_dir_name = 'repos'
+	db_file_name  = 'vieter.sqlite'
+)
 
 struct App {
 	web.Context
@@ -14,8 +20,7 @@ pub:
 	conf Config [required; web_global]
 pub mut:
 	repo repo.RepoGroupManager [required; web_global]
-	// This is used to claim the file lock on the repos file
-	git_mutex shared util.Dummy
+	db   db.VieterDb
 }
 
 // server starts the web server & starts listening for requests
@@ -30,11 +35,14 @@ pub fn server(conf Config) ? {
 		util.exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
 	}
 
+	os.mkdir_all(conf.data_dir) or { util.exit_with_message(1, 'Failed to create data directory.') }
+
 	mut logger := log.Log{
 		level: log_level
 	}
 
-	logger.set_full_logpath(conf.log_file)
+	log_file := os.join_path_single(conf.data_dir, server.log_file_name)
+	logger.set_full_logpath(log_file)
 	logger.log_to_console_too()
 
 	defer {
@@ -43,19 +51,20 @@ pub fn server(conf Config) ? {
 		logger.close()
 	}
 
+	repo_dir := os.join_path_single(conf.data_dir, server.repo_dir_name)
 	// This also creates the directories if needed
-	repo := repo.new(conf.repos_dir, conf.pkg_dir, conf.default_arch) or {
+	repo := repo.new(repo_dir, conf.pkg_dir, conf.default_arch) or {
 		logger.error(err.msg())
 		exit(1)
 	}
 
-	os.mkdir_all(conf.download_dir) or {
-		util.exit_with_message(1, 'Failed to create download directory.')
-	}
+	db_file := os.join_path_single(conf.data_dir, server.db_file_name)
+	db := db.init(db_file) or { util.exit_with_message(1, 'Failed to initialize database.') }
 
 	web.run(&App{
 		logger: logger
 		conf: conf
 		repo: repo
+		db: db
 	}, server.port)
 }

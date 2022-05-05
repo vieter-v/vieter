@@ -1,4 +1,4 @@
-branches: 'dev'
+branches: [ 'dev' ]
 platform: 'linux/amd64'
 depends_on:
   - 'docker'
@@ -14,3 +14,5 @@ pipeline:
     commands:
       - 'curl -XPOST -s --fail $WEBHOOK_APP'
       - 'curl -XPOST -s --fail $WEBHOOK_CRON'
+    when:
+      event: push

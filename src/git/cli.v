@@ -116,34 +116,13 @@ pub fn cmd() cli.Command {
 
 // get_repo_by_prefix tries to find the repo with the given prefix in its
 // ID. If multiple or none are found, an error is raised.
-fn get_repo_by_prefix(conf Config, id_prefix string) ?(string, GitRepo) {
-	repos := get_repos(conf.address, conf.api_key) ?
-
-	mut res := map[string]GitRepo{}
-
-	for id, repo in repos {
-		if id.starts_with(id_prefix) {
-			res[id] = repo
-		}
-	}
-
-	if res.len == 0 {
-		return error('No repo found for given prefix.')
-	}
-
-	if res.len > 1 {
-		return error('Multiple repos found for given prefix.')
-	}
-
-	return res.keys()[0], res[res.keys()[0]]
-}
 
 // list prints out a list of all repositories.
 fn list(conf Config) ? {
 	repos := get_repos(conf.address, conf.api_key) ?
 
-	for id, details in repos {
-		println('${id[..8]}\t$details.url\t$details.branch\t$details.repo')
+	for repo in repos {
+		println('$repo.id\t$repo.url\t$repo.branch\t$repo.repo')
 	}
 }
 
@@ -155,15 +134,18 @@ fn add(conf Config, url string, branch string, repo string) ? {
 }
 
 // remove removes a repository from the server's list.
-fn remove(conf Config, id_prefix string) ? {
-	id, _ := get_repo_by_prefix(conf, id_prefix) ?
-	res := remove_repo(conf.address, conf.api_key, id) ?
+fn remove(conf Config, id string) ? {
+	// id, _ := get_repo_by_prefix(conf, id_prefix) ?
+	id_int := id.int()
 
-	println(res.message)
+	if id_int != 0 {
+		res := remove_repo(conf.address, conf.api_key, id_int) ?
+		println(res.message)
+	}
 }
 
 // patch patches a given repository with the provided params.
-fn patch(conf Config, id_prefix string, params map[string]string) ? {
+fn patch(conf Config, id string, params map[string]string) ? {
 	// We check the cron expression first because it's useless to send an
 	// invalid one to the server.
 	if 'schedule' in params && params['schedule'] != '' {
@@ -172,20 +154,22 @@ fn patch(conf Config, id_prefix string, params map[string]string) ? {
 		}
 	}
 
-	id, _ := get_repo_by_prefix(conf, id_prefix) ?
-	res := patch_repo(conf.address, conf.api_key, id, params) ?
+	id_int := id.int()
+	if id_int != 0 {
+		res := patch_repo(conf.address, conf.api_key, id_int, params) ?
 
-	println(res.message)
+		println(res.message)
+	}
 }
 
 // info shows detailed information for a given repo.
-fn info(conf Config, id_prefix string) ? {
-	id, repo := get_repo_by_prefix(conf, id_prefix) ?
+fn info(conf Config, id string) ? {
+	id_int := id.int()
 
-	println('id: $id')
-
-	$for field in GitRepo.fields {
-		val := repo.$(field.name)
-		println('$field.name: $val')
+	if id_int == 0 {
+		return
 	}
+
+	repo := get_repo(conf.address, conf.api_key, id_int) ?
+	println(repo)
 }

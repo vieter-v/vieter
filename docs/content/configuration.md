@@ -35,17 +35,9 @@ passed to them. Each mode requires a different configuration.
 * `log_file`: log file to write logs to. Defaults to `vieter.log` in the
   current directory.
 * `pkg_dir`:  where Vieter should store the actual package archives.
-* `download_dir`: where Vieter should initially download uploaded files.
+* `data_dir`: where Vieter stores the repositories, log file & database.
 * `api_key`: the API key to use when authenticating requests.
-* `repo_dir`: where Vieter should store the contents of the repository.
-* `repos_file`: JSON file where the list of Git repositories is saved
 * `default_arch`: architecture to always add packages of arch `any` to.
-
-{{< hint info >}}
-**Note**  
-Because Vieter hard links files between `download_dir` & `pkg_dir`, they need
-to be on the same file system.
-{{< /hint >}}
 
 ### Builder
 
@@ -62,3 +54,18 @@ to be on the same file system.
 
 * `api_key`: the API key to use when authenticating requests.
 * `address`: Base your URL of your Vieter instance, e.g. https://example.com
+
+### Cron
+
+* `log_level`: defines how much logs to show. Valid values are one of `FATAL`,
+  `ERROR`, `WARN`, `INFO` or `DEBUG`. Defaults to `WARN`
+* `api_key`: the API key to use when authenticating requests.
+* `address`: Base your URL of your Vieter instance, e.g. https://example.com.
+  This *must* be the publicly facing URL of your Vieter instance.
+* `data_dir`: where Vieter stores the log file.
+* `base_image`: Docker image from which to create the builder images.
+* `max_concurrent_builds`: amount of builds to run at once.
+* `api_update_frequency`: how frequenty to check for changes in the repo list.
+* `image_rebuild+frequency`: how frequently to rebuild the builder image
+* `global_schedule`: cron schedule to use for any repo without an individual
+  schedule

@@ -8,17 +8,19 @@ import cron.expression { CronExpression, parse_expression }
 import math
 import build
 import docker
+import db
 
-// How many seconds to wait before retrying to update API if failed
-const api_update_retry_timeout = 5
-
-// How many seconds to wait before retrying to rebuild image if failed
-const rebuild_base_image_retry_timout = 30
+const (
+	// How many seconds to wait before retrying to update API if failed
+	api_update_retry_timeout        = 5
+	// How many seconds to wait before retrying to rebuild image if failed
+	rebuild_base_image_retry_timout = 30
+)
 
 struct ScheduledBuild {
 pub:
 	repo_id   string
-	repo      git.GitRepo
+	repo      db.GitRepo
 	timestamp time.Time
 }
 
@@ -37,7 +39,7 @@ mut:
 	api_update_frequency    int
 	image_rebuild_frequency int
 	// Repos currently loaded from API.
-	repos_map map[string]git.GitRepo
+	repos []db.GitRepo
 	// At what point to update the list of repositories.
 	api_update_timestamp  time.Time
 	image_build_timestamp time.Time
@@ -90,7 +92,7 @@ pub fn (mut d Daemon) run() {
 		// haven't been renewed.
 		else {
 			for sb in finished_builds {
-				d.schedule_build(sb.repo_id, sb.repo)
+				d.schedule_build(sb.repo)
 			}
 		}
 
@@ -149,11 +151,11 @@ pub fn (mut d Daemon) run() {
 }
 
 // schedule_build adds the next occurence of the given repo build to the queue.
-fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) {
+fn (mut d Daemon) schedule_build(repo db.GitRepo) {
 	ce := if repo.schedule != '' {
 		parse_expression(repo.schedule) or {
 			// TODO This shouldn't return an error if the expression is empty.
-			d.lerror("Error while parsing cron expression '$repo.schedule' ($repo_id): $err.msg()")
+			d.lerror("Error while parsing cron expression '$repo.schedule' (id $repo.id): $err.msg()")
 
 			d.global_schedule
 		}
@@ -168,7 +170,6 @@ fn (mut d Daemon) schedule_build(repo_id string, repo git.GitRepo) {
 	}
 
 	d.queue.insert(ScheduledBuild{
-		repo_id: repo_id
 		repo: repo
 		timestamp: timestamp
 	})
@@ -186,7 +187,7 @@ fn (mut d Daemon) renew_repos() {
 		return
 	}
 
-	d.repos_map = new_repos.move()
+	d.repos = new_repos
 
 	d.api_update_timestamp = time.now().add_seconds(60 * d.api_update_frequency)
 }
@@ -224,8 +225,8 @@ fn (mut d Daemon) renew_queue() {
 
 	// For each repository in repos_map, parse their cron expression (or use
 	// the default one if not present) & add them to the queue
-	for id, repo in d.repos_map {
-		d.schedule_build(id, repo)
+	for repo in d.repos {
+		d.schedule_build(repo)
 	}
 }
 

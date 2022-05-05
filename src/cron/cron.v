@@ -3,6 +3,9 @@ module cron
 import log
 import cron.daemon
 import cron.expression
+import os
+
+const log_file_name = 'vieter.cron.log'
 
 // cron starts a cron daemon & starts periodically scheduling builds.
 pub fn cron(conf Config) ? {
@@ -15,7 +18,8 @@ pub fn cron(conf Config) ? {
 		level: log_level
 	}
 
-	logger.set_full_logpath(conf.log_file)
+	log_file := os.join_path_single(conf.data_dir, cron.log_file_name)
+	logger.set_full_logpath(log_file)
 	logger.log_to_console_too()
 
 	ce := expression.parse_expression(conf.global_schedule) or {

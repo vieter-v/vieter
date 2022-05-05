@@ -1,10 +1,10 @@
 matrix:
   PLATFORM:
-    - linux/amd64
-    - linux/arm64
+    - 'linux/amd64'
+    - 'linux/arm64'
 
 branches:
-  exclude: [main, dev]
+  exclude: [ main ]
 platform: ${PLATFORM}
 
 pipeline:
@@ -14,4 +14,4 @@ pipeline:
     commands:
       - make test
     when:
-      event: push
+      event: [push, pull_request]
