@@ -10,4 +10,4 @@ pipeline:
     commands:
       - make lint
     when:
-      event: [ push, pull_request ]
+      event: [ pull_request ]
