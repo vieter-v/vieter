@@ -14,4 +14,4 @@ pipeline:
     commands:
       - make test
     when:
-      event: [push, pull_request]
+      event: [pull_request]
