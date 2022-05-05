@@ -1,7 +1,7 @@
 # These checks already get performed on the feature branches
 branches:
-  exclude: [ main, dev ]
-platform: linux/amd64
+  exclude: [ main ]
+platform: 'linux/amd64'
 
 pipeline:
   lint:
@@ -9,3 +9,5 @@ pipeline:
     pull: true
     commands:
       - make lint
+    when:
+      event: [ push, pull_request ]

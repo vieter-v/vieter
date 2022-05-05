@@ -60,7 +60,6 @@ fn (mut app App) delete_repo(id int) web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	// repos.delete(id)
 	app.db.delete_git_repo(id)
 
 	return app.json(http.Status.ok, new_response('Repo removed successfully.'))

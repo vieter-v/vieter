@@ -1,11 +1,8 @@
 matrix:
   PLATFORM:
-    - linux/amd64
-    - linux/arm64
-    # I just don't have a performant enough runner for this platform
-    # - linux/arm/v7
+    - 'linux/amd64'
+    - 'linux/arm64'
 
-# These checks already get performed on the feature branches
 platform: ${PLATFORM}
 
 pipeline:
@@ -15,9 +12,9 @@ pipeline:
     commands:
       - make
     when:
-      event: push
+      event: [push, pull_request]
       branch:
-        exclude: [main, dev]
+        exclude: [main]
 
   prod:
     image: 'chewingbever/vlang:latest'
@@ -35,7 +32,7 @@ pipeline:
       - strip -s pvieter
       - du -h pvieter
     when:
-      event: push
+      event: [push, pull_request]
 
   upload:
     image: 'chewingbever/vlang:latest'
@@ -52,6 +49,7 @@ pipeline:
       - >
         curl 
         --silent
+        --fail
         -XPUT
         -T pvieter
         -H "Host: $URL"
@@ -60,4 +58,4 @@ pipeline:
         -H "Authorization: AWS $S3_USERNAME:$SIGNATURE"
         https://$URL$OBJ_PATH
     when:
-      event: push
+      event: [push, pull_request]

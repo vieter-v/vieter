@@ -25,6 +25,8 @@ pipeline:
       # inside the repo
       - curl -OL https://git.rustybever.be/Chewing_Bever/vieter/raw/branch/dev/PKGBUILD
       - makepkg -s --noconfirm --needed
+    when:
+      event: push
 
   publish:
     image: 'curlimages/curl'
@@ -33,3 +35,5 @@ pipeline:
       - 'for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $VIETER_API_KEY" https://arch.r8r.be/vieter/publish; done'
     secrets:
       - vieter_api_key
+    when:
+      event: push

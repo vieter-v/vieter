@@ -1,6 +1,5 @@
-# Yeah so this only works on tags so we'll worry about this later
-platform: linux/amd64
-branches: main
+platform: 'linux/amd64'
+branches: [ 'main' ]
 depends_on:
   - build
 

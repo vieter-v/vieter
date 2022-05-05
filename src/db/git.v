@@ -118,11 +118,9 @@ pub fn (db &VieterDb) delete_git_repo(repo_id int) {
 
 // update_git_repo updates any non-array values for a given GitRepo.
 pub fn (db &VieterDb) update_git_repo(repo_id int, params map[string]string) {
-	// sql db.conn {
-	//	update GitRepo set repo
-	//}
 	mut values := []string{}
 
+	// TODO does this allow for SQL injection?
 	$for field in GitRepo.fields {
 		if field.name in params {
 			// Any fields that are array types require their own update method
