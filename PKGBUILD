@@ -4,12 +4,12 @@ pkgbase='vieter'
 pkgname='vieter'
 pkgver=0.2.0.r25.g20112b8
 pkgrel=1
-depends=('glibc' 'openssl' 'libarchive' 'gc')
+depends=('glibc' 'openssl' 'libarchive' 'gc' 'sqlite')
 makedepends=('git' 'gcc' 'vieter-v')
-arch=('x86_64' 'aarch64' 'armv7')
-url='https://git.rustybever.be/Chewing_Bever/vieter'
+arch=('x86_64' 'aarch64')
+url='https://git.rustybever.be/vieter/vieter'
 license=('AGPL3')
-source=($pkgname::git+https://git.rustybever.be/Chewing_Bever/vieter#branch=dev)
+source=($pkgname::git+https://git.rustybever.be/vieter/vieter#branch=dev)
 md5sums=('SKIP')
 
 pkgver() {
