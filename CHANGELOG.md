@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://git.rustybever.be/Chewing_Bever/vieter)
+## [0.3.0-alpha.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.1)
 
 ### Changed
 
@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Binary no longer panics when an env var is missing
 
-## [0.2.0](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.2.0)
+## [0.2.0](https://git.rustybever.be/vieter/vieter/src/tag/0.2.0)
 
 ### Changed
 
@@ -58,13 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Packages with unknown fields in .PKGINFO are now allowed
 * Old packages are now properly removed
 
-## [0.1.0](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.1.0)
+## [0.1.0](https://git.rustybever.be/vieter/vieter/src/tag/0.1.0)
 
 ### Changed
 
 * Improved logging
 
-## [0.1.0-rc.1](https://git.rustybever.be/Chewing_Bever/vieter/src/tag/0.1.0-rc.1)
+## [0.1.0-rc.1](https://git.rustybever.be/vieter/vieter/src/tag/0.1.0-rc.1)
 
 ### Added
 
