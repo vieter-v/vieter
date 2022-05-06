@@ -9,6 +9,7 @@ import math
 import build
 import docker
 import db
+import os
 
 const (
 	// How many seconds to wait before retrying to update API if failed
@@ -19,7 +20,6 @@ const (
 
 struct ScheduledBuild {
 pub:
-	repo_id   string
 	repo      db.GitRepo
 	timestamp time.Time
 }
@@ -186,6 +186,10 @@ fn (mut d Daemon) renew_repos() {
 
 		return
 	}
+
+	// Filter out any repos that shouldn't run on this architecture
+	cur_arch := os.uname().machine
+	new_repos = new_repos.filter(it.arch.any(it.value == cur_arch))
 
 	d.repos = new_repos
 
