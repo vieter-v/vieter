@@ -23,7 +23,7 @@ RUN if [ -n "${CI_COMMIT_SHA}" ]; then \
             "https://s3.rustybever.be/vieter/commits/${CI_COMMIT_SHA}/vieter-$(echo "${TARGETPLATFORM}" | sed 's:/:-:g')" && \
             chmod +x vieter ; \
     else \
-        LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static' make prod && \
+        LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static' make prod && \
         mv pvieter vieter ; \
     fi
 
@@ -31,10 +31,8 @@ RUN if [ -n "${CI_COMMIT_SHA}" ]; then \
 FROM busybox:1.35.0
 
 ENV PATH=/bin \
-    VIETER_REPOS_DIR=/data/repos \
-    VIETER_PKG_DIR=/data/pkgs \
-    VIETER_DOWNLOAD_DIR=/data/downloads \
-    VIETER_REPOS_FILE=/data/repos.json
+    VIETER_DATA_DIR=/data \
+    VIETER_PKG_DIR=/data/pkgs
 
 COPY --from=builder /app/dumb-init /app/vieter /bin/
 

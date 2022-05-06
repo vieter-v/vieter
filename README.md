@@ -2,7 +2,9 @@
 
 ## Documentation
 
-I host documentation for Vieter over at https://rustybever.be/docs/vieter/.
+I host documentation for Vieter over at https://rustybever.be/docs/vieter/. API
+documentation for the current codebase can be found at
+https://rustybever.be/api-docs/vieter/.
 
 ## Overview
 
@@ -20,15 +22,12 @@ a while now. I wanted a fast language that I could code while relaxing, without
 having to exert too much mental effort & V seemed like the right choice for
 that.
 
-### Custom Compiler
+### Compiler
 
-Currently, this program only works with a very slightly modified version of the
-V standard library, and therefore the compiler. The source code for this fork
-can be found [here](https://git.rustybever.be/Chewing_Bever/vieter-v). You can
-obtain this modified version of the compiler by running `make v`, which will
-clone & build the compiler. Afterwards, all make commands that require the V
-compiler will use this new binary. I try to keep this fork as up to date with
-upstream as possible.
+Vieter compiles with the standard Vlang compiler. However, I do maintain a
+[mirror](https://git.rustybever.be/Chewing_Bever/v). This is to ensure my CI
+does not break without reason, as I control when & how frequently the mirror is
+updated to reflect the official repository.
 
 ## Features
 
@@ -44,9 +43,15 @@ upstream as possible.
 
 In order to build Vieter, you'll need a couple of libraries:
 
+* An installation of V
 * gc
 * libarchive
 * openssl
 
-Before building Vieter, you'll have to build the compiler using `make v`.
-Afterwards, run `make` to build the debug binary.
+**NOTE**: if you encounter any issues compiling Vieter using the absolute
+latest version of V, it might be because my mirror is missing a specific commit
+that causes issues. For this reason, the `make v` command exists which will
+clone my compiler in the `v` directory & build it. Afterwards, you can use this
+compiler with make by prepending all make commands with `V_PATH=v/v`. If you do
+encounter this issue, please let me know so I can update my mirror & the
+codebase to fix it!

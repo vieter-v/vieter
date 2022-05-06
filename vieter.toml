@@ -1,10 +1,14 @@
 # This file contains settings used during development
 api_key = "test"
-download_dir = "data/downloads"
-repos_dir = "data/repos"
+data_dir = "data"
 pkg_dir = "data/pkgs"
 log_level = "DEBUG"
-repos_file = "data/repos.json"
 default_arch = "x86_64"
 
 address = "http://localhost:8000"
+
+global_schedule = '* *'
+api_update_frequency = 2
+image_rebuild_frequency = 1
+max_concurrent_builds = 3
+

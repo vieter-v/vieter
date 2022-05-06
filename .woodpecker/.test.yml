@@ -1,0 +1,17 @@
+matrix:
+  PLATFORM:
+    - 'linux/amd64'
+    - 'linux/arm64'
+
+branches:
+  exclude: [ main ]
+platform: ${PLATFORM}
+
+pipeline:
+  test:
+    image: 'chewingbever/vlang:latest'
+    pull: true
+    commands:
+      - make test
+    when:
+      event: [pull_request]

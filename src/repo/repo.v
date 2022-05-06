@@ -30,11 +30,11 @@ pub:
 // new creates a new RepoGroupManager & creates the directories as needed
 pub fn new(repos_dir string, pkg_dir string, default_arch string) ?RepoGroupManager {
 	if !os.is_dir(repos_dir) {
-		os.mkdir_all(repos_dir) or { return error('Failed to create repos directory: $err.msg') }
+		os.mkdir_all(repos_dir) or { return error('Failed to create repos directory: $err.msg()') }
 	}
 
 	if !os.is_dir(pkg_dir) {
-		os.mkdir_all(pkg_dir) or { return error('Failed to create package directory: $err.msg') }
+		os.mkdir_all(pkg_dir) or { return error('Failed to create package directory: $err.msg()') }
 	}
 
 	return RepoGroupManager{
@@ -50,7 +50,7 @@ pub fn new(repos_dir string, pkg_dir string, default_arch string) ?RepoGroupMana
 // the right subdirectories in r.pkg_dir if it was successfully added.
 pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?RepoAddResult {
 	pkg := package.read_pkg_archive(pkg_path) or {
-		return error('Failed to read package file: $err.msg')
+		return error('Failed to read package file: $err.msg()')
 	}
 
 	added := r.add_pkg_in_repo(repo, pkg) ?

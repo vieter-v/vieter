@@ -1,32 +1,29 @@
 matrix:
   PLATFORM:
-    - linux/amd64
-    - linux/arm64
-    # I just don't have a performant enough runner for this platform
-    # - linux/arm/v7
+    - 'linux/amd64'
+    - 'linux/arm64'
 
-# These checks already get performed on the feature branches
 platform: ${PLATFORM}
 
 pipeline:
-  # The default build isn't needed, as alpine switches to gcc for the compiler anyways
   debug:
     image: 'chewingbever/vlang:latest'
     pull: true
-    group: 'build'
     commands:
-      - make debug
+      - make
     when:
-      event: push
+      event: [pull_request]
+      branch:
+        exclude: [main]
 
   prod:
     image: 'chewingbever/vlang:latest'
     pull: true
     environment:
-      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -static
-    group: 'build'
+      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static
     commands:
-      - make prod
+      # Apparently this -D is *very* important
+      - CFLAGS='-DGC_THREADS=1' make prod
       # Make sure the binary is actually statically built
       - readelf -d pvieter
       - du -h pvieter
@@ -35,7 +32,7 @@ pipeline:
       - strip -s pvieter
       - du -h pvieter
     when:
-      event: push
+      event: [push, pull_request]
 
   upload:
     image: 'chewingbever/vlang:latest'
@@ -52,6 +49,7 @@ pipeline:
       - >
         curl 
         --silent
+        --fail
         -XPUT
         -T pvieter
         -H "Host: $URL"
@@ -60,4 +58,4 @@ pipeline:
         -H "Authorization: AWS $S3_USERNAME:$SIGNATURE"
         https://$URL$OBJ_PATH
     when:
-      event: push
+      event: [push, pull_request]
