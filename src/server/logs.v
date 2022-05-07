@@ -15,7 +15,11 @@ fn (mut app App) get_logs() web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	logs := app.db.get_build_logs()
+	logs := if 'repo' in app.query {
+		app.db.get_build_logs_for_repo(app.query['repo'].int())
+	} else {
+		app.db.get_build_logs()
+	}
 
 	return app.json(http.Status.ok, new_data_response(logs))
 }
@@ -56,13 +60,15 @@ fn (mut app App) post_log() web.Result {
 
 	arch := app.query['arch']
 
-	repo := app.db.get_git_repo(app.query['repo'].int()) or {
-		return app.json(http.Status.bad_request, new_response('Unknown repo.'))
+	repo := app.query['repo'].int()
+
+	if repo == 0 {
+		return app.json(http.Status.bad_request, new_response('Invalid Git repo.'))
 	}
 
 	// Store log in db
 	log := db.BuildLog{
-		repo: repo
+		repo_id: repo
 		start_time: start_time
 		end_time: end_time
 		exit_code: exit_code
@@ -70,7 +76,7 @@ fn (mut app App) post_log() web.Result {
 
 	app.db.add_build_log(log)
 
-	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, repo.id.str(), arch)
+	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, repo.str(), arch)
 
 	// Create the logs directory of it doesn't exist
 	if !os.exists(repo_logs_dir) {

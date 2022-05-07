@@ -4,7 +4,7 @@ import time
 
 pub struct BuildLog {
 	id         int       [primary; sql: serial]
-	repo       GitRepo   [nonull]
+	repo_id    int       [nonull]
 	start_time time.Time [nonull]
 	end_time   time.Time [nonull]
 	exit_code  int       [nonull]
@@ -14,6 +14,16 @@ pub struct BuildLog {
 pub fn (db &VieterDb) get_build_logs() []BuildLog {
 	res := sql db.conn {
 		select from BuildLog order by id
+	}
+
+	return res
+}
+
+// get_build_logs_for_repo returns all BuildLog's in the database for a given
+// repo.
+pub fn (db &VieterDb) get_build_logs_for_repo(repo_id int) []BuildLog {
+	res := sql db.conn {
+		select from BuildLog where repo_id == repo_id order by id
 	}
 
 	return res
