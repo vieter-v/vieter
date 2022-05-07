@@ -160,7 +160,6 @@ fn patch(conf Config, id string, params map[string]string) ? {
 
 	id_int := id.int()
 	if id_int != 0 {
-
 		c := client.new(conf.address, conf.api_key)
 		res := c.patch_git_repo(id_int, params) ?
 
@@ -176,7 +175,7 @@ fn info(conf Config, id string) ? {
 		return
 	}
 
-		c := client.new(conf.address, conf.api_key)
+	c := client.new(conf.address, conf.api_key)
 	repo := c.get_git_repo(id_int) ?
 	println(repo)
 }

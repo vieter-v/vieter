@@ -154,9 +154,7 @@ pub fn (db &VieterDb) update_git_repo_archs(repo_id int, archs []GitRepoArch) {
 }
 
 pub fn (db &VieterDb) git_repo_exists(repo_id int) bool {
-	db.get_git_repo(repo_id) or {
-		return false
-	}
-	
+	db.get_git_repo(repo_id) or { return false }
+
 	return true
 }

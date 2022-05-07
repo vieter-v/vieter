@@ -1,6 +1,7 @@
 module client
 
-import net.http
+import net.http { Method }
+import net.urllib
 import response { Response }
 import json
 
@@ -17,24 +18,35 @@ pub fn new(address string, api_key string) Client {
 	}
 }
 
-// send_request<T> is a convenience method for sending requests to the repos
-// API. It mostly does string manipulation to create a query string containing
-// the provided params.
-fn (c &Client) send_request<T>(method http.Method, url string, params map[string]string) ?Response<T> {
-	mut full_url := '${c.address}$url'
+// send_request<T> just calls send_request_with_body<T> with an empty body.
+fn (c &Client) send_request<T>(method Method, url string, params map[string]string) ?Response<T> {
+	return c.send_request_with_body<T>(method, url, params, '')
+}
+
+// send_request_with_body<T> is a convenience method for sending requests to
+// the repos API. It mostly does string manipulation to create a query string
+// containing the provided params.
+fn (c &Client) send_request_with_body<T>(method Method, url string, params map[string]string, body string) ?Response<T> {
+	mut full_url := '$c.address$url'
 
 	if params.len > 0 {
-		params_str := params.keys().map('$it=${params[it]}').join('&')
+		mut params_escaped := map[string]string{}
+
+		// Escape each query param
+		for k, v in params {
+			params_escaped[k] = urllib.query_escape(v)
+		}
+
+		params_str := params_escaped.keys().map('$it=${params[it]}').join('&')
 
 		full_url = '$full_url?$params_str'
 	}
 
-	mut req := http.new_request(method, full_url, '') ?
-	req.add_custom_header('X-API-Key', c.api_key) ?
+	mut req := http.new_request(method, full_url, body) ?
+	req.add_custom_header('X-Api-Key', c.api_key) ?
 
 	res := req.do() ?
 	data := json.decode(Response<T>, res.text) ?
 
 	return data
 }
-

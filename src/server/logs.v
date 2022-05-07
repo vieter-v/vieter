@@ -29,7 +29,7 @@ fn (mut app App) get_single_log(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
-	
+
 	log := app.db.get_build_log(id) or { return app.not_found() }
 
 	return app.json(http.Status.ok, new_data_response(log))
@@ -43,7 +43,8 @@ fn (mut app App) get_log_contents(id int) web.Result {
 
 	log := app.db.get_build_log(id) or { return app.not_found() }
 	file_name := log.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
-	full_path := os.join_path(app.conf.data_dir, server.logs_dir_name, log.repo_id.str(), log.arch, file_name)
+	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.repo_id.str(), log.arch,
+		file_name)
 
 	return app.file(full_path)
 }

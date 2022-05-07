@@ -8,7 +8,7 @@ pub:
 	repo_id    int       [nonull]
 	start_time time.Time [nonull]
 	end_time   time.Time [nonull]
-	arch string [nonull]
+	arch       string    [nonull]
 	exit_code  int       [nonull]
 }
 

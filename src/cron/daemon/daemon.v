@@ -31,7 +31,7 @@ fn (r1 ScheduledBuild) < (r2 ScheduledBuild) bool {
 
 pub struct Daemon {
 mut:
-	client client.Client
+	client                  client.Client
 	base_image              string
 	builder_images          []string
 	global_schedule         CronExpression
