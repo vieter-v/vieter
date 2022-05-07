@@ -11,6 +11,7 @@ pub:
 	api_key string
 }
 
+// new creates a new Client instance.
 pub fn new(address string, api_key string) Client {
 	return Client{
 		address: address
@@ -18,6 +19,8 @@ pub fn new(address string, api_key string) Client {
 	}
 }
 
+// send_request_raw sends an HTTP request, returning the http.Response object.
+// It encodes the params so that they're safe to pass as HTTP query parameters.
 fn (c &Client) send_request_raw(method Method, url string, params map[string]string, body string) ?http.Response {
 	mut full_url := '$c.address$url'
 
@@ -47,9 +50,8 @@ fn (c &Client) send_request<T>(method Method, url string, params map[string]stri
 	return c.send_request_with_body<T>(method, url, params, '')
 }
 
-// send_request_with_body<T> is a convenience method for sending requests to
-// the repos API. It mostly does string manipulation to create a query string
-// containing the provided params.
+// send_request_with_body<T> calls send_request_raw_response & parses its
+// output as a Response<T> object.
 fn (c &Client) send_request_with_body<T>(method Method, url string, params map[string]string, body string) ?Response<T> {
 	res_text := c.send_request_raw_response(method, url, params, body) ?
 	data := json.decode(Response<T>, res_text) ?
@@ -57,6 +59,7 @@ fn (c &Client) send_request_with_body<T>(method Method, url string, params map[s
 	return data
 }
 
+// send_request_raw_response returns the raw text response for an HTTP request.
 fn (c &Client) send_request_raw_response(method Method, url string, params map[string]string, body string) ?string {
 	res := c.send_request_raw(method, url, params, body) ?
 

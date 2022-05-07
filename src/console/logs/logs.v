@@ -10,6 +10,7 @@ struct Config {
 	api_key string [required]
 }
 
+// cmd returns the cli module that handles the build repos API.
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'logs'
@@ -64,12 +65,14 @@ pub fn cmd() cli.Command {
 	}
 }
 
+// print_log_list prints a list of logs.
 fn print_log_list(logs []db.BuildLog) {
 	for log in logs {
 		println('$log.id\t$log.start_time\t$log.exit_code')
 	}
 }
 
+// list prints a list of all build logs.
 fn list(conf Config) ? {
 	c := client.new(conf.address, conf.api_key)
 	logs := c.get_build_logs() ?.data
@@ -77,6 +80,7 @@ fn list(conf Config) ? {
 	print_log_list(logs)
 }
 
+// list prints a list of all build logs for a given repo.
 fn list_for_repo(conf Config, repo_id int) ? {
 	c := client.new(conf.address, conf.api_key)
 	logs := c.get_build_logs_for_repo(repo_id) ?.data
@@ -84,6 +88,7 @@ fn list_for_repo(conf Config, repo_id int) ? {
 	print_log_list(logs)
 }
 
+// info print the detailed info for a given build log.
 fn info(conf Config, id int) ? {
 	c := client.new(conf.address, conf.api_key)
 	log := c.get_build_log(id) ?.data
@@ -91,6 +96,8 @@ fn info(conf Config, id int) ? {
 	print(log)
 }
 
+// content outputs the contents of the log file for a given build log to
+// stdout.
 fn content(conf Config, id int) ? {
 	c := client.new(conf.address, conf.api_key)
 	content := c.get_build_log_content(id) ?

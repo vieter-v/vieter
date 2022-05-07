@@ -153,6 +153,8 @@ pub fn (db &VieterDb) update_git_repo_archs(repo_id int, archs []GitRepoArch) {
 	}
 }
 
+// git_repo_exists is a utility function that checks whether a repo with the
+// given id exists.
 pub fn (db &VieterDb) git_repo_exists(repo_id int) bool {
 	db.get_git_repo(repo_id) or { return false }
 

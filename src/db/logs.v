@@ -12,6 +12,7 @@ pub:
 	exit_code  int       [nonull]
 }
 
+// str returns a string representation.
 pub fn (bl &BuildLog) str() string {
 	mut parts := [
 		'id: $bl.id',
