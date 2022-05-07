@@ -4,7 +4,8 @@ import os
 import server
 import cli
 import build
-import git
+import console.git
+import console.logs
 import cron
 
 fn main() {
@@ -27,6 +28,7 @@ fn main() {
 			build.cmd(),
 			git.cmd(),
 			cron.cmd(),
+			logs.cmd(),
 		]
 	}
 

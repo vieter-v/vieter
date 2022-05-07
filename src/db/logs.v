@@ -12,6 +12,20 @@ pub:
 	exit_code  int       [nonull]
 }
 
+pub fn (bl &BuildLog) str() string {
+	mut parts := [
+		'id: $bl.id',
+		'repo id: $bl.repo_id',
+		'start time: $bl.start_time',
+		'end time: $bl.end_time',
+		'arch: $bl.arch',
+		'exit code: $bl.exit_code',
+	]
+	str := parts.join('\n')
+
+	return str
+}
+
 // get_build_logs returns all BuildLog's in the database.
 pub fn (db &VieterDb) get_build_logs() []BuildLog {
 	res := sql db.conn {
