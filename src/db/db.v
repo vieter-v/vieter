@@ -12,6 +12,7 @@ pub fn init(db_path string) ?VieterDb {
 
 	sql conn {
 		create table GitRepo
+		create table BuildLog
 	}
 
 	return VieterDb{

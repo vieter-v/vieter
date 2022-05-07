@@ -1,6 +1,5 @@
 module daemon
 
-import git
 import time
 import log
 import datatypes { MinHeap }
@@ -10,6 +9,7 @@ import build
 import docker
 import db
 import os
+import client
 
 const (
 	// How many seconds to wait before retrying to update API if failed
@@ -31,8 +31,7 @@ fn (r1 ScheduledBuild) < (r2 ScheduledBuild) bool {
 
 pub struct Daemon {
 mut:
-	address                 string
-	api_key                 string
+	client                  client.Client
 	base_image              string
 	builder_images          []string
 	global_schedule         CronExpression
@@ -56,8 +55,7 @@ mut:
 // populates the build queue for the first time.
 pub fn init_daemon(logger log.Log, address string, api_key string, base_image string, global_schedule CronExpression, max_concurrent_builds int, api_update_frequency int, image_rebuild_frequency int) ?Daemon {
 	mut d := Daemon{
-		address: address
-		api_key: api_key
+		client: client.new(address, api_key)
 		base_image: base_image
 		global_schedule: global_schedule
 		api_update_frequency: api_update_frequency
@@ -180,7 +178,7 @@ fn (mut d Daemon) schedule_build(repo db.GitRepo) {
 fn (mut d Daemon) renew_repos() {
 	d.linfo('Renewing repos...')
 
-	mut new_repos := git.get_repos(d.address, d.api_key) or {
+	mut new_repos := d.client.get_git_repos() or {
 		d.lerror('Failed to renew repos. Retrying in ${daemon.api_update_retry_timeout}s...')
 		d.api_update_timestamp = time.now().add_seconds(daemon.api_update_retry_timeout)
 

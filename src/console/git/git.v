@@ -3,6 +3,7 @@ module git
 import cli
 import env
 import cron.expression { parse_expression }
+import client
 
 struct Config {
 	address string [required]
@@ -119,7 +120,8 @@ pub fn cmd() cli.Command {
 
 // list prints out a list of all repositories.
 fn list(conf Config) ? {
-	repos := get_repos(conf.address, conf.api_key) ?
+	c := client.new(conf.address, conf.api_key)
+	repos := c.get_git_repos() ?
 
 	for repo in repos {
 		println('$repo.id\t$repo.url\t$repo.branch\t$repo.repo')
@@ -128,7 +130,8 @@ fn list(conf Config) ? {
 
 // add adds a new repository to the server's list.
 fn add(conf Config, url string, branch string, repo string) ? {
-	res := add_repo(conf.address, conf.api_key, url, branch, repo, []) ?
+	c := client.new(conf.address, conf.api_key)
+	res := c.add_git_repo(url, branch, repo, []) ?
 
 	println(res.message)
 }
@@ -139,7 +142,8 @@ fn remove(conf Config, id string) ? {
 	id_int := id.int()
 
 	if id_int != 0 {
-		res := remove_repo(conf.address, conf.api_key, id_int) ?
+		c := client.new(conf.address, conf.api_key)
+		res := c.remove_git_repo(id_int) ?
 		println(res.message)
 	}
 }
@@ -156,7 +160,8 @@ fn patch(conf Config, id string, params map[string]string) ? {
 
 	id_int := id.int()
 	if id_int != 0 {
-		res := patch_repo(conf.address, conf.api_key, id_int, params) ?
+		c := client.new(conf.address, conf.api_key)
+		res := c.patch_git_repo(id_int, params) ?
 
 		println(res.message)
 	}
@@ -170,6 +175,7 @@ fn info(conf Config, id string) ? {
 		return
 	}
 
-	repo := get_repo(conf.address, conf.api_key, id_int) ?
+	c := client.new(conf.address, conf.api_key)
+	repo := c.get_git_repo(id_int) ?
 	println(repo)
 }
