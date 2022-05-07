@@ -24,6 +24,30 @@ fn (mut app App) get_logs() web.Result {
 	return app.json(http.Status.ok, new_data_response(logs))
 }
 
+['/api/logs/:id'; get]
+fn (mut app App) get_single_log(id int) web.Result {
+	if !app.is_authorized() {
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
+	}
+	
+	log := app.db.get_build_log(id) or { return app.not_found() }
+
+	return app.json(http.Status.ok, new_data_response(log))
+}
+
+['/api/logs/:id/content'; get]
+fn (mut app App) get_log_contents(id int) web.Result {
+	if !app.is_authorized() {
+		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
+	}
+
+	log := app.db.get_build_log(id) or { return app.not_found() }
+	file_name := log.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
+	full_path := os.join_path(app.conf.data_dir, server.logs_dir_name, log.repo_id.str(), log.arch, file_name)
+
+	return app.file(full_path)
+}
+
 // parse_query_time unescapes an HTTP query parameter & tries to parse it as a
 // time.Time struct.
 fn parse_query_time(query string) ?time.Time {
@@ -44,7 +68,7 @@ fn (mut app App) post_log() web.Result {
 		return app.json(http.Status.bad_request, new_response('Invalid or missing start time.'))
 	}
 
-	end_time := time.parse(app.query['endTime'].replace('_', ' ')) or {
+	end_time := parse_query_time(app.query['endTime']) or {
 		return app.json(http.Status.bad_request, new_response('Invalid or missing end time.'))
 	}
 
@@ -71,6 +95,7 @@ fn (mut app App) post_log() web.Result {
 		repo_id: repo
 		start_time: start_time
 		end_time: end_time
+		arch: arch
 		exit_code: exit_code
 	}
 
