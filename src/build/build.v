@@ -3,9 +3,9 @@ module build
 import docker
 import encoding.base64
 import time
-import git
 import os
 import db
+import client
 
 const container_build_dir = '/build'
 
@@ -126,7 +126,7 @@ fn build(conf Config) ? {
 	build_arch := os.uname().machine
 
 	// We get the repos map from the Vieter instance
-	repos := git.get_repos(conf.address, conf.api_key) ?
+	repos := client.new(conf.address, conf.api_key).get_git_repos() ?
 
 	// We filter out any repos that aren't allowed to be built on this
 	// architecture
