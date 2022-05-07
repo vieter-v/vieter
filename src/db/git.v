@@ -94,7 +94,7 @@ pub fn (db &VieterDb) get_git_repo(repo_id int) ?GitRepo {
 	// If a select statement fails, it returns a zeroed object. By
 	// checking one of the required fields, we can see whether the query
 	// returned a result or not.
-	if res.url == '' {
+	if res.id == 0 {
 		return none
 	}
 
