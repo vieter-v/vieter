@@ -84,15 +84,15 @@ fn (mut app App) post_log() web.Result {
 
 	arch := app.query['arch']
 
-	repo := app.query['repo'].int()
+	repo_id := app.query['repo'].int()
 
-	if repo == 0 {
-		return app.json(http.Status.bad_request, new_response('Invalid Git repo.'))
+	if !app.db.git_repo_exists(repo_id) {
+		return app.json(http.Status.bad_request, new_response('Unknown Git repo.'))
 	}
 
 	// Store log in db
 	log := db.BuildLog{
-		repo_id: repo
+		repo_id: repo_id
 		start_time: start_time
 		end_time: end_time
 		arch: arch
@@ -101,7 +101,7 @@ fn (mut app App) post_log() web.Result {
 
 	app.db.add_build_log(log)
 
-	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, repo.str(), arch)
+	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, repo_id.str(), arch)
 
 	// Create the logs directory of it doesn't exist
 	if !os.exists(repo_logs_dir) {
