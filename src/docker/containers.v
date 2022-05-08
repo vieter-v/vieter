@@ -76,3 +76,23 @@ pub fn remove_container(id string) ?bool {
 
 	return res.status_code == 204
 }
+
+pub fn get_container_logs(id string) ?string {
+	res := request('GET', urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true') ?) ?
+	mut res_bytes := res.text.bytes()
+
+	// Docker uses a special "stream" format for their logs, so we have to
+	// clean up the data.
+	mut index := 0
+
+	for index < res_bytes.len {
+		// The reverse is required because V reads in the bytes differently
+		t := res_bytes[index + 4..index + 8].reverse()
+		len_length := unsafe { *(&u32(&t[0])) }
+
+		res_bytes.delete_many(index, 8)
+		index += int(len_length)
+	}
+
+	return res_bytes.bytestr()
+}
