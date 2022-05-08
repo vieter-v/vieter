@@ -57,15 +57,15 @@ pub mut:
 
 struct ContainerState {
 pub:
-	running bool [json: Running]
-	status string [json: Status]
-	exit_code int [json: ExitCode]
+	running   bool   [json: Running]
+	status    string [json: Status]
+	exit_code int    [json: ExitCode]
 	// These use a rather specific format so they have to be parsed later
 	start_time_str string [json: StartedAt]
-	end_time_str string [json: FinishedAt]
+	end_time_str   string [json: FinishedAt]
 pub mut:
 	start_time time.Time [skip]
-	end_time time.Time [skip]
+	end_time   time.Time [skip]
 }
 
 fn docker_timestamp_to_time(s string) ?time.Time {
@@ -88,7 +88,7 @@ pub fn inspect_container(id string) ?ContainerInspect {
 
 	data.state.start_time = docker_timestamp_to_time(data.state.start_time_str) ?
 
-	if data.state.status == "exited" {
+	if data.state.status == 'exited' {
 		data.state.end_time = docker_timestamp_to_time(data.state.end_time_str) ?
 	}
 

@@ -75,9 +75,9 @@ pub fn create_build_image(base_image string) ?string {
 
 struct BuildResult {
 	start_time time.Time
-	end_time time.Time
-	exit_code int
-	logs string
+	end_time   time.Time
+	exit_code  int
+	logs       string
 }
 
 // build_repo builds, packages & publishes a given Arch package based on the
@@ -94,7 +94,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 		'source PKGBUILD',
 		// The build container checks whether the package is already
 		// present on the server
-		'curl --head --fail $address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
+		'curl -s --head --fail $address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
 		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $address/$repo.repo/publish; done',
 	]
 
@@ -146,18 +146,16 @@ fn build(conf Config, repo_id int) ? {
 
 	build_arch := os.uname().machine
 
-	// First, we create a base image which has updated repos n stuff
 	println('Creating base image...')
 	image_id := create_build_image(conf.base_image) ?
 
 	println('Running build...')
 	res := build_repo(conf.address, conf.api_key, image_id, repo) ?
 
-	// Remove the builder image
 	println('Removing build image...')
 	docker.remove_image(image_id) ?
 
-	// Upload the build log to the Vieter instance
 	println('Uploading logs to Vieter...')
-	c.add_build_log(repo.id, res.start_time, res.end_time, build_arch, res.exit_code, res.logs) ?
+	c.add_build_log(repo.id, res.start_time, res.end_time, build_arch, res.exit_code,
+		res.logs) ?
 }
