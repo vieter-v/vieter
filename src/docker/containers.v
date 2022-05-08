@@ -2,6 +2,8 @@ module docker
 
 import json
 import net.urllib
+import regex
+import time
 
 struct Container {
 	id    string   [json: Id]
@@ -49,13 +51,28 @@ pub fn start_container(id string) ?bool {
 }
 
 struct ContainerInspect {
-pub:
+pub mut:
 	state ContainerState [json: State]
 }
 
 struct ContainerState {
 pub:
 	running bool [json: Running]
+	status string [json: Status]
+	exit_code int [json: ExitCode]
+	// These use a rather specific format so they have to be parsed later
+	start_time_str string [json: StartedAt]
+	end_time_str string [json: FinishedAt]
+pub mut:
+	start_time time.Time [skip]
+	end_time time.Time [skip]
+}
+
+fn docker_timestamp_to_time(s string) ?time.Time {
+	parts := s.split('.')
+	clipped := parts[0] + '.' + parts[1][..3]
+
+	return time.parse_rfc3339(clipped)
 }
 
 // inspect_container returns the result of inspecting a container with a given
@@ -67,7 +84,15 @@ pub fn inspect_container(id string) ?ContainerInspect {
 		return error('Failed to inspect container.')
 	}
 
-	return json.decode(ContainerInspect, res.text) or {}
+	mut data := json.decode(ContainerInspect, res.text) ?
+
+	data.state.start_time = docker_timestamp_to_time(data.state.start_time_str) ?
+
+	if data.state.status == "exited" {
+		data.state.end_time = docker_timestamp_to_time(data.state.end_time_str) ?
+	}
+
+	return data
 }
 
 // remove_container removes a container with a given ID.

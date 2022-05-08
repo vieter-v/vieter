@@ -14,12 +14,16 @@ pub:
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'build'
-		description: 'Run the build process.'
+		required_args: 1
+		usage: 'id'
+		description: 'Build the repository with the given ID.'
 		execute: fn (cmd cli.Command) ? {
 			config_file := cmd.flags.get_string('config-file') ?
 			conf := env.load<Config>(config_file) ?
 
-			build(conf) ?
+			id := cmd.args[0].int()
+
+			build(conf, id) ?
 		}
 	}
 }
