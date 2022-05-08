@@ -73,7 +73,8 @@ pub fn create_build_image(base_image string) ?string {
 	return image.id
 }
 
-struct BuildResult {
+pub struct BuildResult {
+pub:
 	start_time time.Time
 	end_time   time.Time
 	exit_code  int

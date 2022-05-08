@@ -2,7 +2,6 @@ module docker
 
 import json
 import net.urllib
-import regex
 import time
 
 struct Container {

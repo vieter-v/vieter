@@ -3,6 +3,7 @@ module daemon
 import time
 import sync.stdatomic
 import build
+import os
 
 const (
 	build_empty   = 0
@@ -77,13 +78,20 @@ fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) {
 	// 0 means success, 1 means failure
 	mut status := 0
 
-	build.build_repo(d.client.address, d.client.api_key, d.builder_images.last(), &sb.repo) or {
+	res := build.build_repo(d.client.address, d.client.api_key, d.builder_images.last(),
+		&sb.repo) or {
 		d.ldebug('build_repo error: $err.msg()')
 		status = 1
+
+		build.BuildResult{}
 	}
 
 	if status == 0 {
-		d.linfo('finished build: $sb.repo.url $sb.repo.branch')
+		d.linfo('finished build: $sb.repo.url $sb.repo.branch; uploading logs...')
+
+		build_arch := os.uname().machine
+		d.client.add_build_log(sb.repo.id, res.start_time, res.end_time, build_arch, res.exit_code,
+			res.logs) or { d.lerror('Failed to upload logs for $sb.repo.url $sb.repo.arch') }
 	} else {
 		d.linfo('failed build: $sb.repo.url $sb.repo.branch')
 	}
