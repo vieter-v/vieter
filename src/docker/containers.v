@@ -67,13 +67,6 @@ pub mut:
 	end_time   time.Time [skip]
 }
 
-fn docker_timestamp_to_time(s string) ?time.Time {
-	parts := s.split('.')
-	clipped := parts[0] + '.' + parts[1][..3]
-
-	return time.parse_rfc3339(clipped)
-}
-
 // inspect_container returns the result of inspecting a container with a given
 // ID.
 pub fn inspect_container(id string) ?ContainerInspect {
@@ -85,10 +78,10 @@ pub fn inspect_container(id string) ?ContainerInspect {
 
 	mut data := json.decode(ContainerInspect, res.text) ?
 
-	data.state.start_time = docker_timestamp_to_time(data.state.start_time_str) ?
+	data.state.start_time = time.parse_rfc3339(data.state.start_time_str) ?
 
 	if data.state.status == 'exited' {
-		data.state.end_time = docker_timestamp_to_time(data.state.end_time_str) ?
+		data.state.end_time = time.parse_rfc3339(data.state.end_time_str) ?
 	}
 
 	return data
@@ -101,6 +94,8 @@ pub fn remove_container(id string) ?bool {
 	return res.status_code == 204
 }
 
+// get_container_logs retrieves the logs for a Docker container, both stdout &
+// stderr.
 pub fn get_container_logs(id string) ?string {
 	res := request('GET', urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true') ?) ?
 	mut res_bytes := res.text.bytes()
