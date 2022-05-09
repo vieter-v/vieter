@@ -4,6 +4,7 @@ import cli
 import env
 import cron.expression { parse_expression }
 import client
+import console
 
 struct Config {
 	address string [required]
@@ -122,10 +123,9 @@ pub fn cmd() cli.Command {
 fn list(conf Config) ? {
 	c := client.new(conf.address, conf.api_key)
 	repos := c.get_git_repos()?
+	data := repos.map([it.id.str(), it.url, it.branch, it.repo])
 
-	for repo in repos {
-		println('$repo.id\t$repo.url\t$repo.branch\t$repo.repo')
-	}
+	println(console.pretty_table(['id', 'url', 'branch', 'repo'], data)?)
 }
 
 // add adds a new repository to the server's list.

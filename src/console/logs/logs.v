@@ -4,6 +4,7 @@ import cli
 import env
 import client
 import db
+import console
 
 struct Config {
 	address string [required]
@@ -66,10 +67,11 @@ pub fn cmd() cli.Command {
 }
 
 // print_log_list prints a list of logs.
-fn print_log_list(logs []db.BuildLog) {
-	for log in logs {
-		println('$log.id\t$log.start_time\t$log.exit_code')
-	}
+fn print_log_list(logs []db.BuildLog) ? {
+	data := logs.map([it.id.str(), it.repo_id.str(), it.start_time.str(),
+		it.exit_code.str()])
+
+	println(console.pretty_table(['id', 'repo', 'start time', 'exit code'], data)?)
 }
 
 // list prints a list of all build logs.
@@ -77,7 +79,7 @@ fn list(conf Config) ? {
 	c := client.new(conf.address, conf.api_key)
 	logs := c.get_build_logs()?.data
 
-	print_log_list(logs)
+	print_log_list(logs)?
 }
 
 // list prints a list of all build logs for a given repo.
@@ -85,7 +87,7 @@ fn list_for_repo(conf Config, repo_id int) ? {
 	c := client.new(conf.address, conf.api_key)
 	logs := c.get_build_logs_for_repo(repo_id)?.data
 
-	print_log_list(logs)
+	print_log_list(logs)?
 }
 
 // info print the detailed info for a given build log.
