@@ -118,11 +118,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 	mut data := docker.inspect_container(id) ?
 
 	// This loop waits until the container has stopped, so we can remove it after
-	for {
-		if !data.state.running {
-			break
-		}
-
+	for data.state.running {
 		time.sleep(1 * time.second)
 
 		data = docker.inspect_container(id) ?
