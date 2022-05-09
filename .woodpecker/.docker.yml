@@ -11,7 +11,9 @@ pipeline:
       - 'docker_password'
     settings:
       repo: 'chewingbever/vieter'
-      tag: 'dev'
+      tags:
+        - 'dev'
+        - ${CI_COMMIT_SHA}
       platforms: [ 'linux/arm64/v8', 'linux/amd64' ]
       build_args_from_env:
         - 'CI_COMMIT_SHA'
