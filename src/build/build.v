@@ -73,10 +73,18 @@ pub fn create_build_image(base_image string) ?string {
 	return image.id
 }
 
+pub struct BuildResult {
+pub:
+	start_time time.Time
+	end_time   time.Time
+	exit_code  int
+	logs       string
+}
+
 // build_repo builds, packages & publishes a given Arch package based on the
 // provided GitRepo. The base image ID should be of an image previously created
-// by create_build_image.
-pub fn build_repo(address string, api_key string, base_image_id string, repo &db.GitRepo) ? {
+// by create_build_image. It returns the logs of the container.
+pub fn build_repo(address string, api_key string, base_image_id string, repo &db.GitRepo) ?BuildResult {
 	build_arch := os.uname().machine
 
 	// TODO what to do with PKGBUILDs that build multiple packages?
@@ -87,7 +95,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 		'source PKGBUILD',
 		// The build container checks whether the package is already
 		// present on the server
-		'curl --head --fail $address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
+		'curl -s --head --fail $address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
 		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $address/$repo.repo/publish; done',
 	]
 
@@ -107,43 +115,44 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 	id := docker.create_container(c) ?
 	docker.start_container(id) ?
 
+	mut data := docker.inspect_container(id) ?
+
 	// This loop waits until the container has stopped, so we can remove it after
-	for {
-		data := docker.inspect_container(id) ?
-
-		if !data.state.running {
-			break
-		}
-
+	for data.state.running {
 		time.sleep(1 * time.second)
+
+		data = docker.inspect_container(id) ?
 	}
 
+	logs := docker.get_container_logs(id) ?
+
 	docker.remove_container(id) ?
+
+	return BuildResult{
+		start_time: data.state.start_time
+		end_time: data.state.end_time
+		exit_code: data.state.exit_code
+		logs: logs
+	}
 }
 
 // build builds every Git repo in the server's list.
-fn build(conf Config) ? {
+fn build(conf Config, repo_id int) ? {
+	c := client.new(conf.address, conf.api_key)
+	repo := c.get_git_repo(repo_id) ?
+
 	build_arch := os.uname().machine
 
-	// We get the repos map from the Vieter instance
-	repos := client.new(conf.address, conf.api_key).get_git_repos() ?
-
-	// We filter out any repos that aren't allowed to be built on this
-	// architecture
-	filtered_repos := repos.filter(it.arch.map(it.value).contains(build_arch))
-
-	// No point in doing work if there's no repos present
-	if filtered_repos.len == 0 {
-		return
-	}
-
-	// First, we create a base image which has updated repos n stuff
+	println('Creating base image...')
 	image_id := create_build_image(conf.base_image) ?
 
-	for repo in filtered_repos {
-		build_repo(conf.address, conf.api_key, image_id, repo) ?
-	}
+	println('Running build...')
+	res := build_repo(conf.address, conf.api_key, image_id, repo) ?
 
-	// Finally, we remove the builder image
+	println('Removing build image...')
 	docker.remove_image(image_id) ?
+
+	println('Uploading logs to Vieter...')
+	c.add_build_log(repo.id, res.start_time, res.end_time, build_arch, res.exit_code,
+		res.logs) ?
 }
