@@ -15,8 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `vieter build` command now only builds a single repository & uploads the
+* `vieter build` command now only builds a single repository & uploads the
   build logs
+* Official Arch packages are now split between `vieter` & `vieter-git`
+    * `vieter` is the latest release
+    * `vieter-git` is the latest commit on the dev branch
 
 ## [0.3.0-alpha.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.1)
 
