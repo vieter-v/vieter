@@ -91,7 +91,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 	commands := [
 		'git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo',
 		'cd repo',
-		'makepkg --nobuild --nodeps',
+		'makepkg --nobuild --syncdeps --needed --noconfirm',
 		'source PKGBUILD',
 		// The build container checks whether the package is already
 		// present on the server
