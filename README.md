@@ -55,3 +55,13 @@ clone my compiler in the `v` directory & build it. Afterwards, you can use this
 compiler with make by prepending all make commands with `V_PATH=v/v`. If you do
 encounter this issue, please let me know so I can update my mirror & the
 codebase to fix it!
+
+## Contributing
+
+If you wish to contribute to the project, please take note of the following:
+
+* Rebase instead of merging whenever possible, e.g. when updating your branch
+  with the dev branch.
+* Please follow the
+  [Conventional Commits](https://www.conventionalcommits.org/) style for your
+  commit messages.
