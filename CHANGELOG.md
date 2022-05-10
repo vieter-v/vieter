@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Web API for adding & querying build logs
 * CLI commands to access build logs API
+* Cron build logs are uploaded to above API
+
+### Changed
+
+- `vieter build` command now only builds a single repository & uploads the
+  build logs
 
 ## [0.3.0-alpha.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.1)
 
