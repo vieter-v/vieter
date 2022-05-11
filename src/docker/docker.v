@@ -5,10 +5,6 @@ import net.urllib
 import net.http
 import json
 
-const socket = '/var/run/docker.sock'
-
-const buf_len = 1024
-
 // send writes a request to the Docker socket, waits for a response & returns
 // it.
 fn send(req &string) ?http.Response {
