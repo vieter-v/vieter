@@ -4,7 +4,7 @@ matrix:
     - linux/arm64
 
 platform: ${PLATFORM}
-branches: [dev]
+branches: [main]
 skip_clone: true
 
 pipeline:
@@ -23,10 +23,10 @@ pipeline:
       - su builder
       # Due to a bug with the V compiler, we can't just use the PKGBUILD from
       # inside the repo
-      - curl -o PKGBUILD -L https://git.rustybever.be/vieter/vieter/raw/branch/dev/PKGBUILD.dev
+      - curl -OL "https://git.rustybever.be/vieter/vieter/raw/tag/$CI_COMMIT_TAG/PKGBUILD"
       - makepkg -s --noconfirm --needed
     when:
-      event: push
+      event: tag
 
   publish:
     image: 'curlimages/curl'
@@ -36,4 +36,4 @@ pipeline:
     secrets:
       - vieter_api_key
     when:
-      event: push
+      event: tag
