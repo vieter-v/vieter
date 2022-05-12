@@ -102,16 +102,26 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &Gi
 
 	build_arch := os.uname().machine
 
+	repo_url := '$address/$repo.repo'
+
 	// TODO what to do with PKGBUILDs that build multiple packages?
 	commands := [
+		// This will later be replaced by a proper setting for changing the
+		// mirrorlist
+		"echo -e '[$repo.repo]\nServer = $address/\$repo/\$arch\nSigLevel = Optional' >> /etc/pacman.conf"
+		// We need to update the package list of the repo we just added above.
+		// This should however not pull in a lot of packages as long as the
+		// builder image is rebuilt frequently.
+		'pacman -Syu --needed --noconfirm',
+		'su builder',
 		'git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo',
 		'cd repo',
 		'makepkg --nobuild --syncdeps --needed --noconfirm',
 		'source PKGBUILD',
 		// The build container checks whether the package is already
 		// present on the server
-		'curl -s --head --fail $address/$repo.repo/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
-		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $address/$repo.repo/publish; done',
+		'curl -s --head --fail $repo_url/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
+		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $repo_url/publish; done',
 	]
 
 	// We convert the list of commands into a base64 string, which then gets
@@ -124,7 +134,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &Gi
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/bash -e']
 		work_dir: '/build'
-		user: 'builder:builder'
+		// user: 'builder:builder'
 	}
 
 	id := dd.create_container(c)?.id
