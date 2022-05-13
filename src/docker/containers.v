@@ -3,17 +3,22 @@ module docker
 import json
 import net.urllib
 import time
+import net.http
 
 struct Container {
 	id    string   [json: Id]
 	names []string [json: Names]
 }
 
-// containers returns a list of all currently running containers
-pub fn containers() ?[]Container {
-	res := request('GET', urllib.parse('/v1.41/containers/json')?)?
+pub fn (mut d DockerDaemon) containers() ?[]Container {
+	d.send_request('GET', urllib.parse('/v1.41/containers/json')?)?
+	res_header := d.read_response_head()?
+	content_length := res_header.header.get(http.CommonHeader.content_length)?.int()
+	res := d.read_response_body(content_length)?
 
-	return json.decode([]Container, res.text) or {}
+	data := json.decode([]Container, res)?
+
+	return data
 }
 
 pub struct NewContainer {

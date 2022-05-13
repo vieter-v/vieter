@@ -31,7 +31,7 @@ fn main() {
 			logs.cmd(),
 		]
 	}
-
 	app.setup()
 	app.parse(os.args)
+	return
 }

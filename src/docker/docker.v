@@ -9,8 +9,8 @@ import json
 // it.
 fn send(req &string) ?http.Response {
 	// Open a connection to the socket
-	mut s := unix.connect_stream(docker.socket) or {
-		return error('Failed to connect to socket ${docker.socket}.')
+	mut s := unix.connect_stream(socket) or {
+		return error('Failed to connect to socket ${socket}.')
 	}
 
 	defer {
@@ -21,19 +21,19 @@ fn send(req &string) ?http.Response {
 	}
 
 	// Write the request to the socket
-	s.write_string(req) or { return error('Failed to write request to socket ${docker.socket}.') }
+	s.write_string(req) or { return error('Failed to write request to socket ${socket}.') }
 
 	s.wait_for_write()?
 
 	mut c := 0
-	mut buf := []u8{len: docker.buf_len}
+	mut buf := []u8{len: buf_len}
 	mut res := []u8{}
 
 	for {
-		c = s.read(mut buf) or { return error('Failed to read data from socket ${docker.socket}.') }
+		c = s.read(mut buf) or { return error('Failed to read data from socket ${socket}.') }
 		res << buf[..c]
 
-		if c < docker.buf_len {
+		if c < buf_len {
 			break
 		}
 	}
@@ -41,7 +41,7 @@ fn send(req &string) ?http.Response {
 	// After reading the first part of the response, we parse it into an HTTP
 	// response. If it isn't chunked, we return early with the data.
 	parsed := http.parse_response(res.bytestr()) or {
-		return error('Failed to parse HTTP response from socket ${docker.socket}.')
+		return error('Failed to parse HTTP response from socket ${socket}.')
 	}
 
 	if parsed.header.get(http.CommonHeader.transfer_encoding) or { '' } != 'chunked' {
@@ -55,12 +55,10 @@ fn send(req &string) ?http.Response {
 		s.wait_for_write()?
 
 		for {
-			c = s.read(mut buf) or {
-				return error('Failed to read data from socket ${docker.socket}.')
-			}
+			c = s.read(mut buf) or { return error('Failed to read data from socket ${socket}.') }
 			res << buf[..c]
 
-			if c < docker.buf_len {
+			if c < buf_len {
 				break
 			}
 		}
