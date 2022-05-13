@@ -50,6 +50,8 @@ pub fn (mut d DockerDaemon) send_request_with_json<T>(method string, url urllib.
 
 // read_response_head consumes the socket's contents until it encounters
 // '\r\n\r\n', after which it parses the response as an HTTP response.
+// Importantly, this function never consumes past the HTTP separator, so the
+// body can be read fully later on.
 pub fn (mut d DockerDaemon) read_response_head() ?http.Response {
 	mut c := 0
 	mut buf := []u8{len: 4}
@@ -88,6 +90,10 @@ pub fn (mut d DockerDaemon) read_response_head() ?http.Response {
 }
 
 pub fn (mut d DockerDaemon) read_response_body(length int) ?string {
+	if length == 0 {
+		return ''
+	}
+
 	mut buf := []u8{len: docker.buf_len}
 	mut c := 0
 	mut builder := strings.new_builder(docker.buf_len)

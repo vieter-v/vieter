@@ -5,6 +5,10 @@ import net.urllib
 import time
 import net.http
 
+struct DockerError {
+	message string
+}
+
 struct Container {
 	id    string   [json: Id]
 	names []string [json: Names]
@@ -12,7 +16,13 @@ struct Container {
 
 pub fn (mut d DockerDaemon) containers() ?[]Container {
 	d.send_request('GET', urllib.parse('/v1.41/containers/json')?)?
-	_, res := d.read_response()?
+	head, res := d.read_response()?
+
+	if head.status_code != 200 {
+		data := json.decode(DockerError, res)?
+
+		return error(data.message)
+	}
 
 	data := json.decode([]Container, res)?
 
@@ -37,18 +47,28 @@ pub:
 
 pub fn (mut d DockerDaemon) create_container(c NewContainer) ?CreatedContainer {
 	d.send_request_with_json('POST', urllib.parse('/v1.41/containers/create')?, c)?
-	_, res := d.read_response()?
+	head, res := d.read_response()?
+
+	if head.status_code != 201 {
+		data := json.decode(DockerError, res)?
+
+		return error(data.message)
+	}
 
 	data := json.decode(CreatedContainer, res)?
 
 	return data
 }
 
-pub fn (mut d DockerDaemon) start_container(id string) ?bool {
+pub fn (mut d DockerDaemon) start_container(id string) ? {
 	d.send_request('POST', urllib.parse('/v1.41/containers/$id/start')?)?
-	head := d.read_response_head() ?
+	head, body := d.read_response() ?
 
-	return head.status_code == 204
+	if head.status_code != 204 {
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
 }
 
 // create_container creates a container defined by the given configuration. If
@@ -94,7 +114,9 @@ pub fn (mut d DockerDaemon) inspect_container(id string) ?ContainerInspect {
 	head, body := d.read_response()?
 
 	if head.status_code != 200 {
-		return error('Failed to inspect container.')
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
 	}
 
 	mut data := json.decode(ContainerInspect, body)?
@@ -130,7 +152,13 @@ pub fn inspect_container(id string) ?ContainerInspect {
 
 pub fn (mut d DockerDaemon) remove_container(id string) ? {
 	d.send_request('DELETE', urllib.parse('/v1.41/containers/$id')?)?
-	head := d.read_response_head() ?
+	head, body := d.read_response() ?
+
+	if head.status_code != 204 {
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
 }
 
 // remove_container removes a container with a given ID.

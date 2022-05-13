@@ -56,6 +56,7 @@ pub fn create_build_image(base_image string) ?string {
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for {
+	println('wot')
 		data := dd.inspect_container(id)?
 
 		if !data.state.running {
