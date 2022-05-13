@@ -17,6 +17,8 @@ const build_image_repo = 'vieter-build'
 // makepkg with. The base image should be some Linux distribution that uses
 // Pacman as its package manager.
 pub fn create_build_image(base_image string) ?string {
+	mut dd := docker.new_conn() ?
+
 	commands := [
 		// Update repos & install required packages
 		'pacman -Syu --needed --noconfirm base-devel git'
@@ -48,12 +50,13 @@ pub fn create_build_image(base_image string) ?string {
 	// We pull the provided image
 	docker.pull_image(image_name, image_tag)?
 
-	id := docker.create_container(c)?
-	docker.start_container(id)?
+	id := dd.create_container(c)?.id
+	/* id := docker.create_container(c)? */
+	dd.start_container(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for {
-		data := docker.inspect_container(id)?
+		data := dd.inspect_container(id)?
 
 		if !data.state.running {
 			break
@@ -68,7 +71,7 @@ pub fn create_build_image(base_image string) ?string {
 	// conflicts.
 	tag := time.sys_mono_now().str()
 	image := docker.create_image_from_container(id, 'vieter-build', tag)?
-	docker.remove_container(id)?
+	dd.remove_container(id)?
 
 	return image.id
 }

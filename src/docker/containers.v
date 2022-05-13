@@ -12,15 +12,14 @@ struct Container {
 
 pub fn (mut d DockerDaemon) containers() ?[]Container {
 	d.send_request('GET', urllib.parse('/v1.41/containers/json')?)?
-	res_header := d.read_response_head()?
-	content_length := res_header.header.get(http.CommonHeader.content_length)?.int()
-	res := d.read_response_body(content_length)?
+	_, res := d.read_response()?
 
 	data := json.decode([]Container, res)?
 
 	return data
 }
 
+[params]
 pub struct NewContainer {
 	image      string   [json: Image]
 	entrypoint []string [json: Entrypoint]
@@ -31,7 +30,25 @@ pub struct NewContainer {
 }
 
 struct CreatedContainer {
+pub:
 	id string [json: Id]
+	warnings []string [json: Warnings]
+}
+
+pub fn (mut d DockerDaemon) create_container(c NewContainer) ?CreatedContainer {
+	d.send_request_with_json('POST', urllib.parse('/v1.41/containers/create')?, c)?
+	_, res := d.read_response()?
+
+	data := json.decode(CreatedContainer, res)?
+
+	return data
+}
+
+pub fn (mut d DockerDaemon) start_container(id string) ?bool {
+	d.send_request('POST', urllib.parse('/v1.41/containers/$id/start')?)?
+	head := d.read_response_head() ?
+
+	return head.status_code == 204
 }
 
 // create_container creates a container defined by the given configuration. If
@@ -72,6 +89,25 @@ pub mut:
 	end_time   time.Time [skip]
 }
 
+pub fn (mut d DockerDaemon) inspect_container(id string) ?ContainerInspect {
+	d.send_request('GET', urllib.parse('/v1.41/containers/$id/json')?)?
+	head, body := d.read_response()?
+
+	if head.status_code != 200 {
+		return error('Failed to inspect container.')
+	}
+
+	mut data := json.decode(ContainerInspect, body)?
+
+	data.state.start_time = time.parse_rfc3339(data.state.start_time_str)?
+
+	if data.state.status == 'exited' {
+		data.state.end_time = time.parse_rfc3339(data.state.end_time_str)?
+	}
+
+	return data
+}
+
 // inspect_container returns the result of inspecting a container with a given
 // ID.
 pub fn inspect_container(id string) ?ContainerInspect {
@@ -90,6 +126,11 @@ pub fn inspect_container(id string) ?ContainerInspect {
 	}
 
 	return data
+}
+
+pub fn (mut d DockerDaemon) remove_container(id string) ? {
+	d.send_request('DELETE', urllib.parse('/v1.41/containers/$id')?)?
+	head := d.read_response_head() ?
 }
 
 // remove_container removes a container with a given ID.

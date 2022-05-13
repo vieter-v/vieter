@@ -42,10 +42,10 @@ pub fn (mut d DockerDaemon) send_request_with_body(method string, url urllib.URL
 	d.socket.write_string(req)?
 }
 
-pub fn (mut d DockerDaemon) request_with_json<T>(method string, url urllib.URL, data &T) ? {
+pub fn (mut d DockerDaemon) send_request_with_json<T>(method string, url urllib.URL, data &T) ? {
 	body := json.encode(data)
 
-	return request_with_body(method, url, 'application/json', body)
+	return d.send_request_with_body(method, url, 'application/json', body)
 }
 
 // read_response_head consumes the socket's contents until it encounters
@@ -99,4 +99,12 @@ pub fn (mut d DockerDaemon) read_response_body(length int) ?string {
 	}
 
 	return builder.str()
+}
+
+pub fn (mut d DockerDaemon) read_response() ?(http.Response, string) {
+	head := d.read_response_head()?
+	content_length := head.header.get(http.CommonHeader.content_length)?.int()
+	res := d.read_response_body(content_length)?
+
+	return head, res
 }
