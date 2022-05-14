@@ -9,6 +9,7 @@ pub:
 	id string [json: Id]
 }
 
+// pull_image pulls the given image:tag.
 pub fn (mut d DockerDaemon) pull_image(image string, tag string) ? {
 	d.send_request('POST', urllib.parse('/v1.41/images/create?fromImage=$image&tag=$tag')?)?
 	head := d.read_response_head()?

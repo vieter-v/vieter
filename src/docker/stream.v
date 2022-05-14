@@ -5,6 +5,8 @@ import util
 import encoding.binary
 import encoding.hex
 
+// ChunkedResponseReader parses an underlying HTTP chunked response, exposing
+// it as if it was a continuous stream of data.
 struct ChunkedResponseReader {
 mut:
 	reader              io.Reader
@@ -13,6 +15,8 @@ mut:
 	started             bool
 }
 
+// new_chunked_response_reader creates a new ChunkedResponseReader on the heap
+// with the provided reader.
 pub fn new_chunked_response_reader(reader io.Reader) &ChunkedResponseReader {
 	r := &ChunkedResponseReader{
 		reader: reader
@@ -21,7 +25,7 @@ pub fn new_chunked_response_reader(reader io.Reader) &ChunkedResponseReader {
 	return r
 }
 
-// We satisfy the io.Reader interface
+// read satisfies the io.Reader interface.
 pub fn (mut r ChunkedResponseReader) read(mut buf []u8) ?int {
 	if r.end_of_stream {
 		return none
@@ -37,6 +41,8 @@ pub fn (mut r ChunkedResponseReader) read(mut buf []u8) ?int {
 
 	mut c := 0
 
+	// Make sure we don't read more than we can safely read. This is to avoid
+	// the underlying reader from becoming out of sync with our parsing:
 	if buf.len > r.bytes_left_in_chunk {
 		c = r.reader.read(mut buf[..r.bytes_left_in_chunk])?
 	} else {
@@ -48,6 +54,9 @@ pub fn (mut r ChunkedResponseReader) read(mut buf []u8) ?int {
 	return c
 }
 
+// read_chunk_size advances the reader & reads the size of the next HTTP chunk.
+// This function should only be called if the previous chunk has been
+// completely consumed.
 fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 	mut buf := []u8{len: 2}
 	mut res := []u8{}
@@ -80,6 +89,7 @@ fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 		}
 	}
 
+	// The length of the next chunk is provided as a hexadecimal
 	mut num_data := hex.decode(res#[..-2].bytestr())?
 
 	for num_data.len < 8 {
@@ -88,6 +98,8 @@ fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 
 	num := binary.big_endian_u64(num_data)
 
+	// This only occurs for the very last chunk, which always reports a size of
+	// 0.
 	if num == 0 {
 		r.end_of_stream = true
 	}
@@ -95,16 +107,17 @@ fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 	return num
 }
 
+// StreamFormatReader parses an underlying stream of Docker logs, removing the
+// header bytes.
 struct StreamFormatReader {
-	stdout bool
-	stderr bool
-	stdin  bool
 mut:
 	reader              io.Reader
 	bytes_left_in_chunk u32
 	end_of_stream       bool
 }
 
+// new_stream_format_reader creates a new StreamFormatReader using the given
+// reader.
 pub fn new_stream_format_reader(reader io.Reader) &StreamFormatReader {
 	r := &StreamFormatReader{
 		reader: reader
@@ -113,6 +126,7 @@ pub fn new_stream_format_reader(reader io.Reader) &StreamFormatReader {
 	return r
 }
 
+// read satisfies the io.Reader interface.
 pub fn (mut r StreamFormatReader) read(mut buf []u8) ?int {
 	if r.end_of_stream {
 		return none
@@ -139,6 +153,8 @@ pub fn (mut r StreamFormatReader) read(mut buf []u8) ?int {
 	return c
 }
 
+// read_chunk_size advances the reader & reads the header bytes for the length
+// of the next chunk.
 fn (mut r StreamFormatReader) read_chunk_size() ?u32 {
 	mut buf := []u8{len: 8}
 

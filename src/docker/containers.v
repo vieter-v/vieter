@@ -14,6 +14,7 @@ struct Container {
 	names []string [json: Names]
 }
 
+// containers returns a list of all containers.
 pub fn (mut d DockerDaemon) containers() ?[]Container {
 	d.send_request('GET', urllib.parse('/v1.41/containers/json')?)?
 	head, res := d.read_response()?
@@ -45,6 +46,7 @@ pub:
 	warnings []string [json: Warnings]
 }
 
+// create_container creates a new container with the given config.
 pub fn (mut d DockerDaemon) create_container(c NewContainer) ?CreatedContainer {
 	d.send_request_with_json('POST', urllib.parse('/v1.41/containers/create')?, c)?
 	head, res := d.read_response()?
@@ -60,6 +62,7 @@ pub fn (mut d DockerDaemon) create_container(c NewContainer) ?CreatedContainer {
 	return data
 }
 
+// start_container starts the container with the given id.
 pub fn (mut d DockerDaemon) start_container(id string) ? {
 	d.send_request('POST', urllib.parse('/v1.41/containers/$id/start')?)?
 	head, body := d.read_response()?
@@ -109,6 +112,7 @@ pub mut:
 	end_time   time.Time [skip]
 }
 
+// inspect_container returns detailed information for a given container.
 pub fn (mut d DockerDaemon) inspect_container(id string) ?ContainerInspect {
 	d.send_request('GET', urllib.parse('/v1.41/containers/$id/json')?)?
 	head, body := d.read_response()?
@@ -150,6 +154,7 @@ pub fn inspect_container(id string) ?ContainerInspect {
 	return data
 }
 
+// remove_container removes the container with the given id.
 pub fn (mut d DockerDaemon) remove_container(id string) ? {
 	d.send_request('DELETE', urllib.parse('/v1.41/containers/$id')?)?
 	head, body := d.read_response()?
@@ -168,6 +173,8 @@ pub fn remove_container(id string) ?bool {
 	return res.status_code == 204
 }
 
+// get_container_logs returns a reader object allowing access to the
+// container's logs.
 pub fn (mut d DockerDaemon) get_container_logs(id string) ?&StreamFormatReader {
 	d.send_request('GET', urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true')?)?
 	head := d.read_response_head()?
