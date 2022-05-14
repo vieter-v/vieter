@@ -46,14 +46,14 @@ pub fn create_build_image(base_image string) ?string {
 	image_tag := if image_parts.len > 1 { image_parts[1] } else { 'latest' }
 
 	// We pull the provided image
-	docker.pull_image(image_name, image_tag) ?
+	docker.pull_image(image_name, image_tag)?
 
-	id := docker.create_container(c) ?
-	docker.start_container(id) ?
+	id := docker.create_container(c)?
+	docker.start_container(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for {
-		data := docker.inspect_container(id) ?
+		data := docker.inspect_container(id)?
 
 		if !data.state.running {
 			break
@@ -67,8 +67,8 @@ pub fn create_build_image(base_image string) ?string {
 	// TODO also add the base image's name into the image name to prevent
 	// conflicts.
 	tag := time.sys_mono_now().str()
-	image := docker.create_image_from_container(id, 'vieter-build', tag) ?
-	docker.remove_container(id) ?
+	image := docker.create_image_from_container(id, 'vieter-build', tag)?
+	docker.remove_container(id)?
 
 	return image.id
 }
@@ -112,21 +112,21 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 		user: 'builder:builder'
 	}
 
-	id := docker.create_container(c) ?
-	docker.start_container(id) ?
+	id := docker.create_container(c)?
+	docker.start_container(id)?
 
-	mut data := docker.inspect_container(id) ?
+	mut data := docker.inspect_container(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for data.state.running {
 		time.sleep(1 * time.second)
 
-		data = docker.inspect_container(id) ?
+		data = docker.inspect_container(id)?
 	}
 
-	logs := docker.get_container_logs(id) ?
+	logs := docker.get_container_logs(id)?
 
-	docker.remove_container(id) ?
+	docker.remove_container(id)?
 
 	return BuildResult{
 		start_time: data.state.start_time
@@ -139,20 +139,20 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 // build builds every Git repo in the server's list.
 fn build(conf Config, repo_id int) ? {
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_git_repo(repo_id) ?
+	repo := c.get_git_repo(repo_id)?
 
 	build_arch := os.uname().machine
 
 	println('Creating base image...')
-	image_id := create_build_image(conf.base_image) ?
+	image_id := create_build_image(conf.base_image)?
 
 	println('Running build...')
-	res := build_repo(conf.address, conf.api_key, image_id, repo) ?
+	res := build_repo(conf.address, conf.api_key, image_id, repo)?
 
 	println('Removing build image...')
-	docker.remove_image(image_id) ?
+	docker.remove_image(image_id)?
 
 	println('Uploading logs to Vieter...')
 	c.add_build_log(repo.id, res.start_time, res.end_time, build_arch, res.exit_code,
-		res.logs) ?
+		res.logs)?
 }

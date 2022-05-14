@@ -159,7 +159,7 @@ pub fn read_pkg_archive(pkg_path string) ?Pkg {
 
 			pkg_text := unsafe { buf.vstring_with_len(size).clone() }
 
-			pkg_info = parse_pkg_info_string(pkg_text) ?
+			pkg_info = parse_pkg_info_string(pkg_text)?
 		} else {
 			C.archive_read_data_skip(a)
 		}

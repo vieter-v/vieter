@@ -27,7 +27,7 @@ pub fn cron(conf Config) ? {
 	}
 
 	mut d := daemon.init_daemon(logger, conf.address, conf.api_key, conf.base_image, ce,
-		conf.max_concurrent_builds, conf.api_update_frequency, conf.image_rebuild_frequency) ?
+		conf.max_concurrent_builds, conf.api_update_frequency, conf.image_rebuild_frequency)?
 
 	d.run()
 }

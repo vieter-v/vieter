@@ -25,7 +25,7 @@ pub fn exit_with_message(code int, msg string) {
 
 // reader_to_file writes the contents of a BufferedReader to a file
 pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
-	mut file := os.create(path) ?
+	mut file := os.create(path)?
 	defer {
 		file.close()
 	}

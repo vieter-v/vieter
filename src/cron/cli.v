@@ -23,10 +23,10 @@ pub fn cmd() cli.Command {
 		name: 'cron'
 		description: 'Start the cron service that periodically runs builds.'
 		execute: fn (cmd cli.Command) ? {
-			config_file := cmd.flags.get_string('config-file') ?
-			conf := env.load<Config>(config_file) ?
+			config_file := cmd.flags.get_string('config-file')?
+			conf := env.load<Config>(config_file)?
 
-			cron(conf) ?
+			cron(conf)?
 		}
 	}
 }

@@ -27,12 +27,12 @@ pub fn cmd() cli.Command {
 					},
 				]
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
-					repo_id := cmd.flags.get_int('repo') ?
+					repo_id := cmd.flags.get_int('repo')?
 
-					if repo_id == 0 { list(conf) ? } else { list_for_repo(conf, repo_id) ? }
+					if repo_id == 0 { list(conf)? } else { list_for_repo(conf, repo_id)? }
 				}
 			},
 			cli.Command{
@@ -41,11 +41,11 @@ pub fn cmd() cli.Command {
 				usage: 'id'
 				description: 'Show all info for a specific build log.'
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
 					id := cmd.args[0].int()
-					info(conf, id) ?
+					info(conf, id)?
 				}
 			},
 			cli.Command{
@@ -54,11 +54,11 @@ pub fn cmd() cli.Command {
 				usage: 'id'
 				description: 'Output the content of a build log to stdout.'
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
 					id := cmd.args[0].int()
-					content(conf, id) ?
+					content(conf, id)?
 				}
 			},
 		]
@@ -75,7 +75,7 @@ fn print_log_list(logs []db.BuildLog) {
 // list prints a list of all build logs.
 fn list(conf Config) ? {
 	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs() ?.data
+	logs := c.get_build_logs()?.data
 
 	print_log_list(logs)
 }
@@ -83,7 +83,7 @@ fn list(conf Config) ? {
 // list prints a list of all build logs for a given repo.
 fn list_for_repo(conf Config, repo_id int) ? {
 	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs_for_repo(repo_id) ?.data
+	logs := c.get_build_logs_for_repo(repo_id)?.data
 
 	print_log_list(logs)
 }
@@ -91,7 +91,7 @@ fn list_for_repo(conf Config, repo_id int) ? {
 // info print the detailed info for a given build log.
 fn info(conf Config, id int) ? {
 	c := client.new(conf.address, conf.api_key)
-	log := c.get_build_log(id) ?.data
+	log := c.get_build_log(id)?.data
 
 	print(log)
 }
@@ -100,7 +100,7 @@ fn info(conf Config, id int) ? {
 // stdout.
 fn content(conf Config, id int) ? {
 	c := client.new(conf.address, conf.api_key)
-	content := c.get_build_log_content(id) ?
+	content := c.get_build_log_content(id)?
 
 	println(content)
 }
