@@ -27,11 +27,8 @@ pub fn (mut d DockerDaemon) pull_image(image string, tag string) ? {
 	mut buf := []u8{len: 1024}
 
 	for {
-		c := body.read(mut buf)?
+		c := body.read(mut buf) or { break }
 
-		if c == 0 {
-			break
-		}
 		print(buf[..c].bytestr())
 	}
 }

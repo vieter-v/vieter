@@ -23,6 +23,17 @@ pub fn exit_with_message(code int, msg string) {
 	exit(code)
 }
 
+// reader_to_writer tries to consume the entire reader & write it to the writer.
+pub fn reader_to_writer(mut reader io.Reader, mut writer io.Writer) ? {
+	mut buf := []u8{len: 10 * 1024}
+
+	for {
+		c := reader.read(mut buf) or { break }
+
+		writer.write(buf) or { break }
+	}
+}
+
 // reader_to_file writes the contents of a BufferedReader to a file
 pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
 	mut file := os.create(path)?

@@ -38,6 +38,9 @@ pub fn (mut d DockerDaemon) send_request(method string, url urllib.URL) ? {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\n\n'
 
 	d.socket.write_string(req)?
+
+	// When starting a new request, the reader needs to be reset.
+	d.reader = io.new_buffered_reader(reader: d.socket)
 }
 
 // send_request_with_body sends an HTTP request with the given body.
@@ -45,6 +48,9 @@ pub fn (mut d DockerDaemon) send_request_with_body(method string, url urllib.URL
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: $content_type\nContent-Length: $body.len\n\n$body\n\n'
 
 	d.socket.write_string(req)?
+
+	// When starting a new request, the reader needs to be reset.
+	d.reader = io.new_buffered_reader(reader: d.socket)
 }
 
 // send_request_with_json<T> is a convenience wrapper around
@@ -108,11 +114,21 @@ pub fn (mut d DockerDaemon) read_response_body(length int) ?string {
 	return builder.str()
 }
 
-// read_response is a convenience function combining read_response_head &
-// read_response_body. It can be used when you know for certain the response
-// won't be chunked.
+// read_response is a convenience function which always consumes the entire
+// response & returns it. It should only be used when we're certain that the
+// result isn't too large.
 pub fn (mut d DockerDaemon) read_response() ?(http.Response, string) {
 	head := d.read_response_head()?
+
+	if head.header.get(http.CommonHeader.transfer_encoding) or { '' } == 'chunked' {
+		mut builder := strings.new_builder(1024)
+		mut body := d.get_chunked_response_reader()
+
+		util.reader_to_writer(mut body, mut builder) ?
+
+		return head, builder.str()
+	}
+
 	content_length := head.header.get(http.CommonHeader.content_length)?.int()
 	res := d.read_response_body(content_length)?
 
