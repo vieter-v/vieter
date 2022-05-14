@@ -123,3 +123,10 @@ pub fn (mut d DockerDaemon) get_chunked_response_reader() &ChunkedResponseReader
 
 	return r
 }
+
+pub fn (mut d DockerDaemon) get_stream_format_reader() &StreamFormatReader {
+	r := new_chunked_response_reader(d.reader)
+	r2 := new_stream_format_reader(r)
+
+	return r2
+}

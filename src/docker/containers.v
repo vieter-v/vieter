@@ -168,6 +168,21 @@ pub fn remove_container(id string) ?bool {
 	return res.status_code == 204
 }
 
+pub fn (mut d DockerDaemon) get_container_logs(id string) ?&StreamFormatReader {
+	d.send_request('GET', urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true')?)?
+	head := d.read_response_head()?
+
+	if head.status_code != 200 {
+		content_length := head.header.get(http.CommonHeader.content_length)?.int()
+		body := d.read_response_body(content_length)?
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
+
+	return d.get_stream_format_reader()
+}
+
 // get_container_logs retrieves the logs for a Docker container, both stdout &
 // stderr.
 pub fn get_container_logs(id string) ?string {
