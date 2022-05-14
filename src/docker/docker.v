@@ -27,7 +27,7 @@ fn send(req &string) ?http.Response {
 	// Write the request to the socket
 	s.write_string(req) or { return error('Failed to write request to socket ${docker.socket}.') }
 
-	s.wait_for_write() ?
+	s.wait_for_write()?
 
 	mut c := 0
 	mut buf := []u8{len: docker.buf_len}
@@ -56,7 +56,7 @@ fn send(req &string) ?http.Response {
 	// A chunked HTTP response always ends with '0\r\n\r\n'.
 	for res.len < 5 || res#[-5..] != [u8(`0`), `\r`, `\n`, `\r`, `\n`] {
 		// Wait for the server to respond
-		s.wait_for_write() ?
+		s.wait_for_write()?
 
 		for {
 			c = s.read(mut buf) or {

@@ -53,22 +53,22 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 		return error('Failed to read package file: $err.msg()')
 	}
 
-	added := r.add_pkg_in_repo(repo, pkg) ?
+	added := r.add_pkg_in_repo(repo, pkg)?
 
 	// If the add was successful, we move the file to the packages directory
 	for arch in added {
 		repo_pkg_path := os.real_path(os.join_path(r.pkg_dir, repo, arch))
 		dest_path := os.join_path_single(repo_pkg_path, pkg.filename())
 
-		os.mkdir_all(repo_pkg_path) ?
+		os.mkdir_all(repo_pkg_path)?
 
 		// We create hard links so that "any" arch packages aren't stored
 		// multiple times
-		os.link(pkg_path, dest_path) ?
+		os.link(pkg_path, dest_path)?
 	}
 
 	// After linking, we can remove the original file
-	os.rm(pkg_path) ?
+	os.rm(pkg_path)?
 
 	return RepoAddResult{
 		added: added.len > 0
@@ -87,7 +87,7 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 	// A package not of arch 'any' can be handled easily by adding it to the
 	// respective repo
 	if pkg.info.arch != 'any' {
-		if r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg) ? {
+		if r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)? {
 			return [pkg.info.arch]
 		} else {
 			return []
@@ -104,7 +104,7 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 	// If this is the first package that's added to the repo, the directory
 	// won't exist yet
 	if os.exists(repo_dir) {
-		arch_repos = os.ls(repo_dir) ?
+		arch_repos = os.ls(repo_dir)?
 	}
 
 	// The default_arch should always be updated when a package with arch 'any'
@@ -118,7 +118,7 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 	// We add the package to each repository. If any of the repositories
 	// return true, the result of the function is also true.
 	for arch in arch_repos {
-		if r.add_pkg_in_arch_repo(repo, arch, pkg) ? {
+		if r.add_pkg_in_arch_repo(repo, arch, pkg)? {
 			added << arch
 		}
 	}
@@ -135,22 +135,22 @@ fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &pac
 	pkg_dir := os.join_path(r.repos_dir, repo, arch, '$pkg.info.name-$pkg.info.version')
 
 	// Remove the previous version of the package, if present
-	r.remove_pkg_from_arch_repo(repo, arch, pkg.info.name, false) ?
+	r.remove_pkg_from_arch_repo(repo, arch, pkg.info.name, false)?
 
 	os.mkdir_all(pkg_dir) or { return error('Failed to create package directory.') }
 
 	os.write_file(os.join_path_single(pkg_dir, 'desc'), pkg.to_desc()) or {
-		os.rmdir_all(pkg_dir) ?
+		os.rmdir_all(pkg_dir)?
 
 		return error('Failed to write desc file.')
 	}
 	os.write_file(os.join_path_single(pkg_dir, 'files'), pkg.to_files()) or {
-		os.rmdir_all(pkg_dir) ?
+		os.rmdir_all(pkg_dir)?
 
 		return error('Failed to write files file.')
 	}
 
-	r.sync(repo, arch) ?
+	r.sync(repo, arch)?
 
 	return true
 }
@@ -168,7 +168,7 @@ fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg
 
 	// We iterate over every directory in the repo dir
 	// TODO filter so we only check directories
-	for d in os.ls(repo_dir) ? {
+	for d in os.ls(repo_dir)? {
 		// Because a repository only allows a single version of each package,
 		// we need only compare whether the name of the package is the same,
 		// not the version.
@@ -178,22 +178,22 @@ fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg
 			// We lock the mutex here to prevent other routines from creating a
 			// new archive while we remove an entry
 			lock r.mutex {
-				os.rmdir_all(os.join_path_single(repo_dir, d)) ?
+				os.rmdir_all(os.join_path_single(repo_dir, d))?
 			}
 
 			// Also remove the package archive
 			repo_pkg_dir := os.join_path(r.pkg_dir, repo, arch)
 
-			archives := os.ls(repo_pkg_dir) ?.filter(it.split('-')#[..-3].join('-') == name)
+			archives := os.ls(repo_pkg_dir)?.filter(it.split('-')#[..-3].join('-') == name)
 
 			for archive_name in archives {
 				full_path := os.join_path_single(repo_pkg_dir, archive_name)
-				os.rm(full_path) ?
+				os.rm(full_path)?
 			}
 
 			// Sync the db archives if requested
 			if sync {
-				r.sync(repo, arch) ?
+				r.sync(repo, arch)?
 			}
 
 			return true

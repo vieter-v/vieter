@@ -11,7 +11,7 @@ struct Container {
 
 // containers returns a list of all currently running containers
 pub fn containers() ?[]Container {
-	res := request('GET', urllib.parse('/v1.41/containers/json') ?) ?
+	res := request('GET', urllib.parse('/v1.41/containers/json')?)?
 
 	return json.decode([]Container, res.text) or {}
 }
@@ -32,19 +32,19 @@ struct CreatedContainer {
 // create_container creates a container defined by the given configuration. If
 // successful, it returns the ID of the newly created container.
 pub fn create_container(c &NewContainer) ?string {
-	res := request_with_json('POST', urllib.parse('/v1.41/containers/create') ?, c) ?
+	res := request_with_json('POST', urllib.parse('/v1.41/containers/create')?, c)?
 
 	if res.status_code != 201 {
 		return error('Failed to create container.')
 	}
 
-	return json.decode(CreatedContainer, res.text) ?.id
+	return json.decode(CreatedContainer, res.text)?.id
 }
 
 // start_container starts a container with a given ID. It returns whether the
 // container was started or not.
 pub fn start_container(id string) ?bool {
-	res := request('POST', urllib.parse('/v1.41/containers/$id/start') ?) ?
+	res := request('POST', urllib.parse('/v1.41/containers/$id/start')?)?
 
 	return res.status_code == 204
 }
@@ -70,18 +70,18 @@ pub mut:
 // inspect_container returns the result of inspecting a container with a given
 // ID.
 pub fn inspect_container(id string) ?ContainerInspect {
-	res := request('GET', urllib.parse('/v1.41/containers/$id/json') ?) ?
+	res := request('GET', urllib.parse('/v1.41/containers/$id/json')?)?
 
 	if res.status_code != 200 {
 		return error('Failed to inspect container.')
 	}
 
-	mut data := json.decode(ContainerInspect, res.text) ?
+	mut data := json.decode(ContainerInspect, res.text)?
 
-	data.state.start_time = time.parse_rfc3339(data.state.start_time_str) ?
+	data.state.start_time = time.parse_rfc3339(data.state.start_time_str)?
 
 	if data.state.status == 'exited' {
-		data.state.end_time = time.parse_rfc3339(data.state.end_time_str) ?
+		data.state.end_time = time.parse_rfc3339(data.state.end_time_str)?
 	}
 
 	return data
@@ -89,7 +89,7 @@ pub fn inspect_container(id string) ?ContainerInspect {
 
 // remove_container removes a container with a given ID.
 pub fn remove_container(id string) ?bool {
-	res := request('DELETE', urllib.parse('/v1.41/containers/$id') ?) ?
+	res := request('DELETE', urllib.parse('/v1.41/containers/$id')?)?
 
 	return res.status_code == 204
 }
@@ -97,7 +97,7 @@ pub fn remove_container(id string) ?bool {
 // get_container_logs retrieves the logs for a Docker container, both stdout &
 // stderr.
 pub fn get_container_logs(id string) ?string {
-	res := request('GET', urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true') ?) ?
+	res := request('GET', urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true')?)?
 	mut res_bytes := res.text.bytes()
 
 	// Docker uses a special "stream" format for their logs, so we have to

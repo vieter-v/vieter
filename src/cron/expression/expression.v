@@ -218,7 +218,7 @@ fn parse_part(s string, min int, max int) ?[]int {
 	mut bitv := []bool{len: max - min + 1, init: false}
 
 	for range in s.split(',') {
-		parse_range(range, min, max, mut bitv) ?
+		parse_range(range, min, max, mut bitv)?
 	}
 
 	return bitv_to_ints(bitv, min)

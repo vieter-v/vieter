@@ -18,12 +18,12 @@ pub fn cmd() cli.Command {
 		usage: 'id'
 		description: 'Build the repository with the given ID.'
 		execute: fn (cmd cli.Command) ? {
-			config_file := cmd.flags.get_string('config-file') ?
-			conf := env.load<Config>(config_file) ?
+			config_file := cmd.flags.get_string('config-file')?
+			conf := env.load<Config>(config_file)?
 
 			id := cmd.args[0].int()
 
-			build(conf, id) ?
+			build(conf, id)?
 		}
 	}
 }

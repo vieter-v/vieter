@@ -37,10 +37,10 @@ fn (c &Client) send_request_raw(method Method, url string, params map[string]str
 		full_url = '$full_url?$params_str'
 	}
 
-	mut req := http.new_request(method, full_url, body) ?
-	req.add_custom_header('X-Api-Key', c.api_key) ?
+	mut req := http.new_request(method, full_url, body)?
+	req.add_custom_header('X-Api-Key', c.api_key)?
 
-	res := req.do() ?
+	res := req.do()?
 
 	return res
 }
@@ -53,15 +53,15 @@ fn (c &Client) send_request<T>(method Method, url string, params map[string]stri
 // send_request_with_body<T> calls send_request_raw_response & parses its
 // output as a Response<T> object.
 fn (c &Client) send_request_with_body<T>(method Method, url string, params map[string]string, body string) ?Response<T> {
-	res_text := c.send_request_raw_response(method, url, params, body) ?
-	data := json.decode(Response<T>, res_text) ?
+	res_text := c.send_request_raw_response(method, url, params, body)?
+	data := json.decode(Response<T>, res_text)?
 
 	return data
 }
 
 // send_request_raw_response returns the raw text response for an HTTP request.
 fn (c &Client) send_request_raw_response(method Method, url string, params map[string]string, body string) ?string {
-	res := c.send_request_raw(method, url, params, body) ?
+	res := c.send_request_raw(method, url, params, body)?
 
 	return res.text
 }

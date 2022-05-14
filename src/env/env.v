@@ -50,7 +50,7 @@ pub fn load<T>(path string) ?T {
 	if os.exists(path) {
 		// We don't use reflect here because reflect also sets any fields not
 		// in the toml back to their zero value, which we don't want
-		doc := toml.parse_file(path) ?
+		doc := toml.parse_file(path)?
 
 		$for field in T.fields {
 			s := doc.value(field.name)
@@ -66,7 +66,7 @@ pub fn load<T>(path string) ?T {
 	}
 
 	$for field in T.fields {
-		env_value := get_env_var(field.name) ?
+		env_value := get_env_var(field.name)?
 
 		// The value of an env var will always take precedence over the toml
 		// file.
