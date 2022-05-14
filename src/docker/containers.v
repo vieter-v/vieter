@@ -41,7 +41,7 @@ pub struct NewContainer {
 
 struct CreatedContainer {
 pub:
-	id string [json: Id]
+	id       string   [json: Id]
 	warnings []string [json: Warnings]
 }
 
@@ -62,7 +62,7 @@ pub fn (mut d DockerDaemon) create_container(c NewContainer) ?CreatedContainer {
 
 pub fn (mut d DockerDaemon) start_container(id string) ? {
 	d.send_request('POST', urllib.parse('/v1.41/containers/$id/start')?)?
-	head, body := d.read_response() ?
+	head, body := d.read_response()?
 
 	if head.status_code != 204 {
 		data := json.decode(DockerError, body)?
@@ -152,7 +152,7 @@ pub fn inspect_container(id string) ?ContainerInspect {
 
 pub fn (mut d DockerDaemon) remove_container(id string) ? {
 	d.send_request('DELETE', urllib.parse('/v1.41/containers/$id')?)?
-	head, body := d.read_response() ?
+	head, body := d.read_response()?
 
 	if head.status_code != 204 {
 		data := json.decode(DockerError, body)?

@@ -6,11 +6,13 @@ import net.http
 import strings
 import net.urllib
 import json
+import util
 
 const (
-	socket         = '/var/run/docker.sock'
-	buf_len        = 10 * 1024
-	http_separator = [u8(`\r`), `\n`, `\r`, `\n`]
+	socket               = '/var/run/docker.sock'
+	buf_len              = 10 * 1024
+	http_separator       = [u8(`\r`), `\n`, `\r`, `\n`]
+	http_chunk_separator = [u8(`\r`), `\n`]
 )
 
 pub struct DockerDaemon {
@@ -61,17 +63,18 @@ pub fn (mut d DockerDaemon) read_response_head() ?http.Response {
 		c = d.reader.read(mut buf)?
 		res << buf[..c]
 
-		mut i := 0
-		mut match_len := 0
+		match_len := util.match_array_in_array(buf[..c], docker.http_separator)
+		// mut i := 0
+		// mut match_len := 0
 
-		for i + match_len < c {
-			if buf[i + match_len] == docker.http_separator[match_len] {
-				match_len += 1
-			} else {
-				i += match_len + 1
-				match_len = 0
-			}
-		}
+		// for i + match_len < c {
+		//	if buf[i + match_len] == docker.http_separator[match_len] {
+		//		match_len += 1
+		//	} else {
+		//		i += match_len + 1
+		//		match_len = 0
+		//	}
+		//}
 
 		if match_len == 4 {
 			break
@@ -113,4 +116,10 @@ pub fn (mut d DockerDaemon) read_response() ?(http.Response, string) {
 	res := d.read_response_body(content_length)?
 
 	return head, res
+}
+
+pub fn (mut d DockerDaemon) get_chunked_response_reader() &ChunkedResponseReader {
+	r := new_chunked_response_reader(d.reader)
+
+	return r
 }

@@ -92,3 +92,19 @@ pub fn pretty_bytes(bytes int) string {
 
 	return '${n:.2}${util.prefixes[i]}'
 }
+
+pub fn match_array_in_array<T>(a1 []T, a2 []T) int {
+	mut i := 0
+	mut match_len := 0
+
+	for i + match_len < a1.len {
+		if a1[i + match_len] == a2[match_len] {
+			match_len += 1
+		} else {
+			i += match_len + 1
+			match_len = 0
+		}
+	}
+
+	return match_len
+}

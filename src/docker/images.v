@@ -9,6 +9,32 @@ pub:
 	id string [json: Id]
 }
 
+pub fn (mut d DockerDaemon) pull_image(image string, tag string) ? {
+	d.send_request('POST', urllib.parse('/v1.41/images/create?fromImage=$image&tag=$tag')?)?
+	head := d.read_response_head()?
+
+	if head.status_code != 200 {
+		content_length := head.header.get(http.CommonHeader.content_length)?.int()
+		body := d.read_response_body(content_length)?
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
+
+	mut body := d.get_chunked_response_reader()
+
+	mut buf := []u8{len: 1024}
+
+	for {
+		c := body.read(mut buf)?
+
+		if c == 0 {
+			break
+		}
+		print(buf[..c].bytestr())
+	}
+}
+
 // pull_image pulls tries to pull the image for the given image & tag
 pub fn pull_image(image string, tag string) ?http.Response {
 	return request('POST', urllib.parse('/v1.41/images/create?fromImage=$image&tag=$tag')?)
