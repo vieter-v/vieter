@@ -33,6 +33,11 @@ pub fn new_conn() ?&DockerDaemon {
 	return d
 }
 
+// close closes the underlying socket connection.
+pub fn (mut d DockerDaemon) close() ? {
+	d.socket.close()?
+}
+
 // send_request sends an HTTP request without body.
 pub fn (mut d DockerDaemon) send_request(method string, url urllib.URL) ? {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\n\n'
@@ -124,7 +129,7 @@ pub fn (mut d DockerDaemon) read_response() ?(http.Response, string) {
 		mut builder := strings.new_builder(1024)
 		mut body := d.get_chunked_response_reader()
 
-		util.reader_to_writer(mut body, mut builder) ?
+		util.reader_to_writer(mut body, mut builder)?
 
 		return head, builder.str()
 	}

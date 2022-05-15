@@ -7,7 +7,6 @@ import build
 import console.git
 import console.logs
 import cron
-import docker
 
 fn main() {
 	mut app := cli.Command{

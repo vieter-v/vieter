@@ -6,6 +6,8 @@ import time
 import os
 import db
 import client
+import strings
+import util
 
 const container_build_dir = '/build'
 
@@ -18,6 +20,10 @@ const build_image_repo = 'vieter-build'
 // Pacman as its package manager.
 pub fn create_build_image(base_image string) ?string {
 	mut dd := docker.new_conn()?
+
+	defer {
+		dd.close() or {}
+	}
 
 	commands := [
 		// Update repos & install required packages
@@ -48,7 +54,7 @@ pub fn create_build_image(base_image string) ?string {
 	image_tag := if image_parts.len > 1 { image_parts[1] } else { 'latest' }
 
 	// We pull the provided image
-	docker.pull_image(image_name, image_tag)?
+	dd.pull_image(image_name, image_tag)?
 
 	id := dd.create_container(c)?.id
 	// id := docker.create_container(c)?
@@ -70,7 +76,7 @@ pub fn create_build_image(base_image string) ?string {
 	// TODO also add the base image's name into the image name to prevent
 	// conflicts.
 	tag := time.sys_mono_now().str()
-	image := docker.create_image_from_container(id, 'vieter-build', tag)?
+	image := dd.create_image_from_container(id, 'vieter-build', tag)?
 	dd.remove_container(id)?
 
 	return image.id
@@ -88,6 +94,12 @@ pub:
 // provided GitRepo. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
 pub fn build_repo(address string, api_key string, base_image_id string, repo &db.GitRepo) ?BuildResult {
+	mut dd := docker.new_conn()?
+
+	defer {
+		dd.close() or {}
+	}
+
 	build_arch := os.uname().machine
 
 	// TODO what to do with PKGBUILDs that build multiple packages?
@@ -115,27 +127,31 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &db
 		user: 'builder:builder'
 	}
 
-	id := docker.create_container(c)?
-	docker.start_container(id)?
+	id := dd.create_container(c)?.id
+	dd.start_container(id)?
 
-	mut data := docker.inspect_container(id)?
+	mut data := dd.inspect_container(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for data.state.running {
 		time.sleep(1 * time.second)
 
-		data = docker.inspect_container(id)?
+		data = dd.inspect_container(id)?
 	}
 
-	logs := docker.get_container_logs(id)?
+	mut logs_stream := dd.get_container_logs(id)?
 
-	docker.remove_container(id)?
+	// Read in the entire stream
+	mut logs_builder := strings.new_builder(10 * 1024)
+	util.reader_to_writer(mut logs_stream, mut logs_builder)?
+
+	dd.remove_container(id)?
 
 	return BuildResult{
 		start_time: data.state.start_time
 		end_time: data.state.end_time
 		exit_code: data.state.exit_code
-		logs: logs
+		logs: logs_builder.str()
 	}
 }
 
@@ -153,7 +169,14 @@ fn build(conf Config, repo_id int) ? {
 	res := build_repo(conf.address, conf.api_key, image_id, repo)?
 
 	println('Removing build image...')
-	docker.remove_image(image_id)?
+
+	mut dd := docker.new_conn()?
+
+	defer {
+		dd.close() or {}
+	}
+
+	dd.remove_image(image_id)?
 
 	println('Uploading logs to Vieter...')
 	c.add_build_log(repo.id, res.start_time, res.end_time, build_arch, res.exit_code,

@@ -22,20 +22,35 @@ pub fn (mut d DockerDaemon) pull_image(image string, tag string) ? {
 		return error(data.message)
 	}
 
+	// Keep reading the body until the pull has completed
 	mut body := d.get_chunked_response_reader()
 
 	mut buf := []u8{len: 1024}
 
 	for {
-		c := body.read(mut buf) or { break }
-
-		print(buf[..c].bytestr())
+		body.read(mut buf) or { break }
 	}
 }
 
 // pull_image pulls tries to pull the image for the given image & tag
 pub fn pull_image(image string, tag string) ?http.Response {
 	return request('POST', urllib.parse('/v1.41/images/create?fromImage=$image&tag=$tag')?)
+}
+
+// create_image_from_container creates a new image from a container.
+pub fn (mut d DockerDaemon) create_image_from_container(id string, repo string, tag string) ?Image {
+	d.send_request('POST', urllib.parse('/v1.41/commit?container=$id&repo=$repo&tag=$tag')?)?
+	head, body := d.read_response()?
+
+	if head.status_code != 201 {
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
+
+	data := json.decode(Image, body)?
+
+	return data
 }
 
 // create_image_from_container creates a new image from a container with the
@@ -55,4 +70,16 @@ pub fn remove_image(id string) ?bool {
 	res := request('DELETE', urllib.parse('/v1.41/images/$id')?)?
 
 	return res.status_code == 200
+}
+
+// remove_image removes the image with the given id.
+pub fn (mut d DockerDaemon) remove_image(id string) ? {
+	d.send_request('DELETE', urllib.parse('/v1.41/images/$id')?)?
+	head, body := d.read_response()?
+
+	if head.status_code != 200 {
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
 }

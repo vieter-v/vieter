@@ -28,7 +28,7 @@ pub fn reader_to_writer(mut reader io.Reader, mut writer io.Writer) ? {
 	mut buf := []u8{len: 10 * 1024}
 
 	for {
-		c := reader.read(mut buf) or { break }
+		reader.read(mut buf) or { break }
 
 		writer.write(buf) or { break }
 	}
