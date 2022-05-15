@@ -253,14 +253,21 @@ fn (mut d Daemon) rebuild_base_image() bool {
 fn (mut d Daemon) clean_old_base_images() {
 	mut i := 0
 
+	mut dd := docker.new_conn() or {
+		d.lerror('Failed to connect to Docker socket.')
+		return
+	}
+
+	defer {
+		dd.close() or {}
+	}
+
 	for i < d.builder_images.len - 1 {
 		// For each builder image, we try to remove it by calling the Docker
 		// API. If the function returns an error or false, that means the image
 		// wasn't deleted. Therefore, we move the index over. If the function
 		// returns true, the array's length has decreased by one so we don't
 		// move the index.
-		if !docker.remove_image(d.builder_images[i]) or { false } {
-			i += 1
-		}
+		dd.remove_image(d.builder_images[i]) or { i += 1 }
 	}
 }
