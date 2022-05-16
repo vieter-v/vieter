@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * CLI commands to access build logs API
 * Cron build logs are uploaded to above API
 * Proper ASCII table output in CLI
+* `vieter repos build id` command to run builds locally
+
+### Removed
+
+* `vieter build` command
+    * This command was used alongside cron for periodic builds, but this has
+      been replaced by `vieter cron`
 
 ### Changed
 

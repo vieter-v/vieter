@@ -7,8 +7,9 @@ import client
 import console
 
 struct Config {
-	address string [required]
-	api_key string [required]
+	address    string [required]
+	api_key    string [required]
+	base_image string = 'archlinux:base-devel'
 }
 
 // cmd returns the cli submodule that handles the repos API interaction
@@ -110,6 +111,18 @@ pub fn cmd() cli.Command {
 					}
 
 					patch(conf, cmd.args[0], params)?
+				}
+			},
+			cli.Command{
+				name: 'build'
+				required_args: 1
+				usage: 'id'
+				description: 'Build the repo with the given id & publish it.'
+				execute: fn (cmd cli.Command) ? {
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
+
+					build(conf, cmd.args[0].int())?
 				}
 			},
 		]
