@@ -3,7 +3,7 @@
 
 pkgbase='vieter'
 pkgname='vieter'
-pkgver='0.3.0_alpha.1'
+pkgver='0.3.0_alpha.2'
 pkgrel=1
 depends=('glibc' 'openssl' 'libarchive' 'sqlite')
 makedepends=('git' 'vieter-v')
