@@ -9,27 +9,6 @@ struct DockerError {
 	message string
 }
 
-struct Container {
-	id    string   [json: Id]
-	names []string [json: Names]
-}
-
-// containers returns a list of all containers.
-pub fn (mut d DockerConn) containers() ?[]Container {
-	d.send_request(Method.get, urllib.parse('/v1.41/containers/json')?)?
-	head, res := d.read_response()?
-
-	if head.status_code != 200 {
-		data := json.decode(DockerError, res)?
-
-		return error(data.message)
-	}
-
-	data := json.decode([]Container, res)?
-
-	return data
-}
-
 pub struct NewContainer {
 	image      string   [json: Image]
 	entrypoint []string [json: Entrypoint]
