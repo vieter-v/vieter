@@ -10,7 +10,7 @@ pub:
 }
 
 // pull_image pulls the given image:tag.
-pub fn (mut d DockerDaemon) pull_image(image string, tag string) ? {
+pub fn (mut d DockerConn) pull_image(image string, tag string) ? {
 	d.send_request('POST', urllib.parse('/v1.41/images/create?fromImage=$image&tag=$tag')?)?
 	head := d.read_response_head()?
 
@@ -33,7 +33,7 @@ pub fn (mut d DockerDaemon) pull_image(image string, tag string) ? {
 }
 
 // create_image_from_container creates a new image from a container.
-pub fn (mut d DockerDaemon) create_image_from_container(id string, repo string, tag string) ?Image {
+pub fn (mut d DockerConn) create_image_from_container(id string, repo string, tag string) ?Image {
 	d.send_request('POST', urllib.parse('/v1.41/commit?container=$id&repo=$repo&tag=$tag')?)?
 	head, body := d.read_response()?
 
@@ -49,7 +49,7 @@ pub fn (mut d DockerDaemon) create_image_from_container(id string, repo string, 
 }
 
 // remove_image removes the image with the given id.
-pub fn (mut d DockerDaemon) remove_image(id string) ? {
+pub fn (mut d DockerConn) remove_image(id string) ? {
 	d.send_request('DELETE', urllib.parse('/v1.41/images/$id')?)?
 	head, body := d.read_response()?
 

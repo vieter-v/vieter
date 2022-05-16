@@ -68,7 +68,7 @@ fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 	r.started = true
 
 	mut res := []u8{}
-	util.read_until_separator(mut r.reader, mut res, http_chunk_separator) ?
+	util.read_until_separator(mut r.reader, mut res, http_chunk_separator)?
 
 	// The length of the next chunk is provided as a hexadecimal
 	mut num_data := hex.decode(res#[..-2].bytestr())?
