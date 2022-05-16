@@ -39,7 +39,7 @@ pub fn (mut d DockerConn) close() ? {
 }
 
 // send_request sends an HTTP request without body.
-pub fn (mut d DockerConn) send_request(method string, url urllib.URL) ? {
+pub fn (mut d DockerConn) send_request(method http.Method, url urllib.URL) ? {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\n\n'
 
 	d.socket.write_string(req)?
@@ -49,7 +49,7 @@ pub fn (mut d DockerConn) send_request(method string, url urllib.URL) ? {
 }
 
 // send_request_with_body sends an HTTP request with the given body.
-pub fn (mut d DockerConn) send_request_with_body(method string, url urllib.URL, content_type string, body string) ? {
+pub fn (mut d DockerConn) send_request_with_body(method http.Method, url urllib.URL, content_type string, body string) ? {
 	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: $content_type\nContent-Length: $body.len\n\n$body\n\n'
 
 	d.socket.write_string(req)?
@@ -60,7 +60,7 @@ pub fn (mut d DockerConn) send_request_with_body(method string, url urllib.URL, 
 
 // send_request_with_json<T> is a convenience wrapper around
 // send_request_with_body that encodes the input as JSON.
-pub fn (mut d DockerConn) send_request_with_json<T>(method string, url urllib.URL, data &T) ? {
+pub fn (mut d DockerConn) send_request_with_json<T>(method http.Method, url urllib.URL, data &T) ? {
 	body := json.encode(data)
 
 	return d.send_request_with_body(method, url, 'application/json', body)
