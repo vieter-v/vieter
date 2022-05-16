@@ -58,9 +58,9 @@ pub fn (mut r ChunkedResponseReader) read(mut buf []u8) ?int {
 // This function should only be called if the previous chunk has been
 // completely consumed.
 fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
-	mut buf := []u8{len: 2}
-
 	if r.started {
+		mut buf := []u8{len: 2}
+
 		// Each chunk ends with a `\r\n` which we want to skip first
 		r.reader.read(mut buf)?
 	}

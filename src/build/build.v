@@ -9,9 +9,10 @@ import client
 import strings
 import util
 
-const container_build_dir = '/build'
-
-const build_image_repo = 'vieter-build'
+const (
+	container_build_dir = '/build'
+	build_image_repo    = 'vieter-build'
+)
 
 // create_build_image creates a builder image given some base image which can
 // then be used to build & package Arch images. It mostly just updates the
