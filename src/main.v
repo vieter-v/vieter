@@ -3,7 +3,6 @@ module main
 import os
 import server
 import cli
-import build
 import console.git
 import console.logs
 import cron
@@ -25,7 +24,6 @@ fn main() {
 		]
 		commands: [
 			server.cmd(),
-			build.cmd(),
 			git.cmd(),
 			cron.cmd(),
 			logs.cmd(),
