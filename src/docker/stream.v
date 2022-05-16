@@ -59,7 +59,6 @@ pub fn (mut r ChunkedResponseReader) read(mut buf []u8) ?int {
 // completely consumed.
 fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 	mut buf := []u8{len: 2}
-	mut res := []u8{}
 
 	if r.started {
 		// Each chunk ends with a `\r\n` which we want to skip first
@@ -68,26 +67,8 @@ fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 
 	r.started = true
 
-	for {
-		c := r.reader.read(mut buf)?
-		res << buf[..c]
-
-		match_len := util.match_array_in_array(buf[..c], http_chunk_separator)
-
-		if match_len == http_chunk_separator.len {
-			break
-		}
-
-		if match_len > 0 {
-			mut buf2 := []u8{len: 2 - match_len}
-			c2 := r.reader.read(mut buf2)?
-			res << buf2[..c2]
-
-			if buf2 == http_chunk_separator[match_len..] {
-				break
-			}
-		}
-	}
+	mut res := []u8{}
+	util.read_until_separator(mut r.reader, mut res, http_chunk_separator) ?
 
 	// The length of the next chunk is provided as a hexadecimal
 	mut num_data := hex.decode(res#[..-2].bytestr())?

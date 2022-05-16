@@ -28,9 +28,14 @@ pub fn reader_to_writer(mut reader io.Reader, mut writer io.Writer) ? {
 	mut buf := []u8{len: 10 * 1024}
 
 	for {
-		reader.read(mut buf) or { break }
+		bytes_read := reader.read(mut buf) or { break }
+		mut bytes_written := 0
 
-		writer.write(buf) or { break }
+		for bytes_written < bytes_read {
+			c := writer.write(buf[bytes_written..bytes_read]) or { break }
+
+			bytes_written += c
+		}
 	}
 }
 
@@ -121,4 +126,31 @@ pub fn match_array_in_array<T>(a1 []T, a2 []T) int {
 	}
 
 	return match_len
+}
+
+// read_until_separator consumes an io.Reader until it encounters some
+// separator array. The data read is stored inside the provided res array.
+pub fn read_until_separator(mut reader io.Reader, mut res []u8, sep []u8) ? {
+	mut buf := []u8{len: sep.len}
+
+	for {
+		c := reader.read(mut buf)?
+		res << buf[..c]
+
+		match_len := match_array_in_array(buf[..c], sep)
+
+		if match_len == sep.len {
+			break
+		}
+
+		if match_len > 0 {
+			match_left := sep.len - match_len
+			c2 := reader.read(mut buf[..match_left])?
+			res << buf[..c2]
+
+			if buf[..c2] == sep[match_len..] {
+				break
+			}
+		}
+	}
 }

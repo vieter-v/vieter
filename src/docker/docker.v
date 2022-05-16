@@ -71,30 +71,9 @@ pub fn (mut d DockerDaemon) send_request_with_json<T>(method string, url urllib.
 // Importantly, this function never consumes the reader past the HTTP
 // separator, so the body can be read fully later on.
 pub fn (mut d DockerDaemon) read_response_head() ?http.Response {
-	mut c := 0
-	mut buf := []u8{len: 4}
 	mut res := []u8{}
 
-	for {
-		c = d.reader.read(mut buf)?
-		res << buf[..c]
-
-		match_len := util.match_array_in_array(buf[..c], docker.http_separator)
-
-		if match_len == 4 {
-			break
-		}
-
-		if match_len > 0 {
-			mut buf2 := []u8{len: 4 - match_len}
-			c2 := d.reader.read(mut buf2)?
-			res << buf2[..c2]
-
-			if buf2 == docker.http_separator[match_len..] {
-				break
-			}
-		}
-	}
+	util.read_until_separator(mut d.reader, mut res, http_separator) ?
 
 	return http.parse_response(res.bytestr())
 }
