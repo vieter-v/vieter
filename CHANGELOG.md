@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Web API for adding & querying build logs
 * CLI commands to access build logs API
 * Cron build logs are uploaded to above API
+* Proper ASCII table output in CLI
 
 ### Changed
 
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Official Arch packages are now split between `vieter` & `vieter-git`
     * `vieter` is the latest release
     * `vieter-git` is the latest commit on the dev branch
+* Full refactor of Docker socket code
 
 ## [0.3.0-alpha.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.1)
 

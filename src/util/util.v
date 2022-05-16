@@ -1,13 +1,13 @@
 module util
 
 import os
-import io
 import crypto.md5
 import crypto.sha256
 
-const reader_buf_size = 1_000_000
-
-const prefixes = ['B', 'KB', 'MB', 'GB']
+const (
+	reader_buf_size = 1_000_000
+	prefixes        = ['B', 'KB', 'MB', 'GB']
+)
 
 // Dummy struct to work around the fact that you can only share structs, maps &
 // arrays
@@ -21,34 +21,6 @@ pub struct Dummy {
 pub fn exit_with_message(code int, msg string) {
 	eprintln(msg)
 	exit(code)
-}
-
-// reader_to_file writes the contents of a BufferedReader to a file
-pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ? {
-	mut file := os.create(path)?
-	defer {
-		file.close()
-	}
-
-	mut buf := []u8{len: util.reader_buf_size}
-	mut bytes_left := length
-
-	// Repeat as long as the stream still has data
-	for bytes_left > 0 {
-		// TODO check if just breaking here is safe
-		bytes_read := reader.read(mut buf) or { break }
-		bytes_left -= bytes_read
-
-		mut to_write := bytes_read
-
-		for to_write > 0 {
-			// TODO don't just loop infinitely here
-			bytes_written := file.write(buf[bytes_read - to_write..bytes_read]) or { continue }
-			// file.flush()
-
-			to_write = to_write - bytes_written
-		}
-	}
 }
 
 // hash_file returns the md5 & sha256 hash of a given file

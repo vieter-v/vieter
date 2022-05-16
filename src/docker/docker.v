@@ -1,97 +1,137 @@
 module docker
 
 import net.unix
-import net.urllib
+import io
 import net.http
+import strings
+import net.urllib
 import json
+import util
 
-const socket = '/var/run/docker.sock'
+const (
+	socket               = '/var/run/docker.sock'
+	buf_len              = 10 * 1024
+	http_separator       = [u8(`\r`), `\n`, `\r`, `\n`]
+	http_chunk_separator = [u8(`\r`), `\n`]
+)
 
-const buf_len = 1024
+pub struct DockerConn {
+mut:
+	socket &unix.StreamConn
+	reader &io.BufferedReader
+}
 
-// send writes a request to the Docker socket, waits for a response & returns
-// it.
-fn send(req &string) ?http.Response {
-	// Open a connection to the socket
-	mut s := unix.connect_stream(docker.socket) or {
-		return error('Failed to connect to socket ${docker.socket}.')
+// new_conn creates a new connection to the Docker daemon.
+pub fn new_conn() ?&DockerConn {
+	s := unix.connect_stream(docker.socket)?
+
+	d := &DockerConn{
+		socket: s
+		reader: io.new_buffered_reader(reader: s)
 	}
 
-	defer {
-		// This or is required because otherwise, the V compiler segfaults for
-		// some reason
-		// https://github.com/vlang/v/issues/13534
-		s.close() or {}
-	}
+	return d
+}
 
-	// Write the request to the socket
-	s.write_string(req) or { return error('Failed to write request to socket ${docker.socket}.') }
+// close closes the underlying socket connection.
+pub fn (mut d DockerConn) close() ? {
+	d.socket.close()?
+}
 
-	s.wait_for_write()?
+// send_request sends an HTTP request without body.
+pub fn (mut d DockerConn) send_request(method http.Method, url urllib.URL) ? {
+	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\n\n'
 
-	mut c := 0
-	mut buf := []u8{len: docker.buf_len}
+	d.socket.write_string(req)?
+
+	// When starting a new request, the reader needs to be reset.
+	d.reader = io.new_buffered_reader(reader: d.socket)
+}
+
+// send_request_with_body sends an HTTP request with the given body.
+pub fn (mut d DockerConn) send_request_with_body(method http.Method, url urllib.URL, content_type string, body string) ? {
+	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: $content_type\nContent-Length: $body.len\n\n$body\n\n'
+
+	d.socket.write_string(req)?
+
+	// When starting a new request, the reader needs to be reset.
+	d.reader = io.new_buffered_reader(reader: d.socket)
+}
+
+// send_request_with_json<T> is a convenience wrapper around
+// send_request_with_body that encodes the input as JSON.
+pub fn (mut d DockerConn) send_request_with_json<T>(method http.Method, url urllib.URL, data &T) ? {
+	body := json.encode(data)
+
+	return d.send_request_with_body(method, url, 'application/json', body)
+}
+
+// read_response_head consumes the socket's contents until it encounters
+// '\r\n\r\n', after which it parses the response as an HTTP response.
+// Importantly, this function never consumes the reader past the HTTP
+// separator, so the body can be read fully later on.
+pub fn (mut d DockerConn) read_response_head() ?http.Response {
 	mut res := []u8{}
 
-	for {
-		c = s.read(mut buf) or { return error('Failed to read data from socket ${docker.socket}.') }
-		res << buf[..c]
+	util.read_until_separator(mut d.reader, mut res, docker.http_separator)?
 
-		if c < docker.buf_len {
-			break
-		}
-	}
-
-	// After reading the first part of the response, we parse it into an HTTP
-	// response. If it isn't chunked, we return early with the data.
-	parsed := http.parse_response(res.bytestr()) or {
-		return error('Failed to parse HTTP response from socket ${docker.socket}.')
-	}
-
-	if parsed.header.get(http.CommonHeader.transfer_encoding) or { '' } != 'chunked' {
-		return parsed
-	}
-
-	// We loop until we've encountered the end of the chunked response
-	// A chunked HTTP response always ends with '0\r\n\r\n'.
-	for res.len < 5 || res#[-5..] != [u8(`0`), `\r`, `\n`, `\r`, `\n`] {
-		// Wait for the server to respond
-		s.wait_for_write()?
-
-		for {
-			c = s.read(mut buf) or {
-				return error('Failed to read data from socket ${docker.socket}.')
-			}
-			res << buf[..c]
-
-			if c < docker.buf_len {
-				break
-			}
-		}
-	}
-
-	// Decode chunked response
 	return http.parse_response(res.bytestr())
 }
 
-// request_with_body sends a request to the Docker socket with the given body.
-fn request_with_body(method string, url urllib.URL, content_type string, body string) ?http.Response {
-	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\nContent-Type: $content_type\nContent-Length: $body.len\n\n$body\n\n'
+// read_response_body reads `length` bytes from the stream. It can be used when
+// the response encoding isn't chunked to fully read it.
+pub fn (mut d DockerConn) read_response_body(length int) ?string {
+	if length == 0 {
+		return ''
+	}
 
-	return send(req)
+	mut buf := []u8{len: docker.buf_len}
+	mut c := 0
+	mut builder := strings.new_builder(docker.buf_len)
+
+	for builder.len < length {
+		c = d.reader.read(mut buf) or { break }
+
+		builder.write(buf[..c])?
+	}
+
+	return builder.str()
 }
 
-// request sends a request to the Docker socket with an empty body.
-fn request(method string, url urllib.URL) ?http.Response {
-	req := '$method $url.request_uri() HTTP/1.1\nHost: localhost\n\n'
+// read_response is a convenience function which always consumes the entire
+// response & returns it. It should only be used when we're certain that the
+// result isn't too large.
+pub fn (mut d DockerConn) read_response() ?(http.Response, string) {
+	head := d.read_response_head()?
 
-	return send(req)
+	if head.header.get(http.CommonHeader.transfer_encoding) or { '' } == 'chunked' {
+		mut builder := strings.new_builder(1024)
+		mut body := d.get_chunked_response_reader()
+
+		util.reader_to_writer(mut body, mut builder)?
+
+		return head, builder.str()
+	}
+
+	content_length := head.header.get(http.CommonHeader.content_length)?.int()
+	res := d.read_response_body(content_length)?
+
+	return head, res
 }
 
-// request_with_json<T> sends a request to the Docker socket with a given JSON
-// payload
-pub fn request_with_json<T>(method string, url urllib.URL, data &T) ?http.Response {
-	body := json.encode(data)
+// get_chunked_response_reader returns a ChunkedResponseReader using the socket
+// as reader.
+pub fn (mut d DockerConn) get_chunked_response_reader() &ChunkedResponseReader {
+	r := new_chunked_response_reader(d.reader)
 
-	return request_with_body(method, url, 'application/json', body)
+	return r
+}
+
+// get_stream_format_reader returns a StreamFormatReader using the socket as
+// reader.
+pub fn (mut d DockerConn) get_stream_format_reader() &StreamFormatReader {
+	r := new_chunked_response_reader(d.reader)
+	r2 := new_stream_format_reader(r)
+
+	return r2
 }

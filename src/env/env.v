@@ -3,13 +3,19 @@ module env
 import os
 import toml
 
-// The prefix that every environment variable should have
-const prefix = 'VIETER_'
+const (
+	// The prefix that every environment variable should have
+	prefix      = 'VIETER_'
+	// The suffix an environment variable in order for it to be loaded from a file
+	// instead
+	file_suffix = '_FILE'
+)
 
-// The suffix an environment variable in order for it to be loaded from a file
-// instead
-const file_suffix = '_FILE'
-
+// get_env_var tries to read the contents of the given environment variable. It
+// looks for either `${env.prefix}${field_name.to_upper()}` or
+// `${env.prefix}${field_name.to_upper()}${env.file_suffix}`, returning the
+// contents of the file instead if the latter. If both or neither exist, the
+// function returns an error.
 fn get_env_var(field_name string) ?string {
 	env_var_name := '$env.prefix$field_name.to_upper()'
 	env_file_name := '$env.prefix$field_name.to_upper()$env.file_suffix'

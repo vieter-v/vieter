@@ -3,17 +3,10 @@ module docker
 import json
 import net.urllib
 import time
+import net.http { Method }
 
-struct Container {
-	id    string   [json: Id]
-	names []string [json: Names]
-}
-
-// containers returns a list of all currently running containers
-pub fn containers() ?[]Container {
-	res := request('GET', urllib.parse('/v1.41/containers/json')?)?
-
-	return json.decode([]Container, res.text) or {}
+struct DockerError {
+	message string
 }
 
 pub struct NewContainer {
@@ -26,27 +19,37 @@ pub struct NewContainer {
 }
 
 struct CreatedContainer {
-	id string [json: Id]
+pub:
+	id       string   [json: Id]
+	warnings []string [json: Warnings]
 }
 
-// create_container creates a container defined by the given configuration. If
-// successful, it returns the ID of the newly created container.
-pub fn create_container(c &NewContainer) ?string {
-	res := request_with_json('POST', urllib.parse('/v1.41/containers/create')?, c)?
+// create_container creates a new container with the given config.
+pub fn (mut d DockerConn) create_container(c NewContainer) ?CreatedContainer {
+	d.send_request_with_json(Method.post, urllib.parse('/v1.41/containers/create')?, c)?
+	head, res := d.read_response()?
 
-	if res.status_code != 201 {
-		return error('Failed to create container.')
+	if head.status_code != 201 {
+		data := json.decode(DockerError, res)?
+
+		return error(data.message)
 	}
 
-	return json.decode(CreatedContainer, res.text)?.id
+	data := json.decode(CreatedContainer, res)?
+
+	return data
 }
 
-// start_container starts a container with a given ID. It returns whether the
-// container was started or not.
-pub fn start_container(id string) ?bool {
-	res := request('POST', urllib.parse('/v1.41/containers/$id/start')?)?
+// start_container starts the container with the given id.
+pub fn (mut d DockerConn) start_container(id string) ? {
+	d.send_request(Method.post, urllib.parse('/v1.41/containers/$id/start')?)?
+	head, body := d.read_response()?
 
-	return res.status_code == 204
+	if head.status_code != 204 {
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
 }
 
 struct ContainerInspect {
@@ -67,16 +70,18 @@ pub mut:
 	end_time   time.Time [skip]
 }
 
-// inspect_container returns the result of inspecting a container with a given
-// ID.
-pub fn inspect_container(id string) ?ContainerInspect {
-	res := request('GET', urllib.parse('/v1.41/containers/$id/json')?)?
+// inspect_container returns detailed information for a given container.
+pub fn (mut d DockerConn) inspect_container(id string) ?ContainerInspect {
+	d.send_request(Method.get, urllib.parse('/v1.41/containers/$id/json')?)?
+	head, body := d.read_response()?
 
-	if res.status_code != 200 {
-		return error('Failed to inspect container.')
+	if head.status_code != 200 {
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
 	}
 
-	mut data := json.decode(ContainerInspect, res.text)?
+	mut data := json.decode(ContainerInspect, body)?
 
 	data.state.start_time = time.parse_rfc3339(data.state.start_time_str)?
 
@@ -87,31 +92,31 @@ pub fn inspect_container(id string) ?ContainerInspect {
 	return data
 }
 
-// remove_container removes a container with a given ID.
-pub fn remove_container(id string) ?bool {
-	res := request('DELETE', urllib.parse('/v1.41/containers/$id')?)?
+// remove_container removes the container with the given id.
+pub fn (mut d DockerConn) remove_container(id string) ? {
+	d.send_request(Method.delete, urllib.parse('/v1.41/containers/$id')?)?
+	head, body := d.read_response()?
 
-	return res.status_code == 204
+	if head.status_code != 204 {
+		data := json.decode(DockerError, body)?
+
+		return error(data.message)
+	}
 }
 
-// get_container_logs retrieves the logs for a Docker container, both stdout &
-// stderr.
-pub fn get_container_logs(id string) ?string {
-	res := request('GET', urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true')?)?
-	mut res_bytes := res.text.bytes()
+// get_container_logs returns a reader object allowing access to the
+// container's logs.
+pub fn (mut d DockerConn) get_container_logs(id string) ?&StreamFormatReader {
+	d.send_request(Method.get, urllib.parse('/v1.41/containers/$id/logs?stdout=true&stderr=true')?)?
+	head := d.read_response_head()?
 
-	// Docker uses a special "stream" format for their logs, so we have to
-	// clean up the data.
-	mut index := 0
+	if head.status_code != 200 {
+		content_length := head.header.get(http.CommonHeader.content_length)?.int()
+		body := d.read_response_body(content_length)?
+		data := json.decode(DockerError, body)?
 
-	for index < res_bytes.len {
-		// The reverse is required because V reads in the bytes differently
-		t := res_bytes[index + 4..index + 8].reverse()
-		len_length := unsafe { *(&u32(&t[0])) }
-
-		res_bytes.delete_many(index, 8)
-		index += int(len_length)
+		return error(data.message)
 	}
 
-	return res_bytes.bytestr()
+	return d.get_stream_format_reader()
 }
