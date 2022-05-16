@@ -9,15 +9,14 @@ import encoding.hex
 // it as if it was a continuous stream of data.
 struct ChunkedResponseReader {
 mut:
-	reader              io.Reader
+	reader              io.BufferedReader
 	bytes_left_in_chunk u64
-	end_of_stream       bool
 	started             bool
 }
 
 // new_chunked_response_reader creates a new ChunkedResponseReader on the heap
 // with the provided reader.
-pub fn new_chunked_response_reader(reader io.Reader) &ChunkedResponseReader {
+pub fn new_chunked_response_reader(reader io.BufferedReader) &ChunkedResponseReader {
 	r := &ChunkedResponseReader{
 		reader: reader
 	}
@@ -27,16 +26,10 @@ pub fn new_chunked_response_reader(reader io.Reader) &ChunkedResponseReader {
 
 // read satisfies the io.Reader interface.
 pub fn (mut r ChunkedResponseReader) read(mut buf []u8) ?int {
-	if r.end_of_stream {
-		return none
-	}
-
 	if r.bytes_left_in_chunk == 0 {
+		// An io.BufferedReader always returns none if its stream has
+		// ended.
 		r.bytes_left_in_chunk = r.read_chunk_size()?
-
-		if r.end_of_stream {
-			return none
-		}
 	}
 
 	mut c := 0
@@ -82,7 +75,7 @@ fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 	// This only occurs for the very last chunk, which always reports a size of
 	// 0.
 	if num == 0 {
-		r.end_of_stream = true
+		return none
 	}
 
 	return num
@@ -92,14 +85,13 @@ fn (mut r ChunkedResponseReader) read_chunk_size() ?u64 {
 // header bytes.
 struct StreamFormatReader {
 mut:
-	reader              io.Reader
+	reader              ChunkedResponseReader
 	bytes_left_in_chunk u32
-	end_of_stream       bool
 }
 
 // new_stream_format_reader creates a new StreamFormatReader using the given
 // reader.
-pub fn new_stream_format_reader(reader io.Reader) &StreamFormatReader {
+pub fn new_stream_format_reader(reader ChunkedResponseReader) &StreamFormatReader {
 	r := &StreamFormatReader{
 		reader: reader
 	}
@@ -109,16 +101,8 @@ pub fn new_stream_format_reader(reader io.Reader) &StreamFormatReader {
 
 // read satisfies the io.Reader interface.
 pub fn (mut r StreamFormatReader) read(mut buf []u8) ?int {
-	if r.end_of_stream {
-		return none
-	}
-
 	if r.bytes_left_in_chunk == 0 {
 		r.bytes_left_in_chunk = r.read_chunk_size()?
-
-		if r.end_of_stream {
-			return none
-		}
 	}
 
 	mut c := 0
@@ -142,6 +126,10 @@ fn (mut r StreamFormatReader) read_chunk_size() ?u32 {
 	r.reader.read(mut buf)?
 
 	num := binary.big_endian_u32(buf[4..])
+
+	if num == 0 {
+		return none
+	}
 
 	return num
 }
