@@ -77,9 +77,19 @@ pub fn git_repo_from_params(params map[string]string) ?GitRepo {
 }
 
 // get_git_repos returns all GitRepo's in the database.
-pub fn (db &VieterDb) get_git_repos() []GitRepo {
+pub fn (db &VieterDb) get_git_repos(filter GitRepoFilter) []GitRepo {
+	// This seems to currently be blocked by a bug in the ORM, I'll have to ask
+	// around.
+	if filter.repo != '' {
+		res := sql db.conn {
+			select from GitRepo where repo == filter.repo order by id limit filter.limit offset filter.offset
+		}
+
+		return res
+	}
+
 	res := sql db.conn {
-		select from GitRepo order by id
+		select from GitRepo order by id limit filter.limit offset filter.offset
 	}
 
 	return res

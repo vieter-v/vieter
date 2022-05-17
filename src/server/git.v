@@ -12,7 +12,10 @@ fn (mut app App) get_repos() web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	repos := app.db.get_git_repos()
+	filter := db.filter_from_params<db.GitRepoFilter>(app.query) or {
+		return app.json(http.Status.bad_request, new_response('Invalid query parameters.'))
+	}
+	repos := app.db.get_git_repos(filter)
 
 	return app.json(http.Status.ok, new_data_response(repos))
 }
