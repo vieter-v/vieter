@@ -64,3 +64,13 @@ pub fn pretty_bytes(bytes int) string {
 
 	return '${n:.2}${util.prefixes[i]}'
 }
+
+pub fn struct_to_map<T>(o T) map[string]string {
+	mut m := map[string]string{}
+
+	$for field in T.fields {
+		m[field.name] = o.$(field.name).str()
+	}
+
+	return m
+}

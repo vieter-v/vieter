@@ -78,6 +78,7 @@ pub fn git_repo_from_params(params map[string]string) ?GitRepo {
 
 // get_git_repos returns all GitRepo's in the database.
 pub fn (db &VieterDb) get_git_repos(filter GitRepoFilter) []GitRepo {
+	println(filter)
 	// This seems to currently be blocked by a bug in the ORM, I'll have to ask
 	// around.
 	if filter.repo != '' {

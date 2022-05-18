@@ -1,5 +1,6 @@
 module db
 
+[params]
 pub struct GitRepoFilter {
 pub mut:
 	limit  u64 = 25
