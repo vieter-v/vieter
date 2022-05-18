@@ -1,17 +1,25 @@
 # vim: ft=bash
 # Maintainer: Jef Roosens
 
-pkgbase='vieter'
-pkgname='vieter'
-pkgver='0.3.0_alpha.2'
+pkgbase='vieter-git'
+pkgname='vieter-git'
+pkgver=0.2.0.r25.g20112b8
 pkgrel=1
 depends=('glibc' 'openssl' 'libarchive' 'sqlite')
 makedepends=('git' 'vieter-v')
 arch=('x86_64' 'aarch64')
 url='https://git.rustybever.be/vieter/vieter'
 license=('AGPL3')
-source=("$pkgname::git+https://git.rustybever.be/vieter/vieter#tag=${pkgver//_/-}")
+source=("$pkgname::git+https://git.rustybever.be/vieter/vieter#branch=dev")
 md5sums=('SKIP')
+provides=('vieter')
+conflicts=('vieter')
+
+pkgver() {
+    cd "$pkgname"
+
+    git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
 
 build() {
     cd "$pkgname"

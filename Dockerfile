@@ -36,15 +36,8 @@ ENV PATH=/bin \
 
 COPY --from=builder /app/dumb-init /app/vieter /bin/
 
-HEALTHCHECK --interval=30s \
-    --timeout=3s \
-    --start-period=5s \
-    CMD /bin/wget --spider http://localhost:8000/health || exit 1
-
 RUN mkdir /data && \
-    chown -R www-data:www-data /data && \
-    mkdir -p '/var/spool/cron/crontabs' && \
-    echo '0 3 * * * /bin/vieter build' | crontab - 
+    chown -R www-data:www-data /data
 
 WORKDIR /data
 

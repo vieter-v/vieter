@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased](https://git.rustybever.be/vieter/vieter/src/branch/dev)
+
+## [0.3.0-alpha.2](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.2)
+
+### Added
+
+* Web API for adding & querying build logs
+* CLI commands to access build logs API
+* Cron build logs are uploaded to above API
+* Proper ASCII table output in CLI
+* `vieter repos build id` command to run builds locally
+
+### Removed
+
+* `vieter build` command
+    * This command was used alongside cron for periodic builds, but this has
+      been replaced by `vieter cron`
+
+### Changed
+
+* `vieter build` command now only builds a single repository & uploads the
+  build logs
+* Official Arch packages are now split between `vieter` & `vieter-git`
+    * `vieter` is the latest release
+    * `vieter-git` is the latest commit on the dev branch
+* Full refactor of Docker socket code
+
 ## [0.3.0-alpha.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.1)
 
 ### Changed

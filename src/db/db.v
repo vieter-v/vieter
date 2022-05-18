@@ -8,10 +8,11 @@ struct VieterDb {
 
 // init initializes a database & adds the correct tables.
 pub fn init(db_path string) ?VieterDb {
-	conn := sqlite.connect(db_path) ?
+	conn := sqlite.connect(db_path)?
 
 	sql conn {
 		create table GitRepo
+		create table BuildLog
 	}
 
 	return VieterDb{

@@ -190,7 +190,7 @@ pub fn (ctx Context) before_request() {}
 
 // send_string
 fn send_string(mut conn net.TcpConn, s string) ? {
-	conn.write(s.bytes()) ?
+	conn.write(s.bytes())?
 }
 
 // send_response_to_client sends a response to the client

@@ -54,7 +54,7 @@ fn (r &RepoGroupManager) sync(repo string, arch string) ? {
 		C.archive_write_open_filename(a_files, &char(files_path.str))
 
 		// Iterate over each directory
-		for d in os.ls(subrepo_path) ?.filter(os.is_dir(os.join_path_single(subrepo_path,
+		for d in os.ls(subrepo_path)?.filter(os.is_dir(os.join_path_single(subrepo_path,
 			it))) {
 			// desc
 			mut inner_path := os.join_path_single(d, 'desc')

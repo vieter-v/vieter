@@ -15,7 +15,7 @@ repositories. After the image has been created, each repository returned by
 previously created image as a base. Each container goes through the following steps:
 
 1. The repository is cloned
-2. `makepkg --nobuild --nodeps` is ran to update the `pkgver` variable inside
+2. `makepkg --nobuild --syncdeps --needed --noconfirm` is ran to update the `pkgver` variable inside
    the `PKGBUILD` file
 3. A HEAD request is sent to the Vieter server to check whether the specific
    version of the package is already present. If it is, the container exits.

@@ -56,6 +56,11 @@ Vieter only supports uploading archives compressed using either gzip, zstd or
 xz at the moment.
 {{< /hint >}}
 
+### `GET /health`
+
+This endpoint's only use is to be used with healthchecks. It returns a JSON
+response with the message "Healthy.".
+
 ## API
 
 All API routes require the API key to provided using the `X-Api-Key` header.

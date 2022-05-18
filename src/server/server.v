@@ -12,6 +12,7 @@ const (
 	log_file_name = 'vieter.log'
 	repo_dir_name = 'repos'
 	db_file_name  = 'vieter.sqlite'
+	logs_dir_name = 'logs'
 )
 
 struct App {
@@ -36,6 +37,14 @@ pub fn server(conf Config) ? {
 	}
 
 	os.mkdir_all(conf.data_dir) or { util.exit_with_message(1, 'Failed to create data directory.') }
+
+	logs_dir := os.join_path_single(conf.data_dir, server.logs_dir_name)
+
+	if !os.exists(logs_dir) {
+		os.mkdir(os.join_path_single(conf.data_dir, server.logs_dir_name)) or {
+			util.exit_with_message(1, 'Failed to create logs directory.')
+		}
+	}
 
 	mut logger := log.Log{
 		level: log_level

@@ -3,10 +3,13 @@ module git
 import cli
 import env
 import cron.expression { parse_expression }
+import client
+import console
 
 struct Config {
-	address string [required]
-	api_key string [required]
+	address    string [required]
+	api_key    string [required]
+	base_image string = 'archlinux:base-devel'
 }
 
 // cmd returns the cli submodule that handles the repos API interaction
@@ -19,10 +22,10 @@ pub fn cmd() cli.Command {
 				name: 'list'
 				description: 'List the current repos.'
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
-					list(conf) ?
+					list(conf)?
 				}
 			},
 			cli.Command{
@@ -31,10 +34,10 @@ pub fn cmd() cli.Command {
 				usage: 'url branch repo'
 				description: 'Add a new repository.'
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
-					add(conf, cmd.args[0], cmd.args[1], cmd.args[2]) ?
+					add(conf, cmd.args[0], cmd.args[1], cmd.args[2])?
 				}
 			},
 			cli.Command{
@@ -43,10 +46,10 @@ pub fn cmd() cli.Command {
 				usage: 'id'
 				description: 'Remove a repository that matches the given ID prefix.'
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
-					remove(conf, cmd.args[0]) ?
+					remove(conf, cmd.args[0])?
 				}
 			},
 			cli.Command{
@@ -55,10 +58,10 @@ pub fn cmd() cli.Command {
 				usage: 'id'
 				description: 'Show detailed information for the repo matching the ID prefix.'
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
-					info(conf, cmd.args[0]) ?
+					info(conf, cmd.args[0])?
 				}
 			},
 			cli.Command{
@@ -94,8 +97,8 @@ pub fn cmd() cli.Command {
 					},
 				]
 				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file') ?
-					conf := env.load<Config>(config_file) ?
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
 
 					found := cmd.flags.get_all_found()
 
@@ -103,11 +106,23 @@ pub fn cmd() cli.Command {
 
 					for f in found {
 						if f.name != 'config-file' {
-							params[f.name] = f.get_string() ?
+							params[f.name] = f.get_string()?
 						}
 					}
 
-					patch(conf, cmd.args[0], params) ?
+					patch(conf, cmd.args[0], params)?
+				}
+			},
+			cli.Command{
+				name: 'build'
+				required_args: 1
+				usage: 'id'
+				description: 'Build the repo with the given id & publish it.'
+				execute: fn (cmd cli.Command) ? {
+					config_file := cmd.flags.get_string('config-file')?
+					conf := env.load<Config>(config_file)?
+
+					build(conf, cmd.args[0].int())?
 				}
 			},
 		]
@@ -119,16 +134,17 @@ pub fn cmd() cli.Command {
 
 // list prints out a list of all repositories.
 fn list(conf Config) ? {
-	repos := get_repos(conf.address, conf.api_key) ?
+	c := client.new(conf.address, conf.api_key)
+	repos := c.get_git_repos()?
+	data := repos.map([it.id.str(), it.url, it.branch, it.repo])
 
-	for repo in repos {
-		println('$repo.id\t$repo.url\t$repo.branch\t$repo.repo')
-	}
+	println(console.pretty_table(['id', 'url', 'branch', 'repo'], data)?)
 }
 
 // add adds a new repository to the server's list.
 fn add(conf Config, url string, branch string, repo string) ? {
-	res := add_repo(conf.address, conf.api_key, url, branch, repo, []) ?
+	c := client.new(conf.address, conf.api_key)
+	res := c.add_git_repo(url, branch, repo, [])?
 
 	println(res.message)
 }
@@ -139,7 +155,8 @@ fn remove(conf Config, id string) ? {
 	id_int := id.int()
 
 	if id_int != 0 {
-		res := remove_repo(conf.address, conf.api_key, id_int) ?
+		c := client.new(conf.address, conf.api_key)
+		res := c.remove_git_repo(id_int)?
 		println(res.message)
 	}
 }
@@ -156,7 +173,8 @@ fn patch(conf Config, id string, params map[string]string) ? {
 
 	id_int := id.int()
 	if id_int != 0 {
-		res := patch_repo(conf.address, conf.api_key, id_int, params) ?
+		c := client.new(conf.address, conf.api_key)
+		res := c.patch_git_repo(id_int, params)?
 
 		println(res.message)
 	}
@@ -170,6 +188,7 @@ fn info(conf Config, id string) ? {
 		return
 	}
 
-	repo := get_repo(conf.address, conf.api_key, id_int) ?
+	c := client.new(conf.address, conf.api_key)
+	repo := c.get_git_repo(id_int)?
 	println(repo)
 }
