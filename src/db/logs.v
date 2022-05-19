@@ -1,12 +1,36 @@
 module db
 
-import models { BuildLog }
+import models { BuildLog, BuildLogFilter }
+import time
 
 // get_build_logs returns all BuildLog's in the database.
-pub fn (db &VieterDb) get_build_logs() []BuildLog {
-	res := sql db.conn {
-		select from BuildLog order by id
+pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
+	mut where_parts := []string{}
+
+	if filter.repo != 0 {
+		where_parts << 'repo_id == $filter.repo'
 	}
+
+	if filter.before != time.Time{} {
+		where_parts << 'start_time < $filter.before.unix_time()'
+	}
+
+	if filter.after != time.Time{} {
+		where_parts << 'start_time < $filter.after.unix_time()'
+	}
+
+	where_str := if where_parts.len > 0 {
+		' where ' + where_parts.map('($it)').join(' and ')
+	} else {
+		''
+	}
+
+	query := 'select from BuildLog' + where_str
+	res := db.conn.exec(query)
+
+/* 	res := sql db.conn { */
+/* 		select from BuildLog where filter.repo == 0 || repo_id == filter.repo order by id */
+/* 	} */
 
 	return res
 }

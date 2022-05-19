@@ -26,3 +26,16 @@ pub fn (bl &BuildLog) str() string {
 
 	return str
 }
+
+[params]
+pub struct BuildLogFilter {
+pub mut:
+	limit                u64 = 25
+	offset               u64
+	repo                 int
+	before               time.Time
+	after                time.Time
+	exit_codes_whitelist []u8
+	exit_codes_blacklist []u8
+	arch                 string
+}

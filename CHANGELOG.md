@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Database migrations
+* Query parameters for GitRepo API to filter responses
+* Respective CLI flags for new GitRepo API parameters
+
+### Changed
+
+* Refactor of main types into `models` module
 
 ## [0.3.0-alpha.2](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.2)
 
