@@ -1,6 +1,6 @@
 module client
 
-import db { BuildLog }
+import models { BuildLog }
 import net.http { Method }
 import response { Response }
 import time

@@ -3,8 +3,8 @@ module logs
 import cli
 import env
 import client
-import db
 import console
+import models { BuildLog }
 
 struct Config {
 	address string [required]
@@ -67,7 +67,7 @@ pub fn cmd() cli.Command {
 }
 
 // print_log_list prints a list of logs.
-fn print_log_list(logs []db.BuildLog) ? {
+fn print_log_list(logs []BuildLog) ? {
 	data := logs.map([it.id.str(), it.repo_id.str(), it.start_time.str(),
 		it.exit_code.str()])
 

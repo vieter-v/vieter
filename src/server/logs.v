@@ -8,6 +8,7 @@ import db
 import time
 import os
 import util
+import models { BuildLog }
 
 // get_logs returns all build logs in the database. A 'repo' query param can
 // optionally be added to limit the list of build logs to that repository.
@@ -97,7 +98,7 @@ fn (mut app App) post_log() web.Result {
 	}
 
 	// Store log in db
-	log := db.BuildLog{
+	log := BuildLog{
 		repo_id: repo_id
 		start_time: start_time
 		end_time: end_time

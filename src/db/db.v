@@ -1,6 +1,7 @@
 module db
 
 import sqlite
+import models { BuildLog, GitRepo }
 
 struct VieterDb {
 	conn sqlite.DB
