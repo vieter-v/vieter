@@ -4,7 +4,6 @@ import docker
 import encoding.base64
 import time
 import os
-import db
 import strings
 import util
 import models { GitRepo }

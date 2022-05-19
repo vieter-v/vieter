@@ -1,5 +1,7 @@
 module models
 
+// from_params<T> creates a new instance of T from the given map by parsing all
+// of its fields from the map.
 pub fn from_params<T>(params map[string]string) ?T {
 	mut o := T{}
 
@@ -8,6 +10,8 @@ pub fn from_params<T>(params map[string]string) ?T {
 	return o
 }
 
+// patch_from_params<T> updates the given T object with the params defined in
+// the map.
 pub fn patch_from_params<T>(mut o T, params map[string]string) ? {
 	$for field in T.fields {
 		if field.name in params && params[field.name] != '' {
@@ -26,6 +30,7 @@ pub fn patch_from_params<T>(mut o T, params map[string]string) ? {
 	}
 }
 
+// params_from<T> converts a given T struct into a map of strings.
 pub fn params_from<T>(o &T) map[string]string {
 	mut out := map[string]string{}
 
