@@ -66,6 +66,7 @@ pub fn (db &VieterDb) update_git_repo(repo_id int, params map[string]string) {
 		}
 	}
 	values_str := values.join(', ')
+	// I think this is actual SQL & not the ORM language
 	query := 'update GitRepo set $values_str where id == $repo_id'
 
 	db.conn.exec_none(query)

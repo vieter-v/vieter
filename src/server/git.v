@@ -4,7 +4,7 @@ import web
 import net.http
 import response { new_data_response, new_response }
 import db
-import models { GitRepoArch }
+import models { GitRepo, GitRepoArch, GitRepoFilter }
 
 // get_repos returns the current list of repos.
 ['/api/repos'; get]
