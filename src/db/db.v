@@ -1,6 +1,7 @@
 module db
 
 import sqlite
+import models
 
 struct VieterDb {
 	conn sqlite.DB

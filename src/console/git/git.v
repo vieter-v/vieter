@@ -5,7 +5,7 @@ import env
 import cron.expression { parse_expression }
 import client
 import console
-import db { GitRepoFilter }
+import models { GitRepoFilter }
 
 struct Config {
 	address    string [required]
@@ -50,20 +50,20 @@ pub fn cmd() cli.Command {
 
 					mut filter := GitRepoFilter{}
 
-					if limit := cmd.flags.get_int('limit') {
-						println('limit = $limit')
+					limit := cmd.flags.get_int('limit')?
+					if limit != 0 {
 						filter.limit = u64(limit)
 					}
 
-					if offset := cmd.flags.get_int('offset') {
-						filter.limit = u64(offset)
+					offset := cmd.flags.get_int('offset')?
+					if offset != 0 {
+						filter.offset = u64(offset)
 					}
 
-					if repo := cmd.flags.get_string('repo') {
+					repo := cmd.flags.get_string('repo')?
+					if repo != '' {
 						filter.repo = repo
 					}
-
-					dump(filter)
 
 					list(conf, filter)?
 				}

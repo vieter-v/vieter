@@ -1,13 +1,12 @@
 module client
 
-import db { GitRepo, GitRepoFilter }
+import models { GitRepo, GitRepoFilter }
 import net.http { Method }
 import response { Response }
-import util
 
 // get_git_repos returns the current list of repos.
 pub fn (c &Client) get_git_repos(filter GitRepoFilter) ?[]GitRepo {
-	params := util.struct_to_map(filter)
+	params := models.params_from(filter)
 	data := c.send_request<[]GitRepo>(Method.get, '/api/repos', params)?
 
 	return data.data

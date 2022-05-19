@@ -4,6 +4,7 @@ import web
 import net.http
 import response { new_data_response, new_response }
 import db
+import models { GitRepoArch }
 
 // get_repos returns the current list of repos.
 ['/api/repos'; get]
@@ -12,7 +13,7 @@ fn (mut app App) get_repos() web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	filter := db.filter_from_params<db.GitRepoFilter>(app.query) or {
+	filter := models.from_params<GitRepoFilter>(app.query) or {
 		return app.json(http.Status.bad_request, new_response('Invalid query parameters.'))
 	}
 	repos := app.db.get_git_repos(filter)
@@ -47,7 +48,7 @@ fn (mut app App) post_repo() web.Result {
 		params['arch'] = app.conf.default_arch
 	}
 
-	new_repo := db.git_repo_from_params(params) or {
+	new_repo := models.from_params<GitRepo>(params) or {
 		return app.json(http.Status.bad_request, new_response(err.msg()))
 	}
 
@@ -78,7 +79,7 @@ fn (mut app App) patch_repo(id int) web.Result {
 	app.db.update_git_repo(id, app.query)
 
 	if 'arch' in app.query {
-		arch_objs := app.query['arch'].split(',').map(db.GitRepoArch{ value: it })
+		arch_objs := app.query['arch'].split(',').map(GitRepoArch{ value: it })
 
 		app.db.update_git_repo_archs(id, arch_objs)
 	}

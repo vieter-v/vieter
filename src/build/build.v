@@ -7,6 +7,7 @@ import os
 import db
 import strings
 import util
+import models { GitRepo }
 
 const (
 	container_build_dir = '/build'
@@ -93,7 +94,7 @@ pub:
 // build_repo builds, packages & publishes a given Arch package based on the
 // provided GitRepo. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
-pub fn build_repo(address string, api_key string, base_image_id string, repo &db.GitRepo) ?BuildResult {
+pub fn build_repo(address string, api_key string, base_image_id string, repo &GitRepo) ?BuildResult {
 	mut dd := docker.new_conn()?
 
 	defer {

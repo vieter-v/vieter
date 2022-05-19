@@ -71,6 +71,5 @@ pub fn struct_to_map<T>(o T) map[string]string {
 	$for field in T.fields {
 		m[field.name] = o.$(field.name).str()
 	}
-
 	return m
 }
