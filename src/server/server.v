@@ -68,7 +68,9 @@ pub fn server(conf Config) ? {
 	}
 
 	db_file := os.join_path_single(conf.data_dir, server.db_file_name)
-	db := db.init(db_file) or { util.exit_with_message(1, 'Failed to initialize database.') }
+	db := db.init(db_file) or {
+		util.exit_with_message(1, 'Failed to initialize database: $err.msg()')
+	}
 
 	web.run(&App{
 		logger: logger
