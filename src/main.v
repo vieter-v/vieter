@@ -5,6 +5,7 @@ import server
 import cli
 import console.git
 import console.logs
+import console.schedule
 import cron
 
 fn main() {
@@ -27,6 +28,7 @@ fn main() {
 			git.cmd(),
 			cron.cmd(),
 			logs.cmd(),
+			schedule.cmd(),
 		]
 	}
 	app.setup()
