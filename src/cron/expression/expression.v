@@ -121,6 +121,20 @@ pub fn (ce &CronExpression) next_from_now() ?time.Time {
 	return ce.next(time.now())
 }
 
+// next_n returns the n next occurences of the expression, given a starting
+// time.
+pub fn (ce &CronExpression) next_n(ref time.Time, n int) ?[]time.Time {
+	mut times := []time.Time{cap: n}
+
+	times << ce.next(ref)?
+
+	for i in 1 .. n {
+		times << ce.next(times[i - 1])?
+	}
+
+	return times
+}
+
 // parse_range parses a given string into a range of sorted integers, if
 // possible.
 fn parse_range(s string, min int, max int, mut bitv []bool) ? {

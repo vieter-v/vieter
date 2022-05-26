@@ -2,11 +2,13 @@ module schedule
 
 import cli
 import cron.expression { parse_expression }
+import time
 
 // cmd returns the cli submodule for previewing a cron schedule.
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'schedule'
+		usage: 'schedule'
 		description: 'Preview the behavior of a cron schedule.'
 		flags: [
 			cli.Flag{
@@ -17,16 +19,10 @@ pub fn cmd() cli.Command {
 			},
 		]
 		execute: fn (cmd cli.Command) ? {
-			exp := parse_expression(cmd.args.join(' '))?
-
-			mut t := exp.next_from_now()?
-			println(t)
-
+			ce := parse_expression(cmd.args.join(' '))?
 			count := cmd.flags.get_int('count')?
 
-			for _ in 1 .. count {
-				t = exp.next(t)?
-
+			for t in ce.next_n(time.now(), count)? {
 				println(t)
 			}
 		}
