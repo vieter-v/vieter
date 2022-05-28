@@ -19,18 +19,19 @@ pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 		where_parts << 'start_time < $filter.after.unix_time()'
 	}
 
-	where_str := if where_parts.len > 0 {
-		' where ' + where_parts.map('($it)').join(' and ')
-	} else {
-		''
+	mut where_str := ''
+
+	if where_parts.len > 0 {
+		where_str = ' where ' + where_parts.map('($it)').join(' and ')
 	}
 
 	query := 'select from BuildLog' + where_str
-	res := db.conn.exec(query)
+	rows, _ := db.conn.exec(query)
+	res := rows.map(row_into<BuildLog>(it))
 
-/* 	res := sql db.conn { */
-/* 		select from BuildLog where filter.repo == 0 || repo_id == filter.repo order by id */
-/* 	} */
+	//	res := sql db.conn {
+	//		select from BuildLog where filter.repo == 0 || repo_id == filter.repo order by id
+	//	}
 
 	return res
 }

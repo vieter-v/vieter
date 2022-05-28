@@ -3,7 +3,7 @@ module models
 import time
 
 pub struct BuildLog {
-pub:
+pub mut:
 	id         int       [primary; sql: serial]
 	repo_id    int       [nonull]
 	start_time time.Time [nonull]
