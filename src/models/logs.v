@@ -30,11 +30,11 @@ pub fn (bl &BuildLog) str() string {
 [params]
 pub struct BuildLogFilter {
 pub mut:
-	limit                u64 = 25
-	offset               u64
-	repo                 int
-	before               time.Time
-	after                time.Time
-	arch                 string
+	limit      u64 = 25
+	offset     u64
+	repo       int
+	before     time.Time
+	after      time.Time
+	arch       string
 	exit_codes []string
 }

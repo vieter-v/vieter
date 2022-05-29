@@ -30,7 +30,6 @@ pub fn patch_from_params<T>(mut o T, params map[string]string) ? {
 			} $else $if field.typ is []string {
 				o.$(field.name) = params[field.name].split(',')
 			}
-
 		} else if field.attrs.contains('nonull') {
 			return error('Missing parameter: ${field.name}.')
 		}
@@ -42,7 +41,13 @@ pub fn params_from<T>(o &T) map[string]string {
 	mut out := map[string]string{}
 
 	$for field in T.fields {
-		out[field.name] = o.$(field.name).str()
+		$if field.typ is time.Time {
+			out[field.name] = o.$(field.name).unix_time().str()
+		} $else $if field.typ is []string {
+			out[field.name] = o.$(field.name).join(',')
+		} $else {
+			out[field.name] = o.$(field.name).str()
+		}
 	}
 	return out
 }

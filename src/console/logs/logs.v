@@ -4,7 +4,8 @@ import cli
 import env
 import client
 import console
-import models { BuildLog }
+import time
+import models { BuildLog, BuildLogFilter }
 
 struct Config {
 	address string [required]
@@ -19,21 +20,71 @@ pub fn cmd() cli.Command {
 		commands: [
 			cli.Command{
 				name: 'list'
-				description: 'List the build logs. If a repo ID is provided, only list the build logs for that repo.'
+				description: 'List build logs.'
 				flags: [
 					cli.Flag{
-						name: 'repo'
-						description: 'ID of the Git repo to restrict list to.'
+						name: 'limit'
+						description: 'How many results to return.'
 						flag: cli.FlagType.int
+					},
+					cli.Flag{
+						name: 'offset'
+						description: 'Minimum index to return.'
+						flag: cli.FlagType.int
+					},
+					cli.Flag{
+						name: 'repo'
+						description: 'Only return logs for this repo id.'
+						flag: cli.FlagType.int
+					},
+					cli.Flag{
+						name: 'today'
+						description: 'Only list logs started today (UTC time).'
+						flag: cli.FlagType.bool
+					},
+					cli.Flag{
+						name: 'failed'
+						description: 'Only list logs with non-zero exit codes.'
+						flag: cli.FlagType.bool
 					},
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := env.load<Config>(config_file)?
 
-					repo_id := cmd.flags.get_int('repo')?
+					mut filter := BuildLogFilter{}
 
-					if repo_id == 0 { list(conf)? } else { list_for_repo(conf, repo_id)? }
+					limit := cmd.flags.get_int('limit')?
+					if limit != 0 {
+						filter.limit = u64(limit)
+					}
+
+					offset := cmd.flags.get_int('offset')?
+					if offset != 0 {
+						filter.offset = u64(offset)
+					}
+
+					repo_id := cmd.flags.get_int('repo')?
+					if repo_id != 0 {
+						filter.repo = repo_id
+					}
+
+					if cmd.flags.get_bool('today')? {
+						today := time.now()
+
+						filter.after = time.new_time(time.Time{
+							year: today.year
+							month: today.month
+							day: today.day
+						})
+						filter.before = filter.after.add_days(1)
+					}
+
+					if cmd.flags.get_bool('failed')? {
+						filter.exit_codes = ['!0']
+					}
+
+					list(conf, filter)?
 				}
 			},
 			cli.Command{
@@ -75,9 +126,9 @@ fn print_log_list(logs []BuildLog) ? {
 }
 
 // list prints a list of all build logs.
-fn list(conf Config) ? {
+fn list(conf Config, filter BuildLogFilter) ? {
 	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs()?.data
+	logs := c.get_build_logs(filter)?.data
 
 	print_log_list(logs)?
 }

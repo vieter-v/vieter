@@ -24,8 +24,6 @@ pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 		where_parts << "arch == '$filter.arch'"
 	}
 
-	println(filter.exit_codes)
-
 	mut parts := []string{}
 
 	for exp in filter.exit_codes {
@@ -33,7 +31,7 @@ pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 			code := exp[1..].int()
 
 			parts << 'exit_code != $code'
-		}else {
+		} else {
 			code := exp.int()
 
 			parts << 'exit_code == $code'
