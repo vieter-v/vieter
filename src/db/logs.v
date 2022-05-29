@@ -16,22 +16,43 @@ pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 	}
 
 	if filter.after != time.Time{} {
-		where_parts << 'start_time < $filter.after.unix_time()'
+		where_parts << 'start_time > $filter.after.unix_time()'
+	}
+
+	// NOTE: possible SQL injection
+	if filter.arch != '' {
+		where_parts << "arch == '$filter.arch'"
+	}
+
+	println(filter.exit_codes)
+
+	mut parts := []string{}
+
+	for exp in filter.exit_codes {
+		if exp[0] == `!` {
+			code := exp[1..].int()
+
+			parts << 'exit_code != $code'
+		}else {
+			code := exp.int()
+
+			parts << 'exit_code == $code'
+		}
+	}
+
+	if parts.len > 0 {
+		where_parts << parts.map('($it)').join(' or ')
 	}
 
 	mut where_str := ''
 
 	if where_parts.len > 0 {
-		where_str = ' where ' + where_parts.map('($it)').join(' and ')
+		where_str = 'where ' + where_parts.map('($it)').join(' and ')
 	}
 
-	query := 'select from BuildLog' + where_str
+	query := 'select * from BuildLog $where_str limit $filter.limit offset $filter.offset'
 	rows, _ := db.conn.exec(query)
 	res := rows.map(row_into<BuildLog>(it))
-
-	//	res := sql db.conn {
-	//		select from BuildLog where filter.repo == 0 || repo_id == filter.repo order by id
-	//	}
 
 	return res
 }

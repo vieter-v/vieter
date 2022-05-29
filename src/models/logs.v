@@ -35,7 +35,6 @@ pub mut:
 	repo                 int
 	before               time.Time
 	after                time.Time
-	exit_codes_whitelist []u8
-	exit_codes_blacklist []u8
 	arch                 string
+	exit_codes []string
 }

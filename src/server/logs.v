@@ -8,7 +8,7 @@ import db
 import time
 import os
 import util
-import models { BuildLog }
+import models { BuildLog, BuildLogFilter }
 
 // get_logs returns all build logs in the database. A 'repo' query param can
 // optionally be added to limit the list of build logs to that repository.
@@ -18,11 +18,10 @@ fn (mut app App) get_logs() web.Result {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	logs := if 'repo' in app.query {
-		app.db.get_build_logs_for_repo(app.query['repo'].int())
-	} else {
-		app.db.get_build_logs()
+	filter := models.from_params<BuildLogFilter>(app.query) or {
+		return app.json(http.Status.bad_request, new_response('Invalid query parameters.'))
 	}
+	logs := app.db.get_build_logs(filter)
 
 	return app.json(http.Status.ok, new_data_response(logs))
 }
