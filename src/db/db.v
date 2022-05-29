@@ -68,6 +68,8 @@ pub fn init(db_path string) ?VieterDb {
 	}
 }
 
+// row_into<T> converts an sqlite.Row into a given type T by parsing each field
+// from a string according to its type.
 pub fn row_into<T>(row sqlite.Row) T {
 	mut i := 0
 	mut out := T{}

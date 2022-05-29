@@ -47,6 +47,21 @@ pub fn cmd() cli.Command {
 						description: 'Only list logs with non-zero exit codes.'
 						flag: cli.FlagType.bool
 					},
+					cli.Flag{
+						name: 'day'
+						description: 'Only list logs started on this day. Format is YYYY-MM-DD.'
+						flag: cli.FlagType.string
+					},
+					cli.Flag{
+						name: 'before'
+						description: 'Only list logs started before this timestamp. Accepts any RFC 3339 date.'
+						flag: cli.FlagType.string
+					},
+					cli.Flag{
+						name: 'after'
+						description: 'Only list logs started after this timestamp. Accepts any RFC 3339 date.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
@@ -79,9 +94,37 @@ pub fn cmd() cli.Command {
 						})
 						filter.before = filter.after.add_days(1)
 					}
+					// The -today flag overwrites any of the other date flags.
+					else {
+						day_str := cmd.flags.get_string('day')?
+						before_str := cmd.flags.get_string('before')?
+						after_str := cmd.flags.get_string('after')?
+
+						if day_str != '' {
+							day := time.parse_rfc3339(day_str)?
+
+							filter.after = time.new_time(time.Time{
+								year: day.year
+								month: day.month
+								day: day.day
+							})
+
+							filter.before = filter.after.add_days(1)
+						} else {
+							if before_str != '' {
+								filter.before = time.parse_rfc3339(before_str)?
+							}
+
+							if after_str != '' {
+								filter.after = time.parse_rfc3339(after_str)?
+							}
+						}
+					}
 
 					if cmd.flags.get_bool('failed')? {
-						filter.exit_codes = ['!0']
+						filter.exit_codes = [
+							'!0',
+						]
 					}
 
 					list(conf, filter)?
