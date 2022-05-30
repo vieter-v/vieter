@@ -1,13 +1,14 @@
 module client
 
-import models { BuildLog }
+import models { BuildLog, BuildLogFilter }
 import net.http { Method }
 import response { Response }
 import time
 
 // get_build_logs returns all build logs.
-pub fn (c &Client) get_build_logs() ?Response<[]BuildLog> {
-	data := c.send_request<[]BuildLog>(Method.get, '/api/logs', {})?
+pub fn (c &Client) get_build_logs(filter BuildLogFilter) ?Response<[]BuildLog> {
+	params := models.params_from(filter)
+	data := c.send_request<[]BuildLog>(Method.get, '/api/logs', params)?
 
 	return data
 }

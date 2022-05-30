@@ -1,6 +1,7 @@
 module db
 
 import sqlite
+import time
 
 struct VieterDb {
 	conn sqlite.DB
@@ -65,4 +66,24 @@ pub fn init(db_path string) ?VieterDb {
 	return VieterDb{
 		conn: conn
 	}
+}
+
+// row_into<T> converts an sqlite.Row into a given type T by parsing each field
+// from a string according to its type.
+pub fn row_into<T>(row sqlite.Row) T {
+	mut i := 0
+	mut out := T{}
+
+	$for field in T.fields {
+		$if field.typ is string {
+			out.$(field.name) = row.vals[i]
+		} $else $if field.typ is int {
+			out.$(field.name) = row.vals[i].int()
+		} $else $if field.typ is time.Time {
+			out.$(field.name) = time.unix(row.vals[i].int())
+		}
+
+		i += 1
+	}
+	return out
 }

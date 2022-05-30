@@ -3,7 +3,7 @@ module models
 import time
 
 pub struct BuildLog {
-pub:
+pub mut:
 	id         int       [primary; sql: serial]
 	repo_id    int       [nonull]
 	start_time time.Time [nonull]
@@ -25,4 +25,16 @@ pub fn (bl &BuildLog) str() string {
 	str := parts.join('\n')
 
 	return str
+}
+
+[params]
+pub struct BuildLogFilter {
+pub mut:
+	limit      u64 = 25
+	offset     u64
+	repo       int
+	before     time.Time
+	after      time.Time
+	arch       string
+	exit_codes []string
 }
