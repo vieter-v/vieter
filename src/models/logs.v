@@ -17,8 +17,9 @@ pub fn (bl &BuildLog) str() string {
 	mut parts := [
 		'id: $bl.id',
 		'repo id: $bl.repo_id',
-		'start time: $bl.start_time',
-		'end time: $bl.end_time',
+		'start time: $bl.start_time.local()',
+		'end time: $bl.end_time.local()',
+		'duration: ${bl.end_time - bl.start_time}',
 		'arch: $bl.arch',
 		'exit code: $bl.exit_code',
 	]
