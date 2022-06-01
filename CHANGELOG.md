@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * BuildLog: filter by start & end date, repo, exit code & arch
 * CLI flags to take advantage of above API improvements
 
+### Changed
+
+* Packages from target repo are available during builds
+    * This can be used as a basic way to support AUR dependencies, by adding
+      the dependencies to the same repository
+* Every build now updates its packages first instead of solely relying on the
+  updated builder image
+* Build logs now show commands being executed
+
 ## [0.3.0-alpha.2](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.2)
 
 ### Added
