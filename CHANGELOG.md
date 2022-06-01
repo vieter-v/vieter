@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * GitRepo: filter by repo
     * BuildLog: filter by start & end date, repo, exit code & arch
 * CLI flags to take advantage of above API improvements
+* Added CLI command to generate all man pages
+* PKGBUILDs now install man pages
 
 ### Changed
 

@@ -6,6 +6,7 @@ import cli
 import console.git
 import console.logs
 import console.schedule
+import console.man
 import cron
 
 fn main() {
@@ -29,6 +30,7 @@ fn main() {
 			cron.cmd(),
 			logs.cmd(),
 			schedule.cmd(),
+			man.cmd(),
 		]
 	}
 	app.setup()
