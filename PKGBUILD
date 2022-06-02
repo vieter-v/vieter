@@ -22,7 +22,7 @@ build() {
     # The default CFLAGS for some reason causes vieter to segfault if used
     # inside the PKGBUILD. As a workaround, we use tcc to build a debug build
     # that does work, so we can generate the manpages.
-    CFLAGS= make man
+    CFLAGS= LDFLAGS= make man
 }
 
 package() {
