@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * CLI flags to take advantage of above API improvements
 * Added CLI command to generate all man pages
 * PKGBUILDs now install man pages
+* CLI man pages are now hosted on https://rustybever.be
 
 ### Changed
 
