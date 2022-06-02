@@ -2,6 +2,8 @@ module console
 
 import arrays
 import strings
+import cli
+import os
 
 // pretty_table converts a list of string data into a pretty table. Many thanks
 // to @hungrybluedev in the Vlang Discord for providing this code!
@@ -53,4 +55,16 @@ pub fn pretty_table(header []string, data [][]string) ?string {
 	buffer.writeln(horizontal_line)
 
 	return buffer.str()
+}
+
+// export_man_pages recursively generates all man pages for the given
+// cli.Command & writes them to the given directory.
+pub fn export_man_pages(cmd cli.Command, path string) ? {
+	man := cmd.manpage()
+	os.write_file(os.join_path_single(path, cmd.full_name().replace(' ', '-') + '.1'),
+		man)?
+
+	for sub_cmd in cmd.commands {
+		export_man_pages(sub_cmd, path)?
+	}
 }

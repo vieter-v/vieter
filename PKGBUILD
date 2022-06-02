@@ -24,4 +24,7 @@ package() {
 
     install -dm755 "$pkgdir/usr/bin"
     install -Dm755 "$pkgname/pvieter" "$pkgdir/usr/bin/vieter"
+
+    install -dm755 "$pkgdir/usr/share/man/man1"
+    ./vieter man "$pkgdir/usr/share/man/man1"
 }
