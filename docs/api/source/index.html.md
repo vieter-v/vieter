@@ -11,7 +11,6 @@ includes:
   - repository
   - git
   - logs
-  - errors
 
 search: true
 

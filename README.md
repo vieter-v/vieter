@@ -65,3 +65,37 @@ If you wish to contribute to the project, please take note of the following:
 * Please follow the
   [Conventional Commits](https://www.conventionalcommits.org/) style for your
   commit messages.
+
+### Writing documentation
+
+The `docs` directory contains a Hugo site consisting of all user &
+administrator documentation. `docs/api` on the other hand is a
+[slate](https://github.com/slatedocs/slate) project describing the HTTP web
+API.
+
+To modify the Hugo documentation, you'll need to install Hugo. Afterwards, you
+can use the following commands inside the `docs` directory:
+
+```sh
+# Build the documentation
+hugo
+
+# Host an auto-refreshing web server with the documentation. Important to note
+is that the files will be at `http://localhost:1313/docs/vieter` instead of
+just `http://localhost:1313/docs/vieter`
+hugo server
+```
+
+For the Slate docs, I personally just start a docker container:
+
+```sh
+docker run \
+    --rm \
+    -p 4567:4567 \
+    --name slate \
+    -v $(pwd)/docs/api/source:/srv/slate/source slatedocs/slate serve
+```
+
+This'll make the slate docs available at http://localhost:4567. Sadly, this
+server doesn't auto-refresh, so you'll have to manually refresh your browser
+every time you make a change.

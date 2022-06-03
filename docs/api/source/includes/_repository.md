@@ -7,7 +7,7 @@ possible.
 ## Get a package archive or database file
 
 ```shell
-curl -OL https://example.com/bur/x86_64/tuxedo-keyboard-3.0.10-1-x86_64.pkg.tar.zst
+curl -L https://example.com/bur/x86_64/tuxedo-keyboard-3.0.10-1-x86_64.pkg.tar.zst
 ```
 
 This endpoint is really the entire repository. It serves both the package
@@ -43,7 +43,7 @@ filename | actual filename to request
 ## Check whether file exists
 
 ```shell
-curl -IL https://example.com/bur/x86_64/tuxedo-keyboard-3.0.10-1-x86_64.pkg.tar.zst
+curl -L https://example.com/bur/x86_64/tuxedo-keyboard-3.0.10-1-x86_64.pkg.tar.zst
 ```
 
 The above request can also be performed as a HEAD request. The behavior is the
@@ -73,7 +73,7 @@ This endpoint requests authentication.
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  -XPOST
+  -XPOST \
   -T tuxedo-keyboard-3.0.10-1-x86_64.pkg.tar.zst \
   https://example.com/some-repo/publish
 ```
