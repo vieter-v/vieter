@@ -29,7 +29,7 @@ pipeline:
     commands:
       - cp -r docs/api/build docs/public/api
       - 'cd docs/public && tar czvf ../../docs.tar.gz *'
-      - 'cd src/_docs && tar czvf ../../api-docs.tar.gz *'
+      - 'cd ../../src/_docs && tar czvf ../../api-docs.tar.gz *'
     when:
       event: push
       branch: dev
