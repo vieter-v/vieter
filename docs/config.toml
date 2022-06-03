@@ -27,16 +27,22 @@ enableGitInfo = true
   weight = 1
 
 [menu]
-# [[menu.before]]
+[[menu.after]]
+  name = "API Documentation"
+  url = "https://rustybever.be/docs/vieter/api"
+  weight = 10
+[[menu.after]]
+  name = "Man Pages"
+  url = "https://rustybever.be/man/vieter/vieter.1.html"
+  weight = 20
 [[menu.after]]
   name = "Source"
   url = "https://git.rustybever.be/Chewing_Bever/docs"
-  weight = 10
-
+  weight = 30
 [[menu.after]]
   name = "Hugo Theme"
   url = "https://github.com/alex-shpak/hugo-book"
-  weight = 20
+  weight = 40
 
 [params]
   # (Optional, default light) Sets color theme: light, dark or auto.
