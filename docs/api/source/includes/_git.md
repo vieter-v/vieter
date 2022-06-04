@@ -17,7 +17,7 @@ curl \
   https://example.com/api/repos?offset=10&limit=20
 ```
 
-> JSON Output format
+> JSON output format
 
 ```json
 {
@@ -63,7 +63,7 @@ curl \
   https://example.com/api/repos/15
 ```
 
-> JSON Output format
+> JSON output format
 
 ```json
 {
@@ -73,7 +73,7 @@ curl \
     "url": "https://aur.archlinux.org/discord-ptb.git",
     "branch": "master",
     "repo": "bur",
-    "schedule": " 0 3",
+    "schedule": "0 3",
     "arch": [
       {
         "id": 1,
@@ -95,7 +95,7 @@ Get info about a specific Git repository.
 
 Parameter | Description
 --------- | -----------
-repo | ID of requested repo
+id | ID of requested repo
 
 ## Create a new repo
 
@@ -121,7 +121,13 @@ Modify the data of an existing Git repository.
 
 ### HTTP Request
 
-`PATCH /api/repos`
+`PATCH /api/repos/:id`
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+id | ID of requested repo
 
 ### Query Parameters
 
@@ -145,4 +151,4 @@ Remove a Git repository from the server.
 
 Parameter | Description
 --------- | -----------
-repo | ID of repo to remove
+id | ID of repo to remove
