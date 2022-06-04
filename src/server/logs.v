@@ -70,13 +70,19 @@ fn (mut app App) post_log() web.Result {
 	}
 
 	// Parse query params
-	start_time := parse_query_time(app.query['startTime']) or {
+	start_time_int := app.query['startTime'].int()
+
+	if start_time_int == 0 {
 		return app.json(http.Status.bad_request, new_response('Invalid or missing start time.'))
 	}
+	start_time := time.unix(start_time_int)
 
-	end_time := parse_query_time(app.query['endTime']) or {
+	end_time_int := app.query['endTime'].int()
+
+	if end_time_int == 0 {
 		return app.json(http.Status.bad_request, new_response('Invalid or missing end time.'))
 	}
+	end_time := time.unix(end_time_int)
 
 	if 'exitCode' !in app.query {
 		return app.json(http.Status.bad_request, new_response('Missing exit code.'))
