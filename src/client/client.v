@@ -66,5 +66,5 @@ fn (c &Client) send_request_with_body<T>(method Method, url string, params map[s
 fn (c &Client) send_request_raw_response(method Method, url string, params map[string]string, body string) ?string {
 	res := c.send_request_raw(method, url, params, body)?
 
-	return res.text
+	return res.body
 }
