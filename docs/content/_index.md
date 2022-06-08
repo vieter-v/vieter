@@ -9,12 +9,9 @@ documentation might not be relevant anymore for the latest release.
 
 ## Overview
 
-Vieter has a few main features:
-
-* It's a simple & lightweight implementation of an Arch repository server
-* It allows for uploading of built package archives
-* It supports a basic build system to periodically re-build packages & upload
-  them to the server
+Vieter consists of two main parts, namely an implementation of an Arch
+repository server & a scheduling system to periodically build Pacman packages &
+publish them to a repository.
 
 {{< hint info >}}
 **Note**  
@@ -26,12 +23,12 @@ well.
 
 ### Why?
 
-Vieter is my personal solution for a problem I've been facing for months:
+Vieter is my personal solution to a problem I've been facing for months:
 extremely long AUR package build times. I run EndeavourOS on both my laptops,
 one of which being a rather old MacBook Air. I really like being a beta-tester
 for projects & run development builds for multiple packages (nheko,
-newsflash...). The issue with this is that I have to regularly re-build these
-packages in order to stay up to date with development & these builds can take a
+newsflash...). Because of this, I have to regularly re-build these packages in
+order to stay up to date with development. However, these builds can take a
 really long time on the old MacBook. This project is a solution to that
 problem: instead of building the packages locally, I can build them
 automatically in the cloud & just download them whenever I update my system!
