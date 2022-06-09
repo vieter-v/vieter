@@ -37,7 +37,7 @@ enableGitInfo = true
   url = "https://rustybever.be/man/vieter/vieter.1.html"
   weight = 20
 [[menu.after]]
-  name = "Git"
+  name = "Vieter"
   url = "https://git.rustybever.be/vieter/vieter"
   weight = 30
 [[menu.after]]
