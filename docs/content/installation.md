@@ -53,10 +53,25 @@ services:
       - 'VIETER_DEFAULT_ARCH=x86_64'
       - 'VIETER_MAX_CONCURRENT_BUILDS=2'
       - 'VIETER_GLOBAL_SCHEDULE=0 3'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
 
 volumes:
   data:
 ```
+
+If you do not require the build system, the repository server can be used
+independently as well.
+
+{{< hint info >}}
+**Note**  
+Builds are executed on the cron daemon's system using the host's Docker daemon.
+A cron daemon on a specific architecture will only build packages for that
+specific architecture. Therefore, if you wish to build packages for both
+`x86_64` & `aarch64`, you'll have to deploy two cron daemons, one on each
+architecture. Afterwards, any Git repositories enabled for those two
+architectures will build on both.
+{{< /hint >}}
 
 ## Binary
 

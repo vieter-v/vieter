@@ -7,7 +7,7 @@ theme = 'hugo-book'
 # Book configuration
 disablePathToLower = true
 # Doesn't work with docs as subdir
-enableGitInfo = false
+enableGitInfo = true
 
 # Needed for mermaid/katex shortcodes
 [markup]
@@ -29,7 +29,7 @@ enableGitInfo = false
 
 [menu]
 [[menu.after]]
-  name = "API Documentation"
+  name = "HTTP API Docs"
   url = "https://rustybever.be/docs/vieter/api/"
   weight = 10
 [[menu.after]]
@@ -37,8 +37,8 @@ enableGitInfo = false
   url = "https://rustybever.be/man/vieter/vieter.1.html"
   weight = 20
 [[menu.after]]
-  name = "Source"
-  url = "https://git.rustybever.be/Chewing_Bever/docs"
+  name = "Git"
+  url = "https://git.rustybever.be/vieter/vieter"
   weight = 30
 [[menu.after]]
   name = "Hugo Theme"
@@ -70,14 +70,14 @@ enableGitInfo = false
 
   # Set source repository location.
   # Used for 'Last Modified' and 'Edit this page' links.
-  BookRepo = 'https://git.rustybever.be/vieter/vieter/docs'
+  BookRepo = 'https://git.rustybever.be/vieter/vieter'
 
   # (Optional, default 'commit') Specifies commit portion of the link to the page's last modified
   # commit hash for 'doc' page type.
   # Requires 'BookRepo' param.
   # Value used to construct a URL consisting of BookRepo/BookCommitPath/<commit-hash>
   # Github uses 'commit', Bitbucket uses 'commits'
-  # BookCommitPath = 'commit'
+  BookCommitPath = 'src/commit'
 
   # Enable "Edit this page" links for 'doc' page type.
   # Disabled by default. Uncomment to enable. Requires 'BookRepo' param.
