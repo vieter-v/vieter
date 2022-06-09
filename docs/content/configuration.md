@@ -86,12 +86,12 @@ configuration variable required for each command.
 ### `vieter logs`
 
 * `api_key`: the API key to use when authenticating requests.
-* `address`: Base your URL of your Vieter instance, e.g. https://example.com
+* `address`: Base URL of your Vieter instance, e.g. https://example.com
 
 ### `vieter repos`
 
 * `api_key`: the API key to use when authenticating requests.
-* `address`: Base your URL of your Vieter instance, e.g. https://example.com
+* `address`: Base URL of your Vieter instance, e.g. https://example.com
 * `base_image`: image to use when building a package using `vieter repos
   build`.
     * Default: `archlinux:base-devel`

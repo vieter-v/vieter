@@ -20,8 +20,8 @@ The latter is updated every time a new commit is pushed to the development
 branch. This branch will be the most up to date, but does not give any
 guarantees about stability, so beware!
 
-Due to the single-binary design of Vieter, this image can be used both for the
-repository server & the cron daemon.
+Thanks to the single-binary design of Vieter, this image can be used both for
+the repository server & the cron daemon.
 
 Below is an example compose file to set up both the repository server & the
 cron daemon:

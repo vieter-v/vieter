@@ -78,4 +78,4 @@ This script:
 3. Clones the Git repository
 4. Runs `makepkg` without building to calculate `pkgver`
 5. Checks whether the package version is already present on the server
-6. If not, run makepkg & publish any generated package archives to the server
+6. If not, run `makepkg` & publish any generated package archives to the server
