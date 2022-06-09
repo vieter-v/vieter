@@ -47,14 +47,6 @@ configuration variable required for each command.
     * Git repositories added without an `arch` value use this value instead.
 
 
-### `vieter repos`
-
-* `api_key`: the API key to use when authenticating requests.
-* `address`: Base your URL of your Vieter instance, e.g. https://example.com
-* `base_image`: image to use when building a package using `vieter repos
-  build`.
-    * Default: `archlinux:base-devel`
-
 ### `vieter cron`
 
 * `log_level`: log verbosity level. Value should be one of `FATAL`, `ERROR`,
@@ -87,7 +79,8 @@ configuration variable required for each command.
   how frequently (in minutes) to rebuild this builder image.
     * Default: `1440` (every 24 hours)
 * `global_schedule`: build schedule for any Git repository that does not have a
-  schedule defined. 
+  schedule defined. For information about this syntax, see
+  [here](/usage/builds/schedule).
     * Default: `0 3` (3AM every night)
 
 ### `vieter logs`
@@ -95,17 +88,11 @@ configuration variable required for each command.
 * `api_key`: the API key to use when authenticating requests.
 * `address`: Base your URL of your Vieter instance, e.g. https://example.com
 
-### Cron
+### `vieter repos`
 
-* `log_level`: defines how much logs to show. Valid values are one of `FATAL`,
-  `ERROR`, `WARN`, `INFO` or `DEBUG`. Defaults to `WARN`
 * `api_key`: the API key to use when authenticating requests.
-* `address`: Base your URL of your Vieter instance, e.g. https://example.com.
-  This *must* be the publicly facing URL of your Vieter instance.
-* `data_dir`: where Vieter stores the log file.
-* `base_image`: Docker image from which to create the builder images.
-* `max_concurrent_builds`: amount of builds to run at once.
-* `api_update_frequency`: how frequenty to check for changes in the repo list.
-* `image_rebuild+frequency`: how frequently to rebuild the builder image
-* `global_schedule`: cron schedule to use for any repo without an individual
-  schedule
+* `address`: Base your URL of your Vieter instance, e.g. https://example.com
+* `base_image`: image to use when building a package using `vieter repos
+  build`.
+    * Default: `archlinux:base-devel`
+

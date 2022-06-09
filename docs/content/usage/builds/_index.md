@@ -38,3 +38,14 @@ The above command intentionally leaves out a few parameters to make the CLI
 more useable. For information on how to modify all parameters using the CLI,
 see
 [vieter-repos-edit(1)](https://rustybever.be/man/vieter/vieter-repos-edit.1.html).
+
+## Reading logs
+
+The logs of each build are uploaded to the Vieter repository server, along with
+information about the exit code of the build container, when the build
+started/ended etc. These logs can then be accessed using the [HTTP
+API](https://rustybever.be/docs/vieter/api/).
+
+For ease of use, the logs are also available using some CLI commands; see
+[vieter-logs(1)](https://rustybever.be/man/vieter/vieter-logs.1.html) for more
+information.
