@@ -112,7 +112,7 @@ Parameter | Description
 url | URL of the Git repository.
 branch | Branch of the Git repository.
 repo | Vieter repository to publish built packages to.
-schedule | Cron build schedule
+schedule | Cron build schedule (syntax explained [here](https://rustybever.be/docs/vieter/usage/builds/schedule/))
 arch | Comma-separated list of architectures to build package on.
 
 ## Modify a repo
