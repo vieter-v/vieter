@@ -20,12 +20,12 @@ Server = https://example.com/$repo/$arch
 SigLevel = Optional
 ```
 
-Here, `$repo` & `$arch` are not variables you have to fill in yourself. Rather,
-Pacman will substitute these when reading the config file. `$repo` is replaced
-by the name between the square brackets (in this case `repo-name`), & `$arch`
-is replaced by your system's architecture, e.g. `x86_64`. Of course, you can
-also fill in these values manually yourself, e.g. if you wish to use a
-different name inside the square brackets.
+Here, `$repo` and `$arch` are not variables you have to fill in yourself.
+Rather, Pacman will substitute these when reading the config file. `$repo` is
+replaced by the name between the square brackets (in this case `repo-name`),
+and `$arch` is replaced by your system's architecture, e.g. `x86_64`. Of
+course, you can also fill in these values manually yourself, e.g. if you wish
+to use a different name inside the square brackets.
 
 Important to note is that, when two repositories contain a package with the
 same name, Pacman will choose the one from the repository that's highest up in

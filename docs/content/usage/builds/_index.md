@@ -24,7 +24,7 @@ vieter repos add some-url some-branch some-repository
 ```
 
 Here, `some-url` is the URL of the Git repository containing the PKGBUILD. This
-URL is passed to `git clone`, so the repository should be public. Vieter
+URL is passed to `git clone`, meaning the repository should be public. Vieter
 expects the same format as an AUR Git repository, so you can directly use AUR
 URLs here.
 
