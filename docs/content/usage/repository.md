@@ -1,3 +1,6 @@
+---
+weight: 10
+---
 # Pacman repository
 
 The part of Vieter that users will interact with the most is the Pacman
