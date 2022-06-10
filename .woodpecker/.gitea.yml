@@ -14,6 +14,7 @@ pipeline:
     commands:
       - mc alias set s3/ https://s3.rustybever.be "$S3_USERNAME" "$S3_PASSWORD"
       - mc cp -r "s3/vieter/commits/$CI_COMMIT_SHA" .
+      - mv "$CI_COMMIT_SHA"/vieter-* .
     when:
       event: tag
 
@@ -23,9 +24,8 @@ pipeline:
       - gitea_release_api_key
     settings:
       base_url: https://git.rustybever.be
-      files: ${CI_COMMIT_SHA}/*
+      files: vieter-*
       checksum:
-        - md5
         - sha256
       title: ${CI_COMMIT_TAG}
     when:

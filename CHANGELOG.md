@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   updated builder image
 * Build logs now show commands being executed
 
+### Fixed
+
+* `POST /api/logs` now correctly uses epoch timestamps instead of strings
+
 ## [0.3.0-alpha.2](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.2)
 
 ### Added
