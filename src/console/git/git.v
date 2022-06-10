@@ -38,11 +38,6 @@ pub fn cmd() cli.Command {
 						description: 'Only return Git repos that publish to this repo.'
 						flag: cli.FlagType.string
 					},
-					cli.Flag{
-						name: 'arch'
-						description: 'Only return repos enabled for this architecture.'
-						flag: cli.FlagType.string
-					},
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
