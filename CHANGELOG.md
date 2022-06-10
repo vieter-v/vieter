@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter/vieter/src/branch/dev)
 
+## [0.3.0-rc.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-rc.1)
+
 ### Added
 
 * Database migrations
