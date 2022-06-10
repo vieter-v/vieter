@@ -29,7 +29,10 @@ fn (c &Client) send_request_raw(method Method, url string, params map[string]str
 
 		// Escape each query param
 		for k, v in params {
-			params_escaped[k] = urllib.query_escape(v)
+			// An empty parameter should be the same as not providing it at all
+			if v != '' {
+				params_escaped[k] = urllib.query_escape(v)
+			}
 		}
 
 		params_str := params_escaped.keys().map('$it=${params[it]}').join('&')
@@ -63,5 +66,5 @@ fn (c &Client) send_request_with_body<T>(method Method, url string, params map[s
 fn (c &Client) send_request_raw_response(method Method, url string, params map[string]string, body string) ?string {
 	res := c.send_request_raw(method, url, params, body)?
 
-	return res.text
+	return res.body
 }

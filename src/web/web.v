@@ -25,12 +25,12 @@ pub const (
 
 	http_302          = http.new_response(
 		status: .found
-		text: '302 Found'
+		body: '302 Found'
 		header: headers_close
 	)
 	http_400          = http.new_response(
 		status: .bad_request
-		text: '400 Bad Request'
+		body: '400 Bad Request'
 		header: http.new_header(
 			key: .content_type
 			value: 'text/plain'
@@ -38,7 +38,7 @@ pub const (
 	)
 	http_404          = http.new_response(
 		status: .not_found
-		text: '404 Not Found'
+		body: '404 Not Found'
 		header: http.new_header(
 			key: .content_type
 			value: 'text/plain'
@@ -46,7 +46,7 @@ pub const (
 	)
 	http_500          = http.new_response(
 		status: .internal_server_error
-		text: '500 Internal Server Error'
+		body: '500 Internal Server Error'
 		header: http.new_header(
 			key: .content_type
 			value: 'text/plain'
@@ -209,7 +209,7 @@ pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bo
 
 	mut resp := http.Response{
 		header: header.join(web.headers_close)
-		text: res
+		body: res
 	}
 	resp.set_version(.v1_1)
 	resp.set_status(ctx.status)

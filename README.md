@@ -22,13 +22,6 @@ a while now. I wanted a fast language that I could code while relaxing, without
 having to exert too much mental effort & V seemed like the right choice for
 that.
 
-### Compiler
-
-Vieter compiles with the standard Vlang compiler. However, I do maintain a
-[mirror](https://git.rustybever.be/Chewing_Bever/v). This is to ensure my CI
-does not break without reason, as I control when & how frequently the mirror is
-updated to reflect the official repository.
-
 ## Features
 
 * Arch repository server
@@ -41,20 +34,24 @@ updated to reflect the official repository.
 
 ## Building
 
-In order to build Vieter, you'll need a couple of libraries:
+Besides a V installer, Vieter also requires the following libraries to work:
 
-* An installation of V
 * gc
 * libarchive
 * openssl
+* sqlite3
 
-**NOTE**: if you encounter any issues compiling Vieter using the absolute
-latest version of V, it might be because my mirror is missing a specific commit
-that causes issues. For this reason, the `make v` command exists which will
-clone my compiler in the `v` directory & build it. Afterwards, you can use this
-compiler with make by prepending all make commands with `V_PATH=v/v`. If you do
-encounter this issue, please let me know so I can update my mirror & the
-codebase to fix it!
+### Compiler
+
+Vieter compiles with the standard Vlang compiler. However, I do maintain a
+[mirror](https://git.rustybever.be/vieter/v). This is to ensure my CI does not
+break without reason, as I control when & how frequently the mirror is updated
+to reflect the official repository.
+
+If you encounter issues using the latest V compiler, try using my mirror
+instead. `make v` will clone the repository & build the mirror. Afterwards,
+prepending any make command with `V_PATH=v/v` tells make to use the locally
+compiled mirror instead.
 
 ## Contributing
 
@@ -65,3 +62,37 @@ If you wish to contribute to the project, please take note of the following:
 * Please follow the
   [Conventional Commits](https://www.conventionalcommits.org/) style for your
   commit messages.
+
+### Writing documentation
+
+The `docs` directory contains a Hugo site consisting of all user &
+administrator documentation. `docs/api` on the other hand is a
+[Slate](https://github.com/slatedocs/slate) project describing the HTTP web
+API.
+
+To modify the Hugo documentation, you'll need to install Hugo. Afterwards, you
+can use the following commands inside the `docs` directory:
+
+```sh
+# Build the documentation
+hugo
+
+# Host an auto-refreshing web server with the documentation. Important to note
+# is that the files will be at `http://localhost:1313/docs/vieter` instead of
+# just `http://localhost:1313/`
+hugo server
+```
+
+For the Slate docs, I personally just start a docker container:
+
+```sh
+docker run \
+    --rm \
+    -p 4567:4567 \
+    --name slate \
+    -v $(pwd)/docs/api/source:/srv/slate/source slatedocs/slate serve
+```
+
+This will make the Slate docs available at http://localhost:4567. Sadly, this
+server doesn't auto-refresh, so you'll have to manually refresh your browser
+every time you make a change.

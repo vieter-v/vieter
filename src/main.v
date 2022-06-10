@@ -5,13 +5,15 @@ import server
 import cli
 import console.git
 import console.logs
+import console.schedule
+import console.man
 import cron
 
 fn main() {
 	mut app := cli.Command{
 		name: 'vieter'
 		description: 'Vieter is a lightweight implementation of an Arch repository server.'
-		version: '0.3.0-alpha.2'
+		version: '0.3.0-rc.1'
 		flags: [
 			cli.Flag{
 				flag: cli.FlagType.string
@@ -27,6 +29,8 @@ fn main() {
 			git.cmd(),
 			cron.cmd(),
 			logs.cmd(),
+			schedule.cmd(),
+			man.cmd(),
 		]
 	}
 	app.setup()

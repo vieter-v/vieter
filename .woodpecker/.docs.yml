@@ -9,7 +9,6 @@ pipeline:
     commands:
       - apk add git
       - make docs
-      - 'cd docs/public && tar czvf ../../docs.tar.gz *'
 
   api-docs:
     image: 'chewingbever/vlang:latest'
@@ -17,25 +16,30 @@ pipeline:
     group: 'generate'
     commands:
       - make api-docs
-      - 'cd src/_docs && tar czvf ../../api-docs.tar.gz *'
 
-  deploy-docs:
-    image: 'curlimages/curl'
-    group: 'deploy'
-    secrets:
-      - 'site_api_key'
+  slate-docs:
+    image: 'slatedocs/slate'
+    group: 'generate'
     commands:
-      - 'curl -XPOST --fail -s -H "Authorization: Bearer $SITE_API_KEY" -T docs.tar.gz https://rustybever.be/api/deploy?dir=docs-vieter'
+      - cd docs/api
+      - bundle exec middleman build --clean
+
+  archive:
+    image: 'alpine'
+    commands:
+      - cp -r docs/api/build docs/public/api
+      - 'cd docs/public && tar czvf ../../docs.tar.gz *'
+      - 'cd ../../src/_docs && tar czvf ../../api-docs.tar.gz *'
     when:
       event: push
       branch: dev
 
-  deploy-api-docs:
+  deploy:
     image: 'curlimages/curl'
-    group: 'deploy'
     secrets:
       - 'site_api_key'
     commands:
+      - 'curl -XPOST --fail -s -H "Authorization: Bearer $SITE_API_KEY" -T docs.tar.gz https://rustybever.be/api/deploy?dir=docs-vieter'
       - 'curl -XPOST --fail -s -H "Authorization: Bearer $SITE_API_KEY" -T api-docs.tar.gz https://rustybever.be/api/deploy?dir=api-docs-vieter'
     when:
       event: push

@@ -83,6 +83,7 @@ pub fn (mut d DockerConn) inspect_container(id string) ?ContainerInspect {
 
 	mut data := json.decode(ContainerInspect, body)?
 
+	// The Docker engine API *should* always return UTC time.
 	data.state.start_time = time.parse_rfc3339(data.state.start_time_str)?
 
 	if data.state.status == 'exited' {

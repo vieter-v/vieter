@@ -7,9 +7,9 @@ import cron.expression { CronExpression, parse_expression }
 import math
 import build
 import docker
-import db
 import os
 import client
+import models { GitRepo }
 
 const (
 	// How many seconds to wait before retrying to update API if failed
@@ -20,7 +20,7 @@ const (
 
 struct ScheduledBuild {
 pub:
-	repo      db.GitRepo
+	repo      GitRepo
 	timestamp time.Time
 }
 
@@ -38,7 +38,7 @@ mut:
 	api_update_frequency    int
 	image_rebuild_frequency int
 	// Repos currently loaded from API.
-	repos []db.GitRepo
+	repos []GitRepo
 	// At what point to update the list of repositories.
 	api_update_timestamp  time.Time
 	image_build_timestamp time.Time
@@ -149,7 +149,7 @@ pub fn (mut d Daemon) run() {
 }
 
 // schedule_build adds the next occurence of the given repo build to the queue.
-fn (mut d Daemon) schedule_build(repo db.GitRepo) {
+fn (mut d Daemon) schedule_build(repo GitRepo) {
 	ce := if repo.schedule != '' {
 		parse_expression(repo.schedule) or {
 			// TODO This shouldn't return an error if the expression is empty.
@@ -178,7 +178,7 @@ fn (mut d Daemon) schedule_build(repo db.GitRepo) {
 fn (mut d Daemon) renew_repos() {
 	d.linfo('Renewing repos...')
 
-	mut new_repos := d.client.get_git_repos() or {
+	mut new_repos := d.client.get_all_git_repos() or {
 		d.lerror('Failed to renew repos. Retrying in ${daemon.api_update_retry_timeout}s...')
 		d.api_update_timestamp = time.now().add_seconds(daemon.api_update_retry_timeout)
 

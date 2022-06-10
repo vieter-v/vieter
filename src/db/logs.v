@@ -1,37 +1,56 @@
 module db
 
+import models { BuildLog, BuildLogFilter }
 import time
 
-pub struct BuildLog {
-pub:
-	id         int       [primary; sql: serial]
-	repo_id    int       [nonull]
-	start_time time.Time [nonull]
-	end_time   time.Time [nonull]
-	arch       string    [nonull]
-	exit_code  int       [nonull]
-}
-
-// str returns a string representation.
-pub fn (bl &BuildLog) str() string {
-	mut parts := [
-		'id: $bl.id',
-		'repo id: $bl.repo_id',
-		'start time: $bl.start_time',
-		'end time: $bl.end_time',
-		'arch: $bl.arch',
-		'exit code: $bl.exit_code',
-	]
-	str := parts.join('\n')
-
-	return str
-}
-
 // get_build_logs returns all BuildLog's in the database.
-pub fn (db &VieterDb) get_build_logs() []BuildLog {
-	res := sql db.conn {
-		select from BuildLog order by id
+pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
+	mut where_parts := []string{}
+
+	if filter.repo != 0 {
+		where_parts << 'repo_id == $filter.repo'
 	}
+
+	if filter.before != time.Time{} {
+		where_parts << 'start_time < $filter.before.unix_time()'
+	}
+
+	if filter.after != time.Time{} {
+		where_parts << 'start_time > $filter.after.unix_time()'
+	}
+
+	// NOTE: possible SQL injection
+	if filter.arch != '' {
+		where_parts << "arch == '$filter.arch'"
+	}
+
+	mut parts := []string{}
+
+	for exp in filter.exit_codes {
+		if exp[0] == `!` {
+			code := exp[1..].int()
+
+			parts << 'exit_code != $code'
+		} else {
+			code := exp.int()
+
+			parts << 'exit_code == $code'
+		}
+	}
+
+	if parts.len > 0 {
+		where_parts << parts.map('($it)').join(' or ')
+	}
+
+	mut where_str := ''
+
+	if where_parts.len > 0 {
+		where_str = 'where ' + where_parts.map('($it)').join(' and ')
+	}
+
+	query := 'select * from BuildLog $where_str limit $filter.limit offset $filter.offset'
+	rows, _ := db.conn.exec(query)
+	res := rows.map(row_into<BuildLog>(it))
 
 	return res
 }

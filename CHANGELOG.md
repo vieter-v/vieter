@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter/vieter/src/branch/dev)
 
+## [0.3.0-rc.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-rc.1)
+
+### Added
+
+* Database migrations
+* Improved GitRepo & BuildLog API
+    * Pagination using `limit` & `offset` query params
+    * GitRepo: filter by repo
+    * BuildLog: filter by start & end date, repo, exit code & arch
+* CLI flags to take advantage of above API improvements
+* Added CLI command to generate all man pages
+* PKGBUILDs now install man pages
+* Hosted CLI man pages ([vieter(1)](https://rustybever.be/man/vieter/vieter.1.html))
+* Proper HTTP API docs ([link](https://rustybever.be/docs/vieter/api/))
+
+### Changed
+
+* Packages from target repo are available during builds
+    * This can be used as a basic way to support AUR dependencies, by adding
+      the dependencies to the same repository
+* Every build now updates its packages first instead of solely relying on the
+  updated builder image
+* Build logs now show commands being executed
+
+### Fixed
+
+* `POST /api/logs` now correctly uses epoch timestamps instead of strings
+
 ## [0.3.0-alpha.2](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.2)
 
 ### Added

@@ -60,6 +60,11 @@ api-docs:
 	rm -rf '$(SRC_DIR)/_docs'
 	cd '$(SRC_DIR)' && v doc -all -f html -m -readme .
 
+.PHONY: man
+man: vieter
+	rm -rf man
+	./vieter man man
+
 
 # =====OTHER=====
 .PHONY: lint
