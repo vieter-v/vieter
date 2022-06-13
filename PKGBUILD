@@ -3,7 +3,7 @@
 
 pkgbase='vieter'
 pkgname='vieter'
-pkgver='0.3.0_rc.1'
+pkgver='0.3.0'
 pkgrel=1
 pkgdesc="Vieter is a lightweight implementation of an Arch repository server."
 depends=('glibc' 'openssl' 'libarchive' 'sqlite')
