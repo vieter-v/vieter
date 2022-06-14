@@ -1,6 +1,6 @@
 module build
 
-import models { GitRepo }
+import models { Target }
 
 // escape_shell_string escapes any characters that could be interpreted
 // incorrectly by a shell. The resulting value should be safe to use inside an
@@ -22,8 +22,8 @@ pub fn echo_commands(cmds []string) []string {
 	return out
 }
 
-// create_build_script generates a shell script that builds a given GitRepo.
-fn create_build_script(address string, repo &GitRepo, build_arch string) string {
+// create_build_script generates a shell script that builds a given Target.
+fn create_build_script(address string, repo &Target, build_arch string) string {
 	repo_url := '$address/$repo.repo'
 
 	commands := echo_commands([

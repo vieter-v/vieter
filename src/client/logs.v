@@ -13,10 +13,10 @@ pub fn (c &Client) get_build_logs(filter BuildLogFilter) ?Response<[]BuildLog> {
 	return data
 }
 
-// get_build_logs_for_repo returns all build logs for a given repo.
-pub fn (c &Client) get_build_logs_for_repo(repo_id int) ?Response<[]BuildLog> {
+// get_build_logs_for_target returns all build logs for a given target.
+pub fn (c &Client) get_build_logs_for_target(target_id int) ?Response<[]BuildLog> {
 	params := {
-		'repo': repo_id.str()
+		'repo': target_id.str()
 	}
 
 	data := c.send_request<[]BuildLog>(Method.get, '/api/v1/logs', params)?

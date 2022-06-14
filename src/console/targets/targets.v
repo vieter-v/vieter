@@ -5,7 +5,7 @@ import vieter.vconf
 import cron.expression { parse_expression }
 import client
 import console
-import models { GitRepoFilter }
+import models { TargetFilter }
 
 struct Config {
 	address    string [required]
@@ -43,7 +43,7 @@ pub fn cmd() cli.Command {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
-					mut filter := GitRepoFilter{}
+					mut filter := TargetFilter{}
 
 					limit := cmd.flags.get_int('limit')?
 					if limit != 0 {
@@ -168,7 +168,7 @@ pub fn cmd() cli.Command {
 // ID. If multiple or none are found, an error is raised.
 
 // list prints out a list of all repositories.
-fn list(conf Config, filter GitRepoFilter) ? {
+fn list(conf Config, filter TargetFilter) ? {
 	c := client.new(conf.address, conf.api_key)
 	repos := c.get_targets(filter)?
 	data := repos.map([it.id.str(), it.url, it.branch, it.repo])

@@ -23,8 +23,8 @@ pub fn patch_from_params<T>(mut o T, params map[string]string) ? {
 				o.$(field.name) = params[field.name].int()
 			} $else $if field.typ is u64 {
 				o.$(field.name) = params[field.name].u64()
-			} $else $if field.typ is []GitRepoArch {
-				o.$(field.name) = params[field.name].split(',').map(GitRepoArch{ value: it })
+			} $else $if field.typ is []TargetArch {
+				o.$(field.name) = params[field.name].split(',').map(TargetArch{ value: it })
 			} $else $if field.typ is time.Time {
 				o.$(field.name) = time.unix(params[field.name].int())
 			} $else $if field.typ is []string {

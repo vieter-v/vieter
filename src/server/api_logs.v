@@ -10,7 +10,7 @@ import os
 import util
 import models { BuildLog, BuildLogFilter }
 
-// v1_get_logs returns all build logs in the database. A 'repo' query param can
+// v1_get_logs returns all build logs in the database. A 'target' query param can
 // optionally be added to limit the list of build logs to that repository.
 ['/api/v1/logs'; get]
 fn (mut app App) v1_get_logs() web.Result {
@@ -47,7 +47,7 @@ fn (mut app App) v1_get_log_content(id int) web.Result {
 
 	log := app.db.get_build_log(id) or { return app.not_found() }
 	file_name := log.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
-	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.repo_id.str(), log.arch,
+	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.target_id.str(), log.arch,
 		file_name)
 
 	return app.file(full_path)
@@ -96,15 +96,15 @@ fn (mut app App) v1_post_log() web.Result {
 
 	arch := app.query['arch']
 
-	repo_id := app.query['repo'].int()
+	target_id := app.query['target'].int()
 
-	if !app.db.git_repo_exists(repo_id) {
-		return app.json(http.Status.bad_request, new_response('Unknown Git repo.'))
+	if !app.db.target_exists(target_id) {
+		return app.json(http.Status.bad_request, new_response('Unknown target.'))
 	}
 
 	// Store log in db
 	log := BuildLog{
-		repo_id: repo_id
+		target_id: target_id
 		start_time: start_time
 		end_time: end_time
 		arch: arch
@@ -113,7 +113,7 @@ fn (mut app App) v1_post_log() web.Result {
 
 	app.db.add_build_log(log)
 
-	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, repo_id.str(), arch)
+	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, target_id.str(), arch)
 
 	// Create the logs directory of it doesn't exist
 	if !os.exists(repo_logs_dir) {
