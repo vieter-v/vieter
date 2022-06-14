@@ -10,10 +10,10 @@ import os
 import util
 import models { BuildLog, BuildLogFilter }
 
-// get_logs returns all build logs in the database. A 'repo' query param can
+// v1_get_logs returns all build logs in the database. A 'repo' query param can
 // optionally be added to limit the list of build logs to that repository.
-['/api/logs'; get]
-fn (mut app App) get_logs() web.Result {
+['/api/v1/logs'; get]
+fn (mut app App) v1_get_logs() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -26,9 +26,9 @@ fn (mut app App) get_logs() web.Result {
 	return app.json(http.Status.ok, new_data_response(logs))
 }
 
-// get_single_log returns the build log with the given id.
-['/api/logs/:id'; get]
-fn (mut app App) get_single_log(id int) web.Result {
+// v1_get_single_log returns the build log with the given id.
+['/api/v1/logs/:id'; get]
+fn (mut app App) v1_get_single_log(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -38,9 +38,9 @@ fn (mut app App) get_single_log(id int) web.Result {
 	return app.json(http.Status.ok, new_data_response(log))
 }
 
-// get_log_content returns the actual build log file for the given id.
-['/api/logs/:id/content'; get]
-fn (mut app App) get_log_content(id int) web.Result {
+// v1_get_log_content returns the actual build log file for the given id.
+['/api/v1/logs/:id/content'; get]
+fn (mut app App) v1_get_log_content(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -62,9 +62,9 @@ fn parse_query_time(query string) ?time.Time {
 	return t
 }
 
-// post_log adds a new log to the database.
-['/api/logs'; post]
-fn (mut app App) post_log() web.Result {
+// v1_post_log adds a new log to the database.
+['/api/v1/logs'; post]
+fn (mut app App) v1_post_log() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}

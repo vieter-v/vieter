@@ -7,7 +7,7 @@ import response { Response }
 // get_git_repos returns a list of GitRepo's, given a filter object.
 pub fn (c &Client) get_git_repos(filter GitRepoFilter) ?[]GitRepo {
 	params := models.params_from(filter)
-	data := c.send_request<[]GitRepo>(Method.get, '/api/repos', params)?
+	data := c.send_request<[]GitRepo>(Method.get, '/api/v1/repos', params)?
 
 	return data.data
 }
@@ -35,7 +35,7 @@ pub fn (c &Client) get_all_git_repos() ?[]GitRepo {
 
 // get_git_repo returns the repo for a specific ID.
 pub fn (c &Client) get_git_repo(id int) ?GitRepo {
-	data := c.send_request<GitRepo>(Method.get, '/api/repos/$id', {})?
+	data := c.send_request<GitRepo>(Method.get, '/api/v1/repos/$id', {})?
 
 	return data.data
 }
@@ -52,14 +52,14 @@ pub fn (c &Client) add_git_repo(url string, branch string, repo string, arch []s
 		params['arch'] = arch.join(',')
 	}
 
-	data := c.send_request<string>(Method.post, '/api/repos', params)?
+	data := c.send_request<string>(Method.post, '/api/v1/repos', params)?
 
 	return data
 }
 
 // remove_git_repo removes the repo with the given ID from the server.
 pub fn (c &Client) remove_git_repo(id int) ?Response<string> {
-	data := c.send_request<string>(Method.delete, '/api/repos/$id', {})?
+	data := c.send_request<string>(Method.delete, '/api/v1/repos/$id', {})?
 
 	return data
 }
@@ -67,7 +67,7 @@ pub fn (c &Client) remove_git_repo(id int) ?Response<string> {
 // patch_git_repo sends a PATCH request to the given repo with the params as
 // payload.
 pub fn (c &Client) patch_git_repo(id int, params map[string]string) ?Response<string> {
-	data := c.send_request<string>(Method.patch, '/api/repos/$id', params)?
+	data := c.send_request<string>(Method.patch, '/api/v1/repos/$id', params)?
 
 	return data
 }

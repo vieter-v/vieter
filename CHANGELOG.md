@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter/vieter/src/branch/dev)
 
+### Changed
+
+* Moved all API routes under `/v1` namespace
+
 ## [0.3.0](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0)
 
 Nothing besides bumping the versions.
