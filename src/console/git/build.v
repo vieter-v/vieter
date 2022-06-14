@@ -8,7 +8,7 @@ import build
 // build builds every Git repo in the server's list.
 fn build(conf Config, repo_id int) ? {
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_git_repo(repo_id)?
+	repo := c.get_target(repo_id)?
 
 	build_arch := os.uname().machine
 

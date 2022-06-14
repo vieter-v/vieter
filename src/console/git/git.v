@@ -170,7 +170,7 @@ pub fn cmd() cli.Command {
 // list prints out a list of all repositories.
 fn list(conf Config, filter GitRepoFilter) ? {
 	c := client.new(conf.address, conf.api_key)
-	repos := c.get_git_repos(filter)?
+	repos := c.get_targets(filter)?
 	data := repos.map([it.id.str(), it.url, it.branch, it.repo])
 
 	println(console.pretty_table(['id', 'url', 'branch', 'repo'], data)?)
@@ -179,7 +179,7 @@ fn list(conf Config, filter GitRepoFilter) ? {
 // add adds a new repository to the server's list.
 fn add(conf Config, url string, branch string, repo string) ? {
 	c := client.new(conf.address, conf.api_key)
-	res := c.add_git_repo(url, branch, repo, [])?
+	res := c.add_target(url, branch, repo, [])?
 
 	println(res.message)
 }
@@ -191,7 +191,7 @@ fn remove(conf Config, id string) ? {
 
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.remove_git_repo(id_int)?
+		res := c.remove_target(id_int)?
 		println(res.message)
 	}
 }
@@ -209,7 +209,7 @@ fn patch(conf Config, id string, params map[string]string) ? {
 	id_int := id.int()
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.patch_git_repo(id_int, params)?
+		res := c.patch_target(id_int, params)?
 
 		println(res.message)
 	}
@@ -224,6 +224,6 @@ fn info(conf Config, id string) ? {
 	}
 
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_git_repo(id_int)?
+	repo := c.get_target(id_int)?
 	println(repo)
 }

@@ -178,7 +178,7 @@ fn (mut d Daemon) schedule_build(repo GitRepo) {
 fn (mut d Daemon) renew_repos() {
 	d.linfo('Renewing repos...')
 
-	mut new_repos := d.client.get_all_git_repos() or {
+	mut new_repos := d.client.get_all_targets() or {
 		d.lerror('Failed to renew repos. Retrying in ${daemon.api_update_retry_timeout}s...')
 		d.api_update_timestamp = time.now().add_seconds(daemon.api_update_retry_timeout)
 

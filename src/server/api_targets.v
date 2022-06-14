@@ -6,9 +6,9 @@ import response { new_data_response, new_response }
 import db
 import models { GitRepo, GitRepoArch, GitRepoFilter }
 
-// v1_get_repos returns the current list of repos.
-['/api/v1/repos'; get]
-fn (mut app App) v1_get_repos() web.Result {
+// v1_get_targets returns the current list of repos.
+['/api/v1/targets'; get]
+fn (mut app App) v1_get_targets() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -21,9 +21,9 @@ fn (mut app App) v1_get_repos() web.Result {
 	return app.json(http.Status.ok, new_data_response(repos))
 }
 
-// v1_get_single_repo returns the information for a single repo.
-['/api/v1/repos/:id'; get]
-fn (mut app App) v1_get_single_repo(id int) web.Result {
+// v1_get_single_target returns the information for a single repo.
+['/api/v1/targets/:id'; get]
+fn (mut app App) v1_get_single_target(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -33,9 +33,9 @@ fn (mut app App) v1_get_single_repo(id int) web.Result {
 	return app.json(http.Status.ok, new_data_response(repo))
 }
 
-// v1_post_repo creates a new repo from the provided query string.
-['/api/v1/repos'; post]
-fn (mut app App) v1_post_repo() web.Result {
+// v1_post_target creates a new repo from the provided query string.
+['/api/v1/targets'; post]
+fn (mut app App) v1_post_target() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -57,9 +57,9 @@ fn (mut app App) v1_post_repo() web.Result {
 	return app.json(http.Status.ok, new_response('Repo added successfully.'))
 }
 
-// v1_delete_repo removes a given repo from the server's list.
-['/api/v1/repos/:id'; delete]
-fn (mut app App) v1_delete_repo(id int) web.Result {
+// v1_delete_target removes a given repo from the server's list.
+['/api/v1/targets/:id'; delete]
+fn (mut app App) v1_delete_target(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -69,9 +69,9 @@ fn (mut app App) v1_delete_repo(id int) web.Result {
 	return app.json(http.Status.ok, new_response('Repo removed successfully.'))
 }
 
-// v1_patch_repo updates a repo's data with the given query params.
-['/api/v1/repos/:id'; patch]
-fn (mut app App) v1_patch_repo(id int) web.Result {
+// v1_patch_target updates a repo's data with the given query params.
+['/api/v1/targets/:id'; patch]
+fn (mut app App) v1_patch_target(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
