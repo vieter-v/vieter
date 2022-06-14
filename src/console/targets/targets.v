@@ -1,4 +1,4 @@
-module git
+module targets
 
 import cli
 import vieter.vconf
@@ -16,12 +16,12 @@ struct Config {
 // cmd returns the cli submodule that handles the repos API interaction
 pub fn cmd() cli.Command {
 	return cli.Command{
-		name: 'repos'
-		description: 'Interact with the repos API.'
+		name: 'targets'
+		description: 'Interact with the targets API.'
 		commands: [
 			cli.Command{
 				name: 'list'
-				description: 'List the current repos.'
+				description: 'List the current targets.'
 				flags: [
 					cli.Flag{
 						name: 'limit'
@@ -35,7 +35,7 @@ pub fn cmd() cli.Command {
 					},
 					cli.Flag{
 						name: 'repo'
-						description: 'Only return Git repos that publish to this repo.'
+						description: 'Only return targets that publish to this repo.'
 						flag: cli.FlagType.string
 					},
 				]
@@ -67,7 +67,7 @@ pub fn cmd() cli.Command {
 				name: 'add'
 				required_args: 3
 				usage: 'url branch repo'
-				description: 'Add a new repository.'
+				description: 'Add a new Git repository target.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
@@ -79,7 +79,7 @@ pub fn cmd() cli.Command {
 				name: 'remove'
 				required_args: 1
 				usage: 'id'
-				description: 'Remove a repository that matches the given ID prefix.'
+				description: 'Remove a target that matches the given id.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
@@ -91,7 +91,7 @@ pub fn cmd() cli.Command {
 				name: 'info'
 				required_args: 1
 				usage: 'id'
-				description: 'Show detailed information for the repo matching the ID prefix.'
+				description: 'Show detailed information for the target matching the id.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
@@ -103,7 +103,7 @@ pub fn cmd() cli.Command {
 				name: 'edit'
 				required_args: 1
 				usage: 'id'
-				description: 'Edit the repository that matches the given ID prefix.'
+				description: 'Edit the Git repository target that matches the given id.'
 				flags: [
 					cli.Flag{
 						name: 'url'
@@ -152,7 +152,7 @@ pub fn cmd() cli.Command {
 				name: 'build'
 				required_args: 1
 				usage: 'id'
-				description: 'Build the repo with the given id & publish it.'
+				description: 'Build the target with the given id & publish it.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
