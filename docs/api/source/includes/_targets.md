@@ -1,4 +1,4 @@
-# Git Repositories
+# Targets
 
 <aside class="notice">
 
@@ -6,15 +6,14 @@ All routes in this section require authentication.
 
 </aside>
 
-Endpoints for interacting with the list of Git repositories stored on the
-server.
+Endpoints for interacting with the list of targets stored on the server.
 
-## List repos
+## List targets
 
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/repos?offset=10&limit=20
+  https://example.com/api/targets?offset=10&limit=20
 ```
 
 > JSON output format
@@ -32,7 +31,7 @@ curl \
       "arch": [
         {
           "id": 1,
-          "repo_id": 1,
+          "target_id": 1,
           "value": "x86_64"
         }
       ]
@@ -41,11 +40,11 @@ curl \
 }
 ```
 
-Retrieve a list of Git repositories.
+Retrieve a list of targets.
 
 ### HTTP Request
 
-`GET /api/repos`
+`GET /api/targets`
 
 ### Query Parameters
 
@@ -53,14 +52,14 @@ Parameter | Description
 --------- | -----------
 limit | Maximum amount of results to return.
 offset | Offset of results.
-repo | Limit results to repositories that publish to the given repo.
+repo | Limit results to targets that publish to the given repo.
 
-## Get a repo
+## Get specific target
 
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/repos/15
+  https://example.com/api/targets/1
 ```
 
 > JSON output format
@@ -77,7 +76,7 @@ curl \
     "arch": [
       {
         "id": 1,
-        "repo_id": 1,
+        "target_id": 1,
         "value": "x86_64"
       }
     ]
@@ -85,25 +84,25 @@ curl \
 }
 ```
 
-Get info about a specific Git repository.
+Get info about a specific target.
 
 ### HTTP Request
 
-`GET /api/repos/:id`
+`GET /api/targets/:id`
 
 ### URL Parameters
 
 Parameter | Description
 --------- | -----------
-id | ID of requested repo
+id | id of requested target
 
-## Create a new repo
+## Create a new target
 
-Create a new Git repository with the given data.
+Create a new target with the given data.
 
 ### HTTP Request
 
-`POST /api/repos`
+`POST /api/targets`
 
 ### Query Parameters
 
@@ -115,19 +114,19 @@ repo | Vieter repository to publish built packages to.
 schedule | Cron build schedule (syntax explained [here](https://rustybever.be/docs/vieter/usage/builds/schedule/))
 arch | Comma-separated list of architectures to build package on.
 
-## Modify a repo
+## Modify a target
 
-Modify the data of an existing Git repository.
+Modify the data of an existing target.
 
 ### HTTP Request
 
-`PATCH /api/repos/:id`
+`PATCH /api/targets/:id`
 
 ### URL Parameters
 
 Parameter | Description
 --------- | -----------
-id | ID of requested repo
+id | id of target to modify
 
 ### Query Parameters
 
@@ -139,16 +138,16 @@ repo | Vieter repository to publish built packages to.
 schedule | Cron build schedule
 arch | Comma-separated list of architectures to build package on.
 
-## Remove a repo
+## Remove a target
 
-Remove a Git repository from the server.
+Remove a target from the server.
 
 ### HTTP Request
 
-`DELETE /api/repos/:id`
+`DELETE /api/targets/:id`
 
 ### URL Parameters
 
 Parameter | Description
 --------- | -----------
-id | ID of repo to remove
+id | id of target to remove

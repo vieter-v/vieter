@@ -24,7 +24,7 @@ curl \
   "data": [
     {
       "id": 1,
-      "repo_id": 3,
+      "target_id": 3,
       "start_time": 1652008554,
       "end_time": 1652008559,
       "arch": "x86_64",
@@ -46,7 +46,7 @@ Parameter | Description
 --------- | -----------
 limit | Maximum amount of results to return.
 offset | Offset of results.
-repo | Only return builds published to this repository.
+target | Only return builds for this target id.
 before | Only return logs started before this time (UTC epoch)
 after | Only return logs started after this time (UTC epoch)
 arch | Only return logs built on this architecture
@@ -58,7 +58,7 @@ exit_codes | Comma-separated list of exit codes to limit result to; using `!` as
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/logs/15
+  https://example.com/api/logs/1
 ```
 
 > JSON output format
@@ -68,7 +68,7 @@ curl \
   "message": "",
   "data": {
     "id": 1,
-    "repo_id": 3,
+    "target_id": 3,
     "start_time": 1652008554,
     "end_time": 1652008559,
     "arch": "x86_64",
@@ -129,11 +129,11 @@ Publish a new build log to the server.
 
 Parameter | Description
 --------- | -----------
-id | ID of requested log
 startTime | Start time of the build (UTC epoch)
 endTime | End time of the build (UTC epoch)
 arch | Architecture on which the build was done
 exitCode | Exit code of the build container
+target | id of target this build is for
 
 ### Request body
 
