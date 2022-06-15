@@ -1,7 +1,7 @@
 module logs
 
 import cli
-import env
+import vieter.vconf
 import client
 import console
 import time
@@ -65,7 +65,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := env.load<Config>(config_file)?
+					conf := vconf.load<Config>(default_path: config_file)?
 
 					mut filter := BuildLogFilter{}
 
@@ -143,7 +143,7 @@ pub fn cmd() cli.Command {
 				description: 'Show all info for a specific build log.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := env.load<Config>(config_file)?
+					conf := vconf.load<Config>(default_path: config_file)?
 
 					id := cmd.args[0].int()
 					info(conf, id)?
@@ -156,7 +156,7 @@ pub fn cmd() cli.Command {
 				description: 'Output the content of a build log to stdout.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := env.load<Config>(config_file)?
+					conf := vconf.load<Config>(default_path: config_file)?
 
 					id := cmd.args[0].int()
 					content(conf, id)?

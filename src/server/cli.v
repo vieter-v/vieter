@@ -1,7 +1,7 @@
 module server
 
 import cli
-import env
+import vieter.vconf
 
 struct Config {
 pub:
@@ -19,7 +19,7 @@ pub fn cmd() cli.Command {
 		description: 'Start the Vieter server.'
 		execute: fn (cmd cli.Command) ? {
 			config_file := cmd.flags.get_string('config-file')?
-			conf := env.load<Config>(config_file)?
+			conf := vconf.load<Config>(default_path: config_file)?
 
 			server(conf)?
 		}
