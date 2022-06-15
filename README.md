@@ -41,6 +41,10 @@ Besides a V installer, Vieter also requires the following libraries to work:
 * openssl
 * sqlite3
 
+Vieter also depends on some external V modules which you can install using `cd
+src && v install`. Make sure to keep these dependencies up to date using `v
+update`.
+
 ### Compiler
 
 Vieter compiles with the standard Vlang compiler. However, I do maintain a
