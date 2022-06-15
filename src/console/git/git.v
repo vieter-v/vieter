@@ -41,7 +41,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(default_path: config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					mut filter := GitRepoFilter{}
 
@@ -70,7 +70,7 @@ pub fn cmd() cli.Command {
 				description: 'Add a new repository.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(default_path: config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					add(conf, cmd.args[0], cmd.args[1], cmd.args[2])?
 				}
@@ -82,7 +82,7 @@ pub fn cmd() cli.Command {
 				description: 'Remove a repository that matches the given ID prefix.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(default_path: config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					remove(conf, cmd.args[0])?
 				}
@@ -94,7 +94,7 @@ pub fn cmd() cli.Command {
 				description: 'Show detailed information for the repo matching the ID prefix.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(default_path: config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					info(conf, cmd.args[0])?
 				}
@@ -133,7 +133,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(default_path: config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					found := cmd.flags.get_all_found()
 
@@ -155,7 +155,7 @@ pub fn cmd() cli.Command {
 				description: 'Build the repo with the given id & publish it.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(default_path: config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					build(conf, cmd.args[0].int())?
 				}
