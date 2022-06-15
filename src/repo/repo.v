@@ -139,7 +139,7 @@ fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &pac
 
 	os.mkdir_all(pkg_dir) or { return error('Failed to create package directory.') }
 
-	os.write_file(os.join_path_single(pkg_dir, 'desc'), pkg.to_desc()) or {
+	os.write_file(os.join_path_single(pkg_dir, 'desc'), pkg.to_desc()?) or {
 		os.rmdir_all(pkg_dir)?
 
 		return error('Failed to write desc file.')
