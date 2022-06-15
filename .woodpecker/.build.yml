@@ -13,7 +13,7 @@ pipeline:
       - export VMODULES=$PWD/.vmodules
       - 'cd src && v install'
     when:
-      event: [pull_request]
+      event: [push, pull_request]
 
   debug:
     image: 'chewingbever/vlang:latest'
