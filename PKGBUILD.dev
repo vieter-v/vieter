@@ -22,7 +22,15 @@ pkgver() {
     git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
+prepare() {
+    export VMODULES="$srcdir/.vmodules"
+
+    cd "$pkgname/src" && v install
+}
+
 build() {
+    export VMODULES="$srcdir/.vmodules"
+
     cd "$pkgname"
 
     make prod

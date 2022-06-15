@@ -6,10 +6,19 @@ matrix:
 platform: ${PLATFORM}
 
 pipeline:
-  debug:
+  install-modules:
     image: 'chewingbever/vlang:latest'
     pull: true
     commands:
+      - export VMODULES=$PWD/.vmodules
+      - 'cd src && v install'
+    when:
+      event: [pull_request]
+
+  debug:
+    image: 'chewingbever/vlang:latest'
+    commands:
+      - export VMODULES=$PWD/.vmodules
       - make
     when:
       event: [pull_request]
@@ -18,10 +27,10 @@ pipeline:
 
   prod:
     image: 'chewingbever/vlang:latest'
-    pull: true
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static
     commands:
+      - export VMODULES=$PWD/.vmodules
       # Apparently this -D is *very* important
       - CFLAGS='-DGC_THREADS=1' make prod
       # Make sure the binary is actually statically built
