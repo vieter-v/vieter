@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter/vieter/src/branch/dev)
 
+### Added
+
+* Server port can now be configured
+
 ### Changed
 
 * Moved all API routes under `/v1` namespace
+* Renamed `vieter repos` to `vieter targets`
+* Renamed `/v1/api/repos` namespace to `/v1/api/targets`
 
 ## [0.3.0](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0)
 

@@ -10,6 +10,7 @@ pub:
 	data_dir     string
 	api_key      string
 	default_arch string
+	port         int = 8000
 }
 
 // cmd returns the cli submodule that handles starting the server

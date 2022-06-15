@@ -45,7 +45,8 @@ configuration variable required for each command.
       This prevents the server from being confused when an `any` package is
       published as the very first package for a repository.
     * Git repositories added without an `arch` value use this value instead.
-
+* `port`: HTTP port to run on
+    * Default: `8000`
 
 ### `vieter cron`
 
