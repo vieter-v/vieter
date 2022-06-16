@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Renamed `vieter repos` to `vieter targets`
 * Renamed `/api/v1/repos` namespace to `/api/v1/targets`
 
+### Removed
+
+* md5 hashes are no longer calculated for packages
+
 ## [0.3.0](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0)
 
 Nothing besides bumping the versions.
