@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Moved all API routes under `/v1` namespace
 * Renamed `vieter repos` to `vieter targets`
-* Renamed `/v1/api/repos` namespace to `/v1/api/targets`
+* Renamed `/api/v1/repos` namespace to `/api/v1/targets`
 
 ## [0.3.0](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0)
 

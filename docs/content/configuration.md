@@ -26,7 +26,7 @@ secrets file.
 ## Commands
 
 The first argument passed to Vieter determines which command you wish to use.
-Each of these can contain subcommands (e.g. `vieter repos list`), but all
+Each of these can contain subcommands (e.g. `vieter targets list`), but all
 subcommands will use the same configuration. Below you can find the
 configuration variable required for each command.
 
@@ -89,11 +89,11 @@ configuration variable required for each command.
 * `api_key`: the API key to use when authenticating requests.
 * `address`: Base URL of your Vieter instance, e.g. https://example.com
 
-### `vieter repos`
+### `vieter targets`
 
 * `api_key`: the API key to use when authenticating requests.
 * `address`: Base URL of your Vieter instance, e.g. https://example.com
-* `base_image`: image to use when building a package using `vieter repos
+* `base_image`: image to use when building a package using `vieter targets
   build`.
     * Default: `archlinux:base-devel`
 
