@@ -3,7 +3,7 @@ module main
 import os
 import server
 import cli
-import console.git
+import console.targets
 import console.logs
 import console.schedule
 import console.man
@@ -26,7 +26,7 @@ fn main() {
 		]
 		commands: [
 			server.cmd(),
-			git.cmd(),
+			targets.cmd(),
 			cron.cmd(),
 			logs.cmd(),
 			schedule.cmd(),

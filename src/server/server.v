@@ -8,7 +8,6 @@ import util
 import db
 
 const (
-	port          = 8000
 	log_file_name = 'vieter.log'
 	repo_dir_name = 'repos'
 	db_file_name  = 'vieter.sqlite'
@@ -77,5 +76,5 @@ pub fn server(conf Config) ? {
 		conf: conf
 		repo: repo
 		db: db
-	}, server.port)
+	}, conf.port)
 }

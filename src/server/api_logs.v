@@ -10,10 +10,10 @@ import os
 import util
 import models { BuildLog, BuildLogFilter }
 
-// get_logs returns all build logs in the database. A 'repo' query param can
+// v1_get_logs returns all build logs in the database. A 'target' query param can
 // optionally be added to limit the list of build logs to that repository.
-['/api/logs'; get]
-fn (mut app App) get_logs() web.Result {
+['/api/v1/logs'; get]
+fn (mut app App) v1_get_logs() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -26,9 +26,9 @@ fn (mut app App) get_logs() web.Result {
 	return app.json(http.Status.ok, new_data_response(logs))
 }
 
-// get_single_log returns the build log with the given id.
-['/api/logs/:id'; get]
-fn (mut app App) get_single_log(id int) web.Result {
+// v1_get_single_log returns the build log with the given id.
+['/api/v1/logs/:id'; get]
+fn (mut app App) v1_get_single_log(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -38,16 +38,16 @@ fn (mut app App) get_single_log(id int) web.Result {
 	return app.json(http.Status.ok, new_data_response(log))
 }
 
-// get_log_content returns the actual build log file for the given id.
-['/api/logs/:id/content'; get]
-fn (mut app App) get_log_content(id int) web.Result {
+// v1_get_log_content returns the actual build log file for the given id.
+['/api/v1/logs/:id/content'; get]
+fn (mut app App) v1_get_log_content(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
 	log := app.db.get_build_log(id) or { return app.not_found() }
 	file_name := log.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
-	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.repo_id.str(), log.arch,
+	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.target_id.str(), log.arch,
 		file_name)
 
 	return app.file(full_path)
@@ -62,9 +62,9 @@ fn parse_query_time(query string) ?time.Time {
 	return t
 }
 
-// post_log adds a new log to the database.
-['/api/logs'; post]
-fn (mut app App) post_log() web.Result {
+// v1_post_log adds a new log to the database.
+['/api/v1/logs'; post]
+fn (mut app App) v1_post_log() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -96,15 +96,15 @@ fn (mut app App) post_log() web.Result {
 
 	arch := app.query['arch']
 
-	repo_id := app.query['repo'].int()
+	target_id := app.query['target'].int()
 
-	if !app.db.git_repo_exists(repo_id) {
-		return app.json(http.Status.bad_request, new_response('Unknown Git repo.'))
+	if !app.db.target_exists(target_id) {
+		return app.json(http.Status.bad_request, new_response('Unknown target.'))
 	}
 
 	// Store log in db
 	log := BuildLog{
-		repo_id: repo_id
+		target_id: target_id
 		start_time: start_time
 		end_time: end_time
 		arch: arch
@@ -113,7 +113,7 @@ fn (mut app App) post_log() web.Result {
 
 	app.db.add_build_log(log)
 
-	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, repo_id.str(), arch)
+	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, target_id.str(), arch)
 
 	// Create the logs directory of it doesn't exist
 	if !os.exists(repo_logs_dir) {

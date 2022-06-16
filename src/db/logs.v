@@ -7,8 +7,8 @@ import time
 pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 	mut where_parts := []string{}
 
-	if filter.repo != 0 {
-		where_parts << 'repo_id == $filter.repo'
+	if filter.target != 0 {
+		where_parts << 'target_id == $filter.target'
 	}
 
 	if filter.before != time.Time{} {
@@ -55,11 +55,11 @@ pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 	return res
 }
 
-// get_build_logs_for_repo returns all BuildLog's in the database for a given
-// repo.
-pub fn (db &VieterDb) get_build_logs_for_repo(repo_id int) []BuildLog {
+// get_build_logs_for_target returns all BuildLog's in the database for a given
+// target.
+pub fn (db &VieterDb) get_build_logs_for_target(target_id int) []BuildLog {
 	res := sql db.conn {
-		select from BuildLog where repo_id == repo_id order by id
+		select from BuildLog where target_id == target_id order by id
 	}
 
 	return res

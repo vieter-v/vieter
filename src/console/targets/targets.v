@@ -1,11 +1,11 @@
-module git
+module targets
 
 import cli
 import vieter.vconf
 import cron.expression { parse_expression }
 import client
 import console
-import models { GitRepoFilter }
+import models { TargetFilter }
 
 struct Config {
 	address    string [required]
@@ -16,12 +16,12 @@ struct Config {
 // cmd returns the cli submodule that handles the repos API interaction
 pub fn cmd() cli.Command {
 	return cli.Command{
-		name: 'repos'
-		description: 'Interact with the repos API.'
+		name: 'targets'
+		description: 'Interact with the targets API.'
 		commands: [
 			cli.Command{
 				name: 'list'
-				description: 'List the current repos.'
+				description: 'List the current targets.'
 				flags: [
 					cli.Flag{
 						name: 'limit'
@@ -35,7 +35,7 @@ pub fn cmd() cli.Command {
 					},
 					cli.Flag{
 						name: 'repo'
-						description: 'Only return Git repos that publish to this repo.'
+						description: 'Only return targets that publish to this repo.'
 						flag: cli.FlagType.string
 					},
 				]
@@ -43,7 +43,7 @@ pub fn cmd() cli.Command {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
-					mut filter := GitRepoFilter{}
+					mut filter := TargetFilter{}
 
 					limit := cmd.flags.get_int('limit')?
 					if limit != 0 {
@@ -67,7 +67,7 @@ pub fn cmd() cli.Command {
 				name: 'add'
 				required_args: 3
 				usage: 'url branch repo'
-				description: 'Add a new repository.'
+				description: 'Add a new Git repository target.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
@@ -79,7 +79,7 @@ pub fn cmd() cli.Command {
 				name: 'remove'
 				required_args: 1
 				usage: 'id'
-				description: 'Remove a repository that matches the given ID prefix.'
+				description: 'Remove a target that matches the given id.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
@@ -91,7 +91,7 @@ pub fn cmd() cli.Command {
 				name: 'info'
 				required_args: 1
 				usage: 'id'
-				description: 'Show detailed information for the repo matching the ID prefix.'
+				description: 'Show detailed information for the target matching the id.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
@@ -103,7 +103,7 @@ pub fn cmd() cli.Command {
 				name: 'edit'
 				required_args: 1
 				usage: 'id'
-				description: 'Edit the repository that matches the given ID prefix.'
+				description: 'Edit the Git repository target that matches the given id.'
 				flags: [
 					cli.Flag{
 						name: 'url'
@@ -152,7 +152,7 @@ pub fn cmd() cli.Command {
 				name: 'build'
 				required_args: 1
 				usage: 'id'
-				description: 'Build the repo with the given id & publish it.'
+				description: 'Build the target with the given id & publish it.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
@@ -168,9 +168,9 @@ pub fn cmd() cli.Command {
 // ID. If multiple or none are found, an error is raised.
 
 // list prints out a list of all repositories.
-fn list(conf Config, filter GitRepoFilter) ? {
+fn list(conf Config, filter TargetFilter) ? {
 	c := client.new(conf.address, conf.api_key)
-	repos := c.get_git_repos(filter)?
+	repos := c.get_targets(filter)?
 	data := repos.map([it.id.str(), it.url, it.branch, it.repo])
 
 	println(console.pretty_table(['id', 'url', 'branch', 'repo'], data)?)
@@ -179,7 +179,7 @@ fn list(conf Config, filter GitRepoFilter) ? {
 // add adds a new repository to the server's list.
 fn add(conf Config, url string, branch string, repo string) ? {
 	c := client.new(conf.address, conf.api_key)
-	res := c.add_git_repo(url, branch, repo, [])?
+	res := c.add_target(url, branch, repo, [])?
 
 	println(res.message)
 }
@@ -191,7 +191,7 @@ fn remove(conf Config, id string) ? {
 
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.remove_git_repo(id_int)?
+		res := c.remove_target(id_int)?
 		println(res.message)
 	}
 }
@@ -209,7 +209,7 @@ fn patch(conf Config, id string, params map[string]string) ? {
 	id_int := id.int()
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.patch_git_repo(id_int, params)?
+		res := c.patch_target(id_int, params)?
 
 		println(res.message)
 	}
@@ -224,6 +224,6 @@ fn info(conf Config, id string) ? {
 	}
 
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_git_repo(id_int)?
+	repo := c.get_target(id_int)?
 	println(repo)
 }

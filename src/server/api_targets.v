@@ -4,38 +4,38 @@ import web
 import net.http
 import response { new_data_response, new_response }
 import db
-import models { GitRepo, GitRepoArch, GitRepoFilter }
+import models { Target, TargetArch, TargetFilter }
 
-// get_repos returns the current list of repos.
-['/api/repos'; get]
-fn (mut app App) get_repos() web.Result {
+// v1_get_targets returns the current list of targets.
+['/api/v1/targets'; get]
+fn (mut app App) v1_get_targets() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	filter := models.from_params<GitRepoFilter>(app.query) or {
+	filter := models.from_params<TargetFilter>(app.query) or {
 		return app.json(http.Status.bad_request, new_response('Invalid query parameters.'))
 	}
-	repos := app.db.get_git_repos(filter)
+	repos := app.db.get_targets(filter)
 
 	return app.json(http.Status.ok, new_data_response(repos))
 }
 
-// get_single_repo returns the information for a single repo.
-['/api/repos/:id'; get]
-fn (mut app App) get_single_repo(id int) web.Result {
+// v1_get_single_target returns the information for a single target.
+['/api/v1/targets/:id'; get]
+fn (mut app App) v1_get_single_target(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	repo := app.db.get_git_repo(id) or { return app.not_found() }
+	repo := app.db.get_target(id) or { return app.not_found() }
 
 	return app.json(http.Status.ok, new_data_response(repo))
 }
 
-// post_repo creates a new repo from the provided query string.
-['/api/repos'; post]
-fn (mut app App) post_repo() web.Result {
+// v1_post_target creates a new target from the provided query string.
+['/api/v1/targets'; post]
+fn (mut app App) v1_post_target() web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
@@ -48,40 +48,40 @@ fn (mut app App) post_repo() web.Result {
 		params['arch'] = app.conf.default_arch
 	}
 
-	new_repo := models.from_params<GitRepo>(params) or {
+	new_repo := models.from_params<Target>(params) or {
 		return app.json(http.Status.bad_request, new_response(err.msg()))
 	}
 
-	app.db.add_git_repo(new_repo)
+	app.db.add_target(new_repo)
 
 	return app.json(http.Status.ok, new_response('Repo added successfully.'))
 }
 
-// delete_repo removes a given repo from the server's list.
-['/api/repos/:id'; delete]
-fn (mut app App) delete_repo(id int) web.Result {
+// v1_delete_target removes a given target from the server's list.
+['/api/v1/targets/:id'; delete]
+fn (mut app App) v1_delete_target(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	app.db.delete_git_repo(id)
+	app.db.delete_target(id)
 
 	return app.json(http.Status.ok, new_response('Repo removed successfully.'))
 }
 
-// patch_repo updates a repo's data with the given query params.
-['/api/repos/:id'; patch]
-fn (mut app App) patch_repo(id int) web.Result {
+// v1_patch_target updates a target's data with the given query params.
+['/api/v1/targets/:id'; patch]
+fn (mut app App) v1_patch_target(id int) web.Result {
 	if !app.is_authorized() {
 		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
 	}
 
-	app.db.update_git_repo(id, app.query)
+	app.db.update_target(id, app.query)
 
 	if 'arch' in app.query {
-		arch_objs := app.query['arch'].split(',').map(GitRepoArch{ value: it })
+		arch_objs := app.query['arch'].split(',').map(TargetArch{ value: it })
 
-		app.db.update_git_repo_archs(id, arch_objs)
+		app.db.update_target_archs(id, arch_objs)
 	}
 
 	return app.json(http.Status.ok, new_response('Repo updated successfully.'))
