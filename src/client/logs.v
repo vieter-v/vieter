@@ -39,9 +39,9 @@ pub fn (c &Client) get_build_log_content(id int) ?string {
 }
 
 // add_build_log adds a new build log to the server.
-pub fn (c &Client) add_build_log(repo_id int, start_time time.Time, end_time time.Time, arch string, exit_code int, content string) ?Response<string> {
+pub fn (c &Client) add_build_log(target_id int, start_time time.Time, end_time time.Time, arch string, exit_code int, content string) ?Response<string> {
 	params := {
-		'repo':      repo_id.str()
+		'target':    target_id.str()
 		'startTime': start_time.unix_time().str()
 		'endTime':   end_time.unix_time().str()
 		'arch':      arch
