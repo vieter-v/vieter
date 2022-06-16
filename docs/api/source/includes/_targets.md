@@ -13,7 +13,7 @@ Endpoints for interacting with the list of targets stored on the server.
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/targets?offset=10&limit=20
+  https://example.com/api/v1/targets?offset=10&limit=20
 ```
 
 > JSON output format
@@ -44,7 +44,7 @@ Retrieve a list of targets.
 
 ### HTTP Request
 
-`GET /api/targets`
+`GET /api/v1/targets`
 
 ### Query Parameters
 
@@ -59,7 +59,7 @@ repo | Limit results to targets that publish to the given repo.
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/targets/1
+  https://example.com/api/v1/targets/1
 ```
 
 > JSON output format
@@ -88,7 +88,7 @@ Get info about a specific target.
 
 ### HTTP Request
 
-`GET /api/targets/:id`
+`GET /api/v1/targets/:id`
 
 ### URL Parameters
 
@@ -102,7 +102,7 @@ Create a new target with the given data.
 
 ### HTTP Request
 
-`POST /api/targets`
+`POST /api/v1/targets`
 
 ### Query Parameters
 
@@ -120,7 +120,7 @@ Modify the data of an existing target.
 
 ### HTTP Request
 
-`PATCH /api/targets/:id`
+`PATCH /api/v1/targets/:id`
 
 ### URL Parameters
 
@@ -144,7 +144,7 @@ Remove a target from the server.
 
 ### HTTP Request
 
-`DELETE /api/targets/:id`
+`DELETE /api/v1/targets/:id`
 
 ### URL Parameters
 
