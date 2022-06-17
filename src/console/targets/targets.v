@@ -123,11 +123,11 @@ pub fn cmd() cli.Command {
 				name: 'edit'
 				required_args: 1
 				usage: 'id'
-				description: 'Edit the Git repository target that matches the given id.'
+				description: 'Edit the target that matches the given id.'
 				flags: [
 					cli.Flag{
 						name: 'url'
-						description: 'URL of the Git repository.'
+						description: 'URL value. Meaning depends on kind of target.'
 						flag: cli.FlagType.string
 					},
 					cli.Flag{
@@ -211,7 +211,6 @@ fn add(conf Config, t &NewTarget) ? {
 
 // remove removes a repository from the server's list.
 fn remove(conf Config, id string) ? {
-	// id, _ := get_repo_by_prefix(conf, id_prefix) ?
 	id_int := id.int()
 
 	if id_int != 0 {
