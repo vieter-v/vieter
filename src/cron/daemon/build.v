@@ -71,29 +71,31 @@ fn (mut d Daemon) start_build(sb ScheduledBuild) bool {
 	return false
 }
 
-// run_build actually starts the build process for a given repo.
+// run_build actually starts the build process for a given target.
 fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) {
-	d.linfo('started build: $sb.repo.url $sb.repo.branch')
+	d.linfo('started build: $sb.target.url -> $sb.target.repo')
 
 	// 0 means success, 1 means failure
 	mut status := 0
 
-	res := build.build_repo(d.client.address, d.client.api_key, d.builder_images.last(),
-		&sb.repo) or {
-		d.ldebug('build_repo error: $err.msg()')
+	res := build.build_target(d.client.address, d.client.api_key, d.builder_images.last(),
+		&sb.target) or {
+		d.ldebug('build_target error: $err.msg()')
 		status = 1
 
 		build.BuildResult{}
 	}
 
 	if status == 0 {
-		d.linfo('finished build: $sb.repo.url $sb.repo.branch; uploading logs...')
+		d.linfo('finished build: $sb.target.url -> $sb.target.repo; uploading logs...')
 
 		build_arch := os.uname().machine
-		d.client.add_build_log(sb.repo.id, res.start_time, res.end_time, build_arch, res.exit_code,
-			res.logs) or { d.lerror('Failed to upload logs for $sb.repo.url $sb.repo.arch') }
+		d.client.add_build_log(sb.target.id, res.start_time, res.end_time, build_arch,
+			res.exit_code, res.logs) or {
+			d.lerror('Failed to upload logs for build: $sb.target.url -> $sb.target.repo')
+		}
 	} else {
-		d.linfo('failed build: $sb.repo.url $sb.repo.branch')
+		d.linfo('an error occured during build: $sb.target.url -> $sb.target.repo')
 	}
 
 	stdatomic.store_u64(&d.atomics[build_index], daemon.build_done)

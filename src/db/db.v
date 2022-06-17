@@ -16,9 +16,13 @@ const (
 	migrations_up   = [
 		$embed_file('migrations/001-initial/up.sql'),
 		$embed_file('migrations/002-rename-to-targets/up.sql'),
+		$embed_file('migrations/003-target-url-type/up.sql'),
 	]
-	migrations_down = [$embed_file('migrations/001-initial/down.sql'),
-		$embed_file('migrations/002-rename-to-targets/down.sql')]
+	migrations_down = [
+		$embed_file('migrations/001-initial/down.sql'),
+		$embed_file('migrations/002-rename-to-targets/down.sql'),
+		$embed_file('migrations/003-target-url-type/down.sql'),
+	]
 )
 
 // init initializes a database & adds the correct tables.

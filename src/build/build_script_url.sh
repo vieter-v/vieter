@@ -4,8 +4,10 @@ echo -e '+ pacman -Syu --needed --noconfirm'
 pacman -Syu --needed --noconfirm
 echo -e '+ su builder'
 su builder
-echo -e '+ git clone --single-branch --depth 1 --branch main https://examplerepo.com repo'
-git clone --single-branch --depth 1 --branch main https://examplerepo.com repo
+echo -e '+ mkdir repo'
+mkdir repo
+echo -e '+ curl -o repo/PKGBUILD -L '\''https://examplerepo.com'\'''
+curl -o repo/PKGBUILD -L 'https://examplerepo.com'
 echo -e '+ cd repo'
 cd repo
 echo -e '+ makepkg --nobuild --syncdeps --needed --noconfirm'

@@ -52,6 +52,11 @@ fn (mut app App) v1_post_target() web.Result {
 		return app.json(http.Status.bad_request, new_response(err.msg()))
 	}
 
+	// Ensure someone doesn't submit an invalid kind
+	if new_repo.kind !in models.valid_kinds {
+		return app.json(http.Status.bad_request, new_response('Invalid kind.'))
+	}
+
 	app.db.add_target(new_repo)
 
 	return app.json(http.Status.ok, new_response('Repo added successfully.'))

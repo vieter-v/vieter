@@ -40,18 +40,17 @@ pub fn (c &Client) get_target(id int) ?Target {
 	return data.data
 }
 
+pub struct NewTarget {
+	kind   string
+	url    string
+	branch string
+	repo   string
+	arch   []string
+}
+
 // add_target adds a new target to the server.
-pub fn (c &Client) add_target(url string, branch string, repo string, arch []string) ?Response<string> {
-	mut params := {
-		'url':    url
-		'branch': branch
-		'repo':   repo
-	}
-
-	if arch.len > 0 {
-		params['arch'] = arch.join(',')
-	}
-
+pub fn (c &Client) add_target(t NewTarget) ?Response<string> {
+	params := models.params_from<NewTarget>(t)
 	data := c.send_request<string>(Method.post, '/api/v1/targets', params)?
 
 	return data

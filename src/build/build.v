@@ -90,10 +90,10 @@ pub:
 	logs       string
 }
 
-// build_repo builds, packages & publishes a given Arch package based on the
+// build_target builds, packages & publishes a given Arch package based on the
 // provided target. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
-pub fn build_repo(address string, api_key string, base_image_id string, repo &Target) ?BuildResult {
+pub fn build_target(address string, api_key string, base_image_id string, target &Target) ?BuildResult {
 	mut dd := docker.new_conn()?
 
 	defer {
@@ -101,7 +101,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &Ta
 	}
 
 	build_arch := os.uname().machine
-	build_script := create_build_script(address, repo, build_arch)
+	build_script := create_build_script(address, target, build_arch)
 
 	// We convert the build script into a base64 string, which then gets passed
 	// to the container as an env var
