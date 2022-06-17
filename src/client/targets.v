@@ -41,11 +41,11 @@ pub fn (c &Client) get_target(id int) ?Target {
 }
 
 pub struct NewTarget {
-	kind string
-	url string
+	kind   string
+	url    string
 	branch string
-	repo string
-	arch []string
+	repo   string
+	arch   []string
 }
 
 // add_target adds a new target to the server.

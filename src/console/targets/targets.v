@@ -67,7 +67,7 @@ pub fn cmd() cli.Command {
 				name: 'add'
 				required_args: 2
 				usage: 'url repo'
-				description: "Add a new target with the given URL & target repo."
+				description: 'Add a new target with the given URL & target repo.'
 				flags: [
 					cli.Flag{
 						name: 'kind'
@@ -79,13 +79,11 @@ pub fn cmd() cli.Command {
 						name: 'branch'
 						description: "Which branch to clone; only applies to kind 'git'."
 						flag: cli.FlagType.string
-					}
+					},
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
-
-					kind := cmd.flags.get_string('kind')?
 
 					t := NewTarget{
 						kind: cmd.flags.get_string('kind')?
@@ -152,6 +150,11 @@ pub fn cmd() cli.Command {
 						description: 'Cron schedule for repository.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'kind'
+						description: 'Kind of target.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
@@ -195,7 +198,7 @@ fn list(conf Config, filter TargetFilter) ? {
 	repos := c.get_targets(filter)?
 	data := repos.map([it.id.str(), it.kind, it.url, it.repo])
 
-	println(console.pretty_table(['id',  'kind', 'url', 'repo'], data)?)
+	println(console.pretty_table(['id', 'kind', 'url', 'repo'], data)?)
 }
 
 // add adds a new repository to the server's list.

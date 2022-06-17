@@ -1,5 +1,7 @@
 module models
 
+pub const valid_kinds = ['git', 'url']
+
 pub struct TargetArch {
 pub:
 	id        int    [primary; sql: serial]
@@ -14,7 +16,7 @@ pub fn (gra &TargetArch) str() string {
 
 pub struct Target {
 pub mut:
-	id int [primary; sql: serial]
+	id   int    [primary; sql: serial]
 	kind string [nonull]
 	// If kind is git: URL of the Git repository
 	// If kind is url: URL to PKGBUILD file
@@ -35,6 +37,7 @@ pub mut:
 pub fn (gr &Target) str() string {
 	mut parts := [
 		'id: $gr.id',
+		'kind: $gr.kind',
 		'url: $gr.url',
 		'branch: $gr.branch',
 		'repo: $gr.repo',
