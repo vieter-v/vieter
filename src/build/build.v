@@ -11,6 +11,9 @@ import models { Target }
 const (
 	container_build_dir = '/build'
 	build_image_repo    = 'vieter-build'
+	// Contents of PATH variable in build containers
+	path_dirs           = ['/sbin', '/bin', '/usr/sbin', '/usr/bin', '/usr/local/sbin',
+		'/usr/local/bin', '/usr/bin/site_perl', '/usr/bin/vendor_perl', '/usr/bin/core_perl']
 )
 
 // create_build_image creates a builder image given some base image which can
@@ -109,7 +112,13 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 
 	c := docker.NewContainer{
 		image: '$base_image_id'
-		env: ['BUILD_SCRIPT=$base64_script', 'API_KEY=$api_key']
+		env: [
+			'BUILD_SCRIPT=$base64_script',
+			'API_KEY=$api_key',
+			// `archlinux:base-devel` does not correctly set the path variable,
+			// causing certain builds to fail. This fixes it.
+			'PATH=${build.path_dirs.join(':')}',
+		]
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/bash -e']
 		work_dir: '/build'

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Renamed `/api/v1/repos` namespace to `/api/v1/targets`
 * Branch name for 'git' targets is now optional; if not provided, the
   repository will be cloned with the default branch
+* Build containers now explicitely set the PATH variable
 
 ### Removed
 
