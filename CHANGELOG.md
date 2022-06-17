@@ -10,12 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Server port can now be configured
+* Targets now have a 'kind' field describing whether it's a Git repository or a
+  URL to a PKGBUILD
+* Targets with kind 'url' can provide a direct URL to a PKGBUILD instead of
+  providing a Git repository
 
 ### Changed
 
 * Moved all API routes under `/v1` namespace
 * Renamed `vieter repos` to `vieter targets`
 * Renamed `/api/v1/repos` namespace to `/api/v1/targets`
+* Branch name for 'git' targets is now optional; if not provided, the
+  repository will be cloned with the default branch
 
 ### Removed
 

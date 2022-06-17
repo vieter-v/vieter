@@ -24,6 +24,7 @@ curl \
   "data": [
     {
       "id": 1,
+      "kind": "git",
       "url": "https://aur.archlinux.org/discord-ptb.git",
       "branch": "master",
       "repo": "bur",
@@ -69,6 +70,7 @@ curl \
   "message": "",
   "data": {
     "id": 1,
+    "kind": "git",
     "url": "https://aur.archlinux.org/discord-ptb.git",
     "branch": "master",
     "repo": "bur",
@@ -108,6 +110,7 @@ Create a new target with the given data.
 
 Parameter | Description
 --------- | -----------
+kind | Kind of target to add; one of 'git', 'url'.
 url | URL of the Git repository.
 branch | Branch of the Git repository.
 repo | Vieter repository to publish built packages to.
@@ -132,6 +135,7 @@ id | id of target to modify
 
 Parameter | Description
 --------- | -----------
+kind | Kind of target; one of 'git', 'url'.
 url | URL of the Git repository.
 branch | Branch of the Git repository.
 repo | Vieter repository to publish built packages to.
