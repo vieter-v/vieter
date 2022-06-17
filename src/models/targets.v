@@ -15,10 +15,13 @@ pub fn (gra &TargetArch) str() string {
 pub struct Target {
 pub mut:
 	id int [primary; sql: serial]
-	// URL of the Git repository
+	kind string [nonull]
+	// If kind is git: URL of the Git repository
+	// If kind is url: URL to PKGBUILD file
 	url string [nonull]
-	// Branch of the Git repository to use
-	branch string [nonull]
+	// Branch of the Git repository to use; only applicable when kind is git.
+	// If not provided, the repository is cloned with the default branch.
+	branch string
 	// Which repo the builder should publish packages to
 	repo string [nonull]
 	// Cron schedule describing how frequently to build the repo.

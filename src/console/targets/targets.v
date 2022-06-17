@@ -3,7 +3,7 @@ module targets
 import cli
 import vieter.vconf
 import cron.expression { parse_expression }
-import client
+import client { NewTarget }
 import console
 import models { TargetFilter }
 
@@ -65,14 +65,36 @@ pub fn cmd() cli.Command {
 			},
 			cli.Command{
 				name: 'add'
-				required_args: 3
-				usage: 'url branch repo'
-				description: 'Add a new Git repository target.'
+				required_args: 2
+				usage: 'url repo'
+				description: "Add a new target with the given URL & target repo."
+				flags: [
+					cli.Flag{
+						name: 'kind'
+						description: "Kind of target to add. Defaults to 'git' if not specified. One of 'git', 'url'."
+						flag: cli.FlagType.string
+						default_value: ['git']
+					},
+					cli.Flag{
+						name: 'branch'
+						description: "Which branch to clone; only applies to kind 'git'."
+						flag: cli.FlagType.string
+					}
+				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
-					add(conf, cmd.args[0], cmd.args[1], cmd.args[2])?
+					kind := cmd.flags.get_string('kind')?
+
+					t := NewTarget{
+						kind: cmd.flags.get_string('kind')?
+						url: cmd.args[0]
+						repo: cmd.args[1]
+						branch: cmd.flags.get_string('branch') or { '' }
+					}
+
+					add(conf, t)?
 				}
 			},
 			cli.Command{
@@ -171,15 +193,15 @@ pub fn cmd() cli.Command {
 fn list(conf Config, filter TargetFilter) ? {
 	c := client.new(conf.address, conf.api_key)
 	repos := c.get_targets(filter)?
-	data := repos.map([it.id.str(), it.url, it.branch, it.repo])
+	data := repos.map([it.id.str(), it.kind, it.url, it.repo])
 
-	println(console.pretty_table(['id', 'url', 'branch', 'repo'], data)?)
+	println(console.pretty_table(['id',  'kind', 'url', 'repo'], data)?)
 }
 
 // add adds a new repository to the server's list.
-fn add(conf Config, url string, branch string, repo string) ? {
+fn add(conf Config, t &NewTarget) ? {
 	c := client.new(conf.address, conf.api_key)
-	res := c.add_target(url, branch, repo, [])?
+	res := c.add_target(t)?
 
 	println(res.message)
 }
