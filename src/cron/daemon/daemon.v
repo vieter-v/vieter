@@ -6,7 +6,7 @@ import datatypes { MinHeap }
 import cron.expression { CronExpression, parse_expression }
 import math
 import build
-import docker
+import vieter.vdocker as docker
 import os
 import client
 import models { Target }

@@ -1,6 +1,6 @@
 module build
 
-import docker
+import vieter.vdocker as docker
 import encoding.base64
 import time
 import os

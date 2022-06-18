@@ -1,7 +1,7 @@
 module targets
 
 import client
-import docker
+import vieter.vdocker as docker
 import os
 import build
 
