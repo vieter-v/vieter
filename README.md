@@ -1,10 +1,11 @@
 # Vieter
 
-## Documentation
-
 I host documentation for Vieter over at https://rustybever.be/docs/vieter/. API
 documentation for the current codebase can be found at
 https://rustybever.be/api-docs/vieter/.
+
+For more information, questions or just a chat, there's
+[#vieter:rustybever.be](https://matrix.to/#/#vieter:rustybever.be) on Matrix!
 
 ## Overview
 
