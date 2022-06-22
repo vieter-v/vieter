@@ -1,6 +1,6 @@
 module build
 
-import vieter.vdocker as docker
+import vieter_v.docker
 import encoding.base64
 import time
 import os
@@ -59,13 +59,13 @@ pub fn create_build_image(base_image string) ?string {
 	// We pull the provided image
 	dd.pull_image(image_name, image_tag)?
 
-	id := dd.create_container(c)?.id
+	id := dd.container_create(c)?.id
 	// id := docker.create_container(c)?
-	dd.start_container(id)?
+	dd.container_start(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for {
-		data := dd.inspect_container(id)?
+		data := dd.container_inspect(id)?
 
 		if !data.state.running {
 			break
@@ -80,7 +80,7 @@ pub fn create_build_image(base_image string) ?string {
 	// conflicts.
 	tag := time.sys_mono_now().str()
 	image := dd.create_image_from_container(id, 'vieter-build', tag)?
-	dd.remove_container(id)?
+	dd.container_remove(id)?
 
 	return image.id
 }
@@ -125,25 +125,25 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 		user: '0:0'
 	}
 
-	id := dd.create_container(c)?.id
-	dd.start_container(id)?
+	id := dd.container_create(c)?.id
+	dd.container_start(id)?
 
-	mut data := dd.inspect_container(id)?
+	mut data := dd.container_inspect(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for data.state.running {
 		time.sleep(1 * time.second)
 
-		data = dd.inspect_container(id)?
+		data = dd.container_inspect(id)?
 	}
 
-	mut logs_stream := dd.get_container_logs(id)?
+	mut logs_stream := dd.container_get_logs(id)?
 
 	// Read in the entire stream
 	mut logs_builder := strings.new_builder(10 * 1024)
 	util.reader_to_writer(mut logs_stream, mut logs_builder)?
 
-	dd.remove_container(id)?
+	dd.container_remove(id)?
 
 	return BuildResult{
 		start_time: data.state.start_time
