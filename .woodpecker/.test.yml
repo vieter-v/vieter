@@ -21,6 +21,7 @@ pipeline:
     image: 'chewingbever/vlang:latest'
     pull: true
     commands:
+      - export VMODULES=$PWD/.vmodules
       - make test
     when:
       event: [pull_request]
