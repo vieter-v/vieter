@@ -1,7 +1,7 @@
 module logs
 
 import cli
-import vieter.vconf
+import vieter_v.conf as vconf
 import client
 import console
 import time

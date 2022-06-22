@@ -4,7 +4,7 @@ branches:
 
 pipeline:
   docs:
-    image: 'klakegg/hugo:alpine'
+    image: 'klakegg/hugo:ext-alpine'
     group: 'generate'
     commands:
       - apk add git

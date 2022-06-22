@@ -8,10 +8,20 @@ branches:
 platform: ${PLATFORM}
 
 pipeline:
+  install-modules:
+    image: 'chewingbever/vlang:latest'
+    pull: true
+    commands:
+      - export VMODULES=$PWD/.vmodules
+      - 'cd src && v install'
+    when:
+      event: [pull_request]
+
   test:
     image: 'chewingbever/vlang:latest'
     pull: true
     commands:
+      - export VMODULES=$PWD/.vmodules
       - make test
     when:
       event: [pull_request]

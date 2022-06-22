@@ -1,7 +1,7 @@
 module server
 
 import cli
-import vieter.vconf
+import vieter_v.conf as vconf
 
 struct Config {
 pub:

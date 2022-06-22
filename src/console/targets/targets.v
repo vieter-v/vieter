@@ -1,7 +1,7 @@
 module targets
 
 import cli
-import vieter.vconf
+import vieter_v.conf as vconf
 import cron.expression { parse_expression }
 import client { NewTarget }
 import console

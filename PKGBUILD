@@ -9,9 +9,9 @@ pkgdesc="Vieter is a lightweight implementation of an Arch repository server."
 depends=('glibc' 'openssl' 'libarchive' 'sqlite')
 makedepends=('git' 'vieter-v')
 arch=('x86_64' 'aarch64')
-url='https://git.rustybever.be/vieter/vieter'
+url='https://git.rustybever.be/vieter-v/vieter'
 license=('AGPL3')
-source=("$pkgname::git+https://git.rustybever.be/vieter/vieter#tag=${pkgver//_/-}")
+source=("$pkgname::git+https://git.rustybever.be/vieter-v/vieter#tag=${pkgver//_/-}")
 md5sums=('SKIP')
 
 prepare() {
