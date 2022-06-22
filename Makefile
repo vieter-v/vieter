@@ -87,7 +87,7 @@ test:
 .PHONY: v
 v: v/v
 v/v:
-	git clone --single-branch https://git.rustybever.be/Chewing_Bever/v v
+	git clone --single-branch https://git.rustybever.be/vieter-v/v v
 	make -C v
 
 .PHONY: clean

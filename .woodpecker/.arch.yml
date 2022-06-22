@@ -23,7 +23,7 @@ pipeline:
       - su builder
       # Due to a bug with the V compiler, we can't just use the PKGBUILD from
       # inside the repo
-      - curl -o PKGBUILD -L https://git.rustybever.be/vieter/vieter/raw/branch/dev/PKGBUILD.dev
+      - curl -o PKGBUILD -L https://git.rustybever.be/vieter-v/vieter/raw/branch/dev/PKGBUILD.dev
       - makepkg -s --noconfirm --needed
     when:
       event: push

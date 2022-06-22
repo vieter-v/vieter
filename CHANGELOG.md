@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://git.rustybever.be/vieter/vieter/src/branch/dev)
+## [Unreleased](https://git.rustybever.be/vieter-v/vieter/src/branch/dev)
 
 ### Added
 
@@ -28,11 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * md5 hashes are no longer calculated for packages
 
-## [0.3.0](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0)
+## [0.3.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0)
 
 Nothing besides bumping the versions.
 
-## [0.3.0-rc.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-rc.1)
+## [0.3.0-rc.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0-rc.1)
 
 ### Added
 
@@ -60,7 +60,7 @@ Nothing besides bumping the versions.
 
 * `POST /api/logs` now correctly uses epoch timestamps instead of strings
 
-## [0.3.0-alpha.2](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.2)
+## [0.3.0-alpha.2](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0-alpha.2)
 
 ### Added
 
@@ -85,7 +85,7 @@ Nothing besides bumping the versions.
     * `vieter-git` is the latest commit on the dev branch
 * Full refactor of Docker socket code
 
-## [0.3.0-alpha.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.1)
+## [0.3.0-alpha.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0-alpha.1)
 
 ### Changed
 
@@ -104,7 +104,7 @@ Nothing besides bumping the versions.
 
 * Binary no longer panics when an env var is missing
 
-## [0.2.0](https://git.rustybever.be/vieter/vieter/src/tag/0.2.0)
+## [0.2.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.2.0)
 
 ### Changed
 
@@ -138,13 +138,13 @@ Nothing besides bumping the versions.
 * Packages with unknown fields in .PKGINFO are now allowed
 * Old packages are now properly removed
 
-## [0.1.0](https://git.rustybever.be/vieter/vieter/src/tag/0.1.0)
+## [0.1.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.1.0)
 
 ### Changed
 
 * Improved logging
 
-## [0.1.0-rc.1](https://git.rustybever.be/vieter/vieter/src/tag/0.1.0-rc.1)
+## [0.1.0-rc.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.1.0-rc.1)
 
 ### Added
 

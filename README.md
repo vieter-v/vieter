@@ -49,9 +49,9 @@ update`.
 ### Compiler
 
 Vieter compiles with the standard Vlang compiler. However, I do maintain a
-[mirror](https://git.rustybever.be/vieter/v). This is to ensure my CI does not
-break without reason, as I control when & how frequently the mirror is updated
-to reflect the official repository.
+[mirror](https://git.rustybever.be/vieter-v/v). This is to ensure my CI does
+not break without reason, as I control when & how frequently the mirror is
+updated to reflect the official repository.
 
 If you encounter issues using the latest V compiler, try using my mirror
 instead. `make v` will clone the repository & build the mirror. Afterwards,
