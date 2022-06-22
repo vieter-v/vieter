@@ -96,6 +96,14 @@ SigLevel = Optional
 Afterwards, you can update your system & install the `vieter` package for the
 latest official release or `vieter-git` for the latest development release.
 
+### AUR
+
+If you prefer building the packages locally (or on your own Vieter instance),
+there's the `[vieter](https://aur.archlinux.org/packages/vieter)` &
+`[vieter-git](https://aur.archlinux.org/packages/vieter-git)` packages on the
+AUR. These packages build using the `vlang-git` compiler package, so I can't
+guarantee that a compiler update won't temporarily break them.
+
 ## Building from source
 
 The project [README](https://git.rustybever.be/vieter/vieter#building) contains

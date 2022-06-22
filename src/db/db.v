@@ -3,7 +3,7 @@ module db
 import sqlite
 import time
 
-struct VieterDb {
+pub struct VieterDb {
 	conn sqlite.DB
 }
 
