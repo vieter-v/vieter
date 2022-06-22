@@ -4,7 +4,7 @@
 
 #include "archive.h"
 
-struct C.archive {}
+pub struct C.archive {}
 
 // Create a new archive struct for reading
 fn C.archive_read_new() &C.archive
@@ -71,7 +71,7 @@ fn C.archive_filter_code(&C.archive, int) int
 
 #include "archive_entry.h"
 
-struct C.archive_entry {}
+pub struct C.archive_entry {}
 
 // Create a new archive_entry struct
 fn C.archive_entry_new() &C.archive_entry

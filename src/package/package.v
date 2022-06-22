@@ -4,7 +4,7 @@ import os
 import util
 
 // Represents a read archive
-struct Pkg {
+pub struct Pkg {
 pub:
 	path        string   [required]
 	info        PkgInfo  [required]
