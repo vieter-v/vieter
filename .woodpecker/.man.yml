@@ -9,7 +9,7 @@ skip_clone: true
 
 pipeline:
   generate:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     pull: true
     commands:
       - curl -o vieter -L "https://s3.rustybever.be/vieter/commits/$CI_COMMIT_SHA/vieter-linux-amd64"

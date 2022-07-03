@@ -5,7 +5,7 @@ platform: 'linux/amd64'
 
 pipeline:
   lint:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     pull: true
     commands:
       - make lint

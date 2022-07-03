@@ -7,7 +7,7 @@ platform: ${PLATFORM}
 
 pipeline:
   install-modules:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     pull: true
     commands:
       - export VMODULES=$PWD/.vmodules
@@ -16,7 +16,7 @@ pipeline:
       event: [push, pull_request]
 
   debug:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     commands:
       - export VMODULES=$PWD/.vmodules
       - make
@@ -26,7 +26,7 @@ pipeline:
         exclude: [main]
 
   prod:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static
     commands:
@@ -44,7 +44,7 @@ pipeline:
       event: [push, pull_request]
 
   upload:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     secrets: [ s3_username, s3_password ]
     commands:
       # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f

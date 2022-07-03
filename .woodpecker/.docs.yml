@@ -11,7 +11,7 @@ pipeline:
       - make docs
 
   api-docs:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     pull: true
     group: 'generate'
     commands:
