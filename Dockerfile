@@ -1,4 +1,4 @@
-FROM chewingbever/vlang:latest AS builder
+FROM chewingbever/vlang:0.3 AS builder
 
 ARG TARGETPLATFORM
 ARG CI_COMMIT_SHA

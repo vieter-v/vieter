@@ -8,7 +8,7 @@ skip_clone: true
 
 pipeline:
   prepare:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     pull: true
     secrets: [ s3_username, s3_password ]
     commands:

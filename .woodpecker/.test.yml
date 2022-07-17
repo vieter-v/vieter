@@ -9,7 +9,7 @@ platform: ${PLATFORM}
 
 pipeline:
   install-modules:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     pull: true
     commands:
       - export VMODULES=$PWD/.vmodules
@@ -18,7 +18,7 @@ pipeline:
       event: [pull_request]
 
   test:
-    image: 'chewingbever/vlang:latest'
+    image: 'chewingbever/vlang:0.3'
     pull: true
     commands:
       - export VMODULES=$PWD/.vmodules

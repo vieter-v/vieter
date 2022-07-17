@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   URL to a PKGBUILD
 * Targets with kind 'url' can provide a direct URL to a PKGBUILD instead of
   providing a Git repository
+* CLI commands for searching the AUR & directly adding packages
 
 ### Changed
 
