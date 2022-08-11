@@ -138,7 +138,7 @@ curl \
   https://example.com/vieter/x86_64
 ```
 
-This endpoint allows remove an entire arch-repo.
+This endpoint allows removing an entire arch-repo.
 
 ### HTTP Request
 
@@ -149,7 +149,7 @@ This endpoint allows remove an entire arch-repo.
 Parameter | Description
 --------- | -----------
 repo | Repository to delete arch-repo from
-arch | Specific architecture to remove package
+arch | Specific architecture to remove
 
 ## Remove repo
 
@@ -166,7 +166,7 @@ curl \
   https://example.com/vieter
 ```
 
-This endpoint allows remove an entire repo.
+This endpoint allows removing an entire repo.
 
 ### HTTP Request
 
