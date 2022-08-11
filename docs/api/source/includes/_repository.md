@@ -122,3 +122,58 @@ Parameter | Description
 repo | Repository to delete package from
 arch | Specific arch-repo to remove package from
 pkg | Name of package to remove (without any version information)
+
+## Remove arch-repo
+
+<aside class="notice">
+
+This endpoint requests authentication.
+
+</aside>
+
+```shell
+curl \
+  -H 'X-Api-Key: secret' \
+  -XDELETE \
+  https://example.com/vieter/x86_64
+```
+
+This endpoint allows remove an entire arch-repo.
+
+### HTTP Request
+
+`DELETE /:repo/:arch`
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+repo | Repository to delete arch-repo from
+arch | Specific architecture to remove package
+
+## Remove repo
+
+<aside class="notice">
+
+This endpoint requests authentication.
+
+</aside>
+
+```shell
+curl \
+  -H 'X-Api-Key: secret' \
+  -XDELETE \
+  https://example.com/vieter
+```
+
+This endpoint allows remove an entire repo.
+
+### HTTP Request
+
+`DELETE /:repo`
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+repo | Repository to delete

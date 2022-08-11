@@ -66,3 +66,20 @@ pub fn (r &RepoGroupManager) remove_arch_repo(repo string, arch string) ?bool {
 
 	return true
 }
+
+// remove_repo removes a repo & its packages.
+pub fn (r &RepoGroupManager) remove_repo(repo string) ?bool {
+	repo_dir := os.join_path_single(r.repos_dir, repo)
+
+	// If the repository doesn't exist yet, the result is automatically false
+	if !os.exists(repo_dir) {
+		return false
+	}
+
+	os.rmdir_all(repo_dir)?
+
+	pkg_dir := os.join_path_single(r.pkg_dir, repo)
+	os.rmdir_all(pkg_dir)?
+
+	return true
+}

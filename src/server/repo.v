@@ -57,29 +57,6 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 	return app.file(full_path)
 }
 
-['/:repo/:arch/:pkg'; delete]
-fn (mut app App) delete_package(repo string, arch string, pkg string) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
-	res := app.repo.remove_pkg_from_arch_repo(repo, arch, pkg, true) or {
-		app.lerror('Error while deleting package: $err.msg()')
-
-		return app.json(http.Status.internal_server_error, new_response('Failed to delete package.'))
-	}
-
-	if res {
-		app.linfo("Removed package '$pkg' from '$repo/$arch'")
-
-		return app.json(http.Status.ok, new_response('Package removed.'))
-	} else {
-		app.linfo("Tried removing package '$pkg' from '$repo/$arch', but it doesn't exist.")
-
-		return app.json(http.Status.not_found, new_response('Package not found.'))
-	}
-}
-
 // put_package handles publishing a package to a repository.
 ['/:repo/publish'; post]
 fn (mut app App) put_package(repo string) web.Result {
