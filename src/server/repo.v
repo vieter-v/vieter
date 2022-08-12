@@ -45,15 +45,6 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 		full_path = os.join_path(app.repo.repos_dir, repo, arch, filename, 'desc')
 	}
 
-	// Scuffed way to respond to HEAD requests
-	if app.req.method == http.Method.head {
-		if os.exists(full_path) {
-			return app.status(http.Status.ok)
-		}
-
-		return app.not_found()
-	}
-
 	return app.file(full_path)
 }
 

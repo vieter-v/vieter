@@ -25,10 +25,10 @@ pub mut:
 	conn &net.TcpConn
 	// Gives access to a shared logger object
 	logger shared log.Log
-	// REQUEST
 	// time.ticks() from start of web connection handle.
 	// You can use it to determine how much time is spent on your request.
 	page_gen_start    i64
+	// REQUEST
 	static_files      map[string]string
 	static_mime_types map[string]string
 	// Map containing query params for the route.
@@ -103,6 +103,12 @@ pub fn (mut ctx Context) send_response_header() ? {
 	ctx.send_string(resp.bytestr())?
 }
 
+// send is a convenience function for sending the HTTP response with an empty
+// body.
+pub fn (mut ctx Context) send() bool {
+	return ctx.send_response('')
+}
+
 // send_response constructs the resulting HTTP response with the given body
 // string & sends it to the client.
 pub fn (mut ctx Context) send_response(res string) bool {
@@ -144,67 +150,32 @@ pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 // file Response HTTP_OK with file as payload
 // This function manually implements responses because it needs to stream the file contents
 pub fn (mut ctx Context) file(f_path string) Result {
+	// If the file doesn't exist, just respond with a 404
 	if !os.is_file(f_path) {
-		return ctx.not_found()
+		ctx.status = .not_found
+		ctx.send()
+
+		return Result{}
 	}
 
-	// ext := os.file_ext(f_path)
-	// data := os.read_file(f_path) or {
-	// 	eprint(err.msg())
-	// 	ctx.server_error(500)
-	// 	return Result{}
-	// }
-	// content_type := web.mime_types[ext]
-	// if content_type == '' {
-	// 	eprintln('no MIME type found for extension $ext')
-	// 	ctx.server_error(500)
+	file_size := os.file_size(f_path)
+	ctx.header.add(http.CommonHeader.content_length, file_size.str())
 
-	// 	return Result{}
-	// }
+	// A HEAD request only returns the size of the file.
+	if ctx.req.method == .head {
+		ctx.send()
 
-	// First, we return the headers for the request
+		return Result{}
+	}
 
 	// We open the file before sending the headers in case reading fails
-	file_size := os.file_size(f_path)
-
 	mut file := os.open(f_path) or {
 		eprintln(err.msg())
 		ctx.server_error(500)
 		return Result{}
 	}
 
-	// build header
-	header := http.new_header_from_map({
-		// http.CommonHeader.content_type:   content_type
-		http.CommonHeader.content_length: file_size.str()
-	}).join(ctx.header)
-
-	mut resp := http.Response{
-		header: header.join(headers_close)
-	}
-	resp.set_version(.v1_1)
-	resp.set_status(ctx.status)
-	ctx.send_string(resp.bytestr()) or { return Result{} }
-	ctx.send_reader(mut file, file_size) or { return Result{} }
-
-	//	mut buf := []u8{len: 1_000_000}
-	//	mut bytes_left := file_size
-
-	//	// Repeat as long as the stream still has data
-	//	for bytes_left > 0 {
-	//		// TODO check if just breaking here is safe
-	//		bytes_read := file.read(mut buf) or { break }
-	//		bytes_left -= u64(bytes_read)
-
-	//		mut to_write := bytes_read
-
-	//		for to_write > 0 {
-	//			// TODO don't just loop infinitely here
-	//			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { continue }
-
-	//			to_write = to_write - bytes_written
-	//		}
-	//	}
+	ctx.send_reader_response(mut file, file_size)
 
 	return Result{}
 }
@@ -470,27 +441,6 @@ fn route_matches(url_words []string, route_words []string) ?[]string {
 	}
 	params << url_words[route_words.len - 1..url_words.len].join('/')
 	return params
-}
-
-// ip Returns the ip address from the current user
-pub fn (ctx &Context) ip() string {
-	mut ip := ctx.req.header.get(.x_forwarded_for) or { '' }
-	if ip == '' {
-		ip = ctx.req.header.get_custom('X-Real-Ip') or { '' }
-	}
-
-	if ip.contains(',') {
-		ip = ip.all_before(',')
-	}
-	if ip == '' {
-		ip = ctx.conn.peer_ip() or { '' }
-	}
-	return ip
-}
-
-// error Set s to the form error
-pub fn (mut ctx Context) error(s string) {
-	println('web error: $s')
 }
 
 // filter Do not delete.
