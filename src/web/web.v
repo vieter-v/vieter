@@ -12,146 +12,23 @@ import time
 import json
 import log
 
-// A dummy structure that returns from routes to indicate that you actually sent something to a user
-[noinit]
-pub struct Result {}
-
-pub const (
-	methods_with_form = [http.Method.post, .put, .patch]
-	headers_close     = http.new_custom_header_from_map({
-		'Server':                           'VWeb'
-		http.CommonHeader.connection.str(): 'close'
-	}) or { panic('should never fail') }
-
-	http_302          = http.new_response(
-		status: .found
-		body: '302 Found'
-		header: headers_close
-	)
-	http_400          = http.new_response(
-		status: .bad_request
-		body: '400 Bad Request'
-		header: http.new_header(
-			key: .content_type
-			value: 'text/plain'
-		).join(headers_close)
-	)
-	http_404          = http.new_response(
-		status: .not_found
-		body: '404 Not Found'
-		header: http.new_header(
-			key: .content_type
-			value: 'text/plain'
-		).join(headers_close)
-	)
-	http_500          = http.new_response(
-		status: .internal_server_error
-		body: '500 Internal Server Error'
-		header: http.new_header(
-			key: .content_type
-			value: 'text/plain'
-		).join(headers_close)
-	)
-	mime_types        = {
-		'.aac':    'audio/aac'
-		'.abw':    'application/x-abiword'
-		'.arc':    'application/x-freearc'
-		'.avi':    'video/x-msvideo'
-		'.azw':    'application/vnd.amazon.ebook'
-		'.bin':    'application/octet-stream'
-		'.bmp':    'image/bmp'
-		'.bz':     'application/x-bzip'
-		'.bz2':    'application/x-bzip2'
-		'.cda':    'application/x-cdf'
-		'.csh':    'application/x-csh'
-		'.css':    'text/css'
-		'.csv':    'text/csv'
-		'.doc':    'application/msword'
-		'.docx':   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-		'.eot':    'application/vnd.ms-fontobject'
-		'.epub':   'application/epub+zip'
-		'.gz':     'application/gzip'
-		'.gif':    'image/gif'
-		'.htm':    'text/html'
-		'.html':   'text/html'
-		'.ico':    'image/vnd.microsoft.icon'
-		'.ics':    'text/calendar'
-		'.jar':    'application/java-archive'
-		'.jpeg':   'image/jpeg'
-		'.jpg':    'image/jpeg'
-		'.js':     'text/javascript'
-		'.json':   'application/json'
-		'.jsonld': 'application/ld+json'
-		'.mid':    'audio/midi audio/x-midi'
-		'.midi':   'audio/midi audio/x-midi'
-		'.mjs':    'text/javascript'
-		'.mp3':    'audio/mpeg'
-		'.mp4':    'video/mp4'
-		'.mpeg':   'video/mpeg'
-		'.mpkg':   'application/vnd.apple.installer+xml'
-		'.odp':    'application/vnd.oasis.opendocument.presentation'
-		'.ods':    'application/vnd.oasis.opendocument.spreadsheet'
-		'.odt':    'application/vnd.oasis.opendocument.text'
-		'.oga':    'audio/ogg'
-		'.ogv':    'video/ogg'
-		'.ogx':    'application/ogg'
-		'.opus':   'audio/opus'
-		'.otf':    'font/otf'
-		'.png':    'image/png'
-		'.pdf':    'application/pdf'
-		'.php':    'application/x-httpd-php'
-		'.ppt':    'application/vnd.ms-powerpoint'
-		'.pptx':   'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-		'.rar':    'application/vnd.rar'
-		'.rtf':    'application/rtf'
-		'.sh':     'application/x-sh'
-		'.svg':    'image/svg+xml'
-		'.swf':    'application/x-shockwave-flash'
-		'.tar':    'application/x-tar'
-		'.tif':    'image/tiff'
-		'.tiff':   'image/tiff'
-		'.ts':     'video/mp2t'
-		'.ttf':    'font/ttf'
-		'.txt':    'text/plain'
-		'.vsd':    'application/vnd.visio'
-		'.wav':    'audio/wav'
-		'.weba':   'audio/webm'
-		'.webm':   'video/webm'
-		'.webp':   'image/webp'
-		'.woff':   'font/woff'
-		'.woff2':  'font/woff2'
-		'.xhtml':  'application/xhtml+xml'
-		'.xls':    'application/vnd.ms-excel'
-		'.xlsx':   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-		'.xml':    'application/xml'
-		'.xul':    'application/vnd.mozilla.xul+xml'
-		'.zip':    'application/zip'
-		'.3gp':    'video/3gpp'
-		'.3g2':    'video/3gpp2'
-		'.7z':     'application/x-7z-compressed'
-	}
-	max_http_post_size = 1024 * 1024
-	default_port       = 8080
-)
-
 // The Context struct represents the Context which hold the HTTP request and response.
 // It has fields for the query, form, files.
 pub struct Context {
-mut:
-	content_type string      = 'text/plain'
-	status       http.Status = http.Status.ok
 pub:
 	// HTTP Request
 	req http.Request
 	// TODO Response
 pub mut:
-	done bool
-	// time.ticks() from start of web connection handle.
-	// You can use it to determine how much time is spent on your request.
-	page_gen_start i64
 	// TCP connection to client.
 	// But beware, do not store it for further use, after request processing web will close connection.
-	conn              &net.TcpConn
+	conn &net.TcpConn
+	// Gives access to a shared logger object
+	logger shared log.Log
+	// REQUEST
+	// time.ticks() from start of web connection handle.
+	// You can use it to determine how much time is spent on your request.
+	page_gen_start    i64
 	static_files      map[string]string
 	static_mime_types map[string]string
 	// Map containing query params for the route.
@@ -161,14 +38,13 @@ pub mut:
 	form map[string]string
 	// Files from multipart-form.
 	files map[string][]http.FileData
-
-	header http.Header // response headers
-	// ? It doesn't seem to be used anywhere
-	form_error string
 	// Allows reading the request body
 	reader io.BufferedReader
-	// Gives access to a shared logger object
-	logger shared log.Log
+	// RESPONSE
+	status       http.Status = http.Status.ok
+	content_type string      = 'text/plain'
+	// response headers
+	header http.Header
 }
 
 struct FileData {
@@ -188,40 +64,68 @@ struct Route {
 // Probably you can use it for check user session cookie or add header.
 pub fn (ctx Context) before_request() {}
 
-// send_string
-fn send_string(mut conn net.TcpConn, s string) ? {
-	conn.write(s.bytes())?
+// send_string writes the given string to the TCP connection socket.
+fn (mut ctx Context) send_string(s string) ? {
+	ctx.conn.write(s.bytes())?
 }
 
-// send_response_to_client sends a response to the client
-[manualfree]
-pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bool {
-	if ctx.done {
-		return false
+// send_reader reads at most `size` bytes from the given reader & writes them
+// to the TCP connection socket. Internally, a 10KB buffer is used, to avoid
+// having to store all bytes in memory at once.
+fn (mut ctx Context) send_reader(mut reader io.Reader, size u64) ? {
+	mut buf := []u8{len: 10_000}
+	mut bytes_left := size
+
+	// Repeat as long as the stream still has data
+	for bytes_left > 0 {
+		bytes_read := reader.read(mut buf)?
+		bytes_left -= u64(bytes_read)
+
+		mut to_write := bytes_read
+
+		for to_write > 0 {
+			// TODO don't just loop infinitely here
+			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { continue }
+
+			to_write = to_write - bytes_written
+		}
 	}
-	ctx.done = true
+}
 
-	// build header
-	header := http.new_header_from_map({
-		http.CommonHeader.content_type:   mimetype
-		http.CommonHeader.content_length: res.len.str()
-	}).join(ctx.header)
-
+// send_response_header constructs a valid HTTP response with an empty body &
+// sends it to the client.
+pub fn (mut ctx Context) send_response_header() ? {
 	mut resp := http.Response{
-		header: header.join(web.headers_close)
-		body: res
+		header: ctx.header.join(headers_close)
 	}
 	resp.set_version(.v1_1)
 	resp.set_status(ctx.status)
-	send_string(mut ctx.conn, resp.bytestr()) or { return false }
+	ctx.send_string(resp.bytestr())?
+}
+
+// send_response constructs the resulting HTTP response with the given body
+// string & sends it to the client.
+pub fn (mut ctx Context) send_response(res string) bool {
+	ctx.send_response_header() or { return false }
+	ctx.send_string(res) or { return false }
+
+	return true
+}
+
+// send_reader_response constructs the resulting HTTP response with the given
+// body & streams the reader's contents to the client.
+pub fn (mut ctx Context) send_reader_response(mut reader io.Reader, size u64) bool {
+	ctx.send_response_header() or { return false }
+	ctx.send_reader(mut reader, size) or { return false }
+
 	return true
 }
 
 // text responds to a request with some plaintext.
 pub fn (mut ctx Context) text(status http.Status, s string) Result {
 	ctx.status = status
-
-	ctx.send_response_to_client('text/plain', s)
+	ctx.content_type = 'text/plain'
+	ctx.send_response(s)
 
 	return Result{}
 }
@@ -229,9 +133,10 @@ pub fn (mut ctx Context) text(status http.Status, s string) Result {
 // json<T> HTTP_OK with json_s as payload with content-type `application/json`
 pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 	ctx.status = status
+	ctx.content_type = 'application/json'
 
 	json_s := json.encode(j)
-	ctx.send_response_to_client('application/json', json_s)
+	ctx.send_response(json_s)
 
 	return Result{}
 }
@@ -239,10 +144,6 @@ pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 // file Response HTTP_OK with file as payload
 // This function manually implements responses because it needs to stream the file contents
 pub fn (mut ctx Context) file(f_path string) Result {
-	if ctx.done {
-		return Result{}
-	}
-
 	if !os.is_file(f_path) {
 		return ctx.not_found()
 	}
@@ -266,7 +167,7 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	// We open the file before sending the headers in case reading fails
 	file_size := os.file_size(f_path)
 
-	file := os.open(f_path) or {
+	mut file := os.open(f_path) or {
 		eprintln(err.msg())
 		ctx.server_error(500)
 		return Result{}
@@ -279,32 +180,32 @@ pub fn (mut ctx Context) file(f_path string) Result {
 	}).join(ctx.header)
 
 	mut resp := http.Response{
-		header: header.join(web.headers_close)
+		header: header.join(headers_close)
 	}
 	resp.set_version(.v1_1)
 	resp.set_status(ctx.status)
-	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
+	ctx.send_string(resp.bytestr()) or { return Result{} }
+	ctx.send_reader(mut file, file_size) or { return Result{} }
 
-	mut buf := []u8{len: 1_000_000}
-	mut bytes_left := file_size
+	//	mut buf := []u8{len: 1_000_000}
+	//	mut bytes_left := file_size
 
-	// Repeat as long as the stream still has data
-	for bytes_left > 0 {
-		// TODO check if just breaking here is safe
-		bytes_read := file.read(mut buf) or { break }
-		bytes_left -= u64(bytes_read)
+	//	// Repeat as long as the stream still has data
+	//	for bytes_left > 0 {
+	//		// TODO check if just breaking here is safe
+	//		bytes_read := file.read(mut buf) or { break }
+	//		bytes_left -= u64(bytes_read)
 
-		mut to_write := bytes_read
+	//		mut to_write := bytes_read
 
-		for to_write > 0 {
-			// TODO don't just loop infinitely here
-			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { continue }
+	//		for to_write > 0 {
+	//			// TODO don't just loop infinitely here
+	//			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { continue }
 
-			to_write = to_write - bytes_written
-		}
-	}
+	//			to_write = to_write - bytes_written
+	//		}
+	//	}
 
-	ctx.done = true
 	return Result{}
 }
 
@@ -319,23 +220,16 @@ pub fn (mut ctx Context) server_error(ecode int) Result {
 	$if debug {
 		eprintln('> ctx.server_error ecode: $ecode')
 	}
-	if ctx.done {
-		return Result{}
-	}
-	send_string(mut ctx.conn, web.http_500.bytestr()) or {}
+	ctx.send_string(http_500.bytestr()) or {}
 	return Result{}
 }
 
 // redirect Redirect to an url
 pub fn (mut ctx Context) redirect(url string) Result {
-	if ctx.done {
-		return Result{}
-	}
-	ctx.done = true
-	mut resp := web.http_302
+	mut resp := http_302
 	resp.header = resp.header.join(ctx.header)
 	resp.header.add(.location, url)
-	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
+	ctx.send_string(resp.bytestr()) or { return Result{} }
 	return Result{}
 }
 
@@ -532,7 +426,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		}
 	}
 	// Route not found
-	conn.write(web.http_404.bytes()) or {}
+	conn.write(http_404.bytes()) or {}
 }
 
 // route_matches returns wether a route matches
@@ -597,7 +491,6 @@ pub fn (ctx &Context) ip() string {
 // error Set s to the form error
 pub fn (mut ctx Context) error(s string) {
 	println('web error: $s')
-	ctx.form_error = s
 }
 
 // filter Do not delete.
