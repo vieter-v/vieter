@@ -27,7 +27,7 @@ pub mut:
 	logger shared log.Log
 	// time.ticks() from start of web connection handle.
 	// You can use it to determine how much time is spent on your request.
-	page_gen_start    i64
+	page_gen_start i64
 	// REQUEST
 	static_files      map[string]string
 	static_mime_types map[string]string
@@ -84,8 +84,7 @@ fn (mut ctx Context) send_reader(mut reader io.Reader, size u64) ? {
 		mut to_write := bytes_read
 
 		for to_write > 0 {
-			// TODO don't just loop infinitely here
-			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { continue }
+			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { break }
 
 			to_write = to_write - bytes_written
 		}
@@ -127,15 +126,6 @@ pub fn (mut ctx Context) send_reader_response(mut reader io.Reader, size u64) bo
 	return true
 }
 
-// text responds to a request with some plaintext.
-pub fn (mut ctx Context) text(status http.Status, s string) Result {
-	ctx.status = status
-	ctx.content_type = 'text/plain'
-	ctx.send_response(s)
-
-	return Result{}
-}
-
 // json<T> HTTP_OK with json_s as payload with content-type `application/json`
 pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 	ctx.status = status
@@ -158,6 +148,8 @@ pub fn (mut ctx Context) file(f_path string) Result {
 		return Result{}
 	}
 
+	ctx.header.add(.accept_ranges, 'bytes')
+
 	file_size := os.file_size(f_path)
 	ctx.header.add(http.CommonHeader.content_length, file_size.str())
 
@@ -168,14 +160,53 @@ pub fn (mut ctx Context) file(f_path string) Result {
 		return Result{}
 	}
 
-	// We open the file before sending the headers in case reading fails
 	mut file := os.open(f_path) or {
 		eprintln(err.msg())
 		ctx.server_error(500)
 		return Result{}
 	}
 
-	ctx.send_reader_response(mut file, file_size)
+	defer {
+		file.close()
+	}
+
+	if range_str := ctx.req.header.get(.range) {
+		mut parts := range_str.split_nth('=', 2)
+
+		if parts[0] != 'bytes' {
+			ctx.status = .requested_range_not_satisfiable
+			ctx.header.delete(.content_length)
+			ctx.send()
+			return Result{}
+		}
+
+		parts = parts[1].split_nth('-', 2)
+
+		start := parts[0].i64()
+		end := if parts[1] == '' { file_size - 1 } else { parts[1].u64() }
+
+		// Either the actual number 0 or the result of an invalid integer
+		if end == 0 {
+			ctx.status = .requested_range_not_satisfiable
+			ctx.header.delete(.content_length)
+			ctx.send()
+			return Result{}
+		}
+
+		// Move cursor to start of data to read
+		file.seek(start, .start) or {
+			ctx.server_error(500)
+			return Result{}
+		}
+
+		length := end - u64(start) + 1
+
+		ctx.status = .partial_content
+		ctx.header.set(.content_length, length.str())
+		ctx.send_reader_response(mut file, length)
+	} else {
+		ctx.send_reader_response(mut file, file_size)
+	}
 
 	return Result{}
 }
@@ -183,7 +214,10 @@ pub fn (mut ctx Context) file(f_path string) Result {
 // status responds with an empty textual response, essentially only returning
 // the given status code.
 pub fn (mut ctx Context) status(status http.Status) Result {
-	return ctx.text(status, '')
+	ctx.status = status
+	ctx.send()
+
+	return Result{}
 }
 
 // server_error Response a server error

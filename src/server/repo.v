@@ -13,7 +13,7 @@ import response { new_response }
 // server is still responsive.
 ['/health'; get]
 pub fn (mut app App) healthcheck() web.Result {
-	return app.json(http.Status.ok, new_response('Healthy.'))
+	return app.json(.ok, new_response('Healthy.'))
 }
 
 // get_repo_file handles all Pacman-related routes. It returns both the
