@@ -3,7 +3,7 @@ module server
 import web
 import net.http
 import net.urllib
-import response { new_data_response, new_response }
+import web.response { new_data_response, new_response }
 import db
 import time
 import os

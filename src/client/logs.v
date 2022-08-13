@@ -2,7 +2,7 @@ module client
 
 import models { BuildLog, BuildLogFilter }
 import net.http { Method }
-import response { Response }
+import web.response { Response }
 import time
 
 // get_build_logs returns all build logs.

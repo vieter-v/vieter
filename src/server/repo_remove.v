@@ -2,7 +2,7 @@ module server
 
 import web
 import net.http
-import response { new_response }
+import web.response { new_response }
 
 // delete_package tries to remove the given package.
 ['/:repo/:arch/:pkg'; delete]

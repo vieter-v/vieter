@@ -48,15 +48,8 @@ update`.
 
 ### Compiler
 
-Vieter compiles with the standard Vlang compiler. However, I do maintain a
-[mirror](https://git.rustybever.be/vieter-v/v). This is to ensure my CI does
-not break without reason, as I control when & how frequently the mirror is
-updated to reflect the official repository.
-
-If you encounter issues using the latest V compiler, try using my mirror
-instead. `make v` will clone the repository & build the mirror. Afterwards,
-prepending any make command with `V_PATH=v/v` tells make to use the locally
-compiled mirror instead.
+I used to maintain a mirror that tracked the latest master, but nowadays, I
+solely target V 0.3 as a compiler.
 
 ## Contributing
 

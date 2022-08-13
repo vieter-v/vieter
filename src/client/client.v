@@ -2,7 +2,7 @@ module client
 
 import net.http { Method }
 import net.urllib
-import response { Response }
+import web.response { Response }
 import json
 
 pub struct Client {

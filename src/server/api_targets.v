@@ -2,7 +2,7 @@ module server
 
 import web
 import net.http
-import response { new_data_response, new_response }
+import web.response { new_data_response, new_response }
 import db
 import models { Target, TargetArch, TargetFilter }
 
