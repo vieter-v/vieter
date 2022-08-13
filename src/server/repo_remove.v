@@ -8,7 +8,7 @@ import web.response { new_response }
 ['/:repo/:arch/:pkg'; delete]
 fn (mut app App) delete_package(repo string, arch string, pkg string) web.Result {
 	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
+		return app.json(.unauthorized, new_response('Unauthorized.'))
 	}
 
 	res := app.repo.remove_pkg_from_arch_repo(repo, arch, pkg, true) or {

@@ -91,15 +91,22 @@ fn (mut ctx Context) send_reader(mut reader io.Reader, size u64) ? {
 	}
 }
 
+// send_custom_response sends the given http.Response to the client. It can be
+// used to overwrite the Context object & send a completely custom
+// http.Response instead.
+fn (mut ctx Context) send_custom_response(resp &http.Response) ? {
+	ctx.send_string(resp.bytestr())?
+}
+
 // send_response_header constructs a valid HTTP response with an empty body &
 // sends it to the client.
 pub fn (mut ctx Context) send_response_header() ? {
 	mut resp := http.Response{
 		header: ctx.header.join(headers_close)
 	}
-	resp.set_version(.v1_1)
 	resp.set_status(ctx.status)
-	ctx.send_string(resp.bytestr())?
+
+	ctx.send_custom_response(resp)?
 }
 
 // send is a convenience function for sending the HTTP response with an empty
@@ -222,10 +229,8 @@ pub fn (mut ctx Context) status(status http.Status) Result {
 
 // server_error Response a server error
 pub fn (mut ctx Context) server_error(ecode int) Result {
-	$if debug {
-		eprintln('> ctx.server_error ecode: $ecode')
-	}
-	ctx.send_string(http_500.bytestr()) or {}
+	ctx.send_custom_response(http_500) or {}
+
 	return Result{}
 }
 
@@ -234,23 +239,17 @@ pub fn (mut ctx Context) redirect(url string) Result {
 	mut resp := http_302
 	resp.header = resp.header.join(ctx.header)
 	resp.header.add(.location, url)
-	ctx.send_string(resp.bytestr()) or { return Result{} }
+
+	ctx.send_custom_response(resp) or {}
+
 	return Result{}
 }
 
 // not_found Send an not_found response
 pub fn (mut ctx Context) not_found() Result {
-	return ctx.status(http.Status.not_found)
-}
+	ctx.send_custom_response(http_404) or {}
 
-// add_header Adds an header to the response with key and val
-pub fn (mut ctx Context) add_header(key string, val string) {
-	ctx.header.add_custom(key, val) or {}
-}
-
-// get_header Returns the header data from the key
-pub fn (ctx &Context) get_header(key string) string {
-	return ctx.req.header.get_custom(key) or { '' }
+	return Result{}
 }
 
 interface DbInterface {

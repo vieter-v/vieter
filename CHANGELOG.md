@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   providing a Git repository
 * CLI commands for searching the AUR & directly adding packages
 * HTTP routes for removing packages, arch-repos & repos
+* All endpoints serving files now support HTTP byte range requests
 
 ### Changed
 
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Branch name for 'git' targets is now optional; if not provided, the
   repository will be cloned with the default branch
 * Build containers now explicitely set the PATH variable
+* Refactor of web framework
 
 ### Removed
 
