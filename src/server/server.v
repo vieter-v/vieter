@@ -73,6 +73,7 @@ pub fn server(conf Config) ? {
 
 	web.run(&App{
 		logger: logger
+		api_key: conf.api_key
 		conf: conf
 		repo: repo
 		db: db

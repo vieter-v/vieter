@@ -26,6 +26,14 @@ pub const (
 			value: 'text/plain'
 		).join(headers_close)
 	)
+	http_401          = http.new_response(
+		status: .unauthorized
+		body: '401 Unauthorized'
+		header: http.new_header(
+			key: .content_type
+			value: 'text/plain'
+		).join(headers_close)
+	)
 	http_404          = http.new_response(
 		status: .not_found
 		body: '404 Not Found'

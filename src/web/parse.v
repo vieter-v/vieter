@@ -3,6 +3,10 @@ module web
 import net.urllib
 import net.http
 
+// Method attributes that should be ignored when parsing, as they're used
+// elsewhere.
+const attrs_to_ignore = ['auth']
+
 // Parsing function attributes for methods and path.
 fn parse_attrs(name string, attrs []string) ?([]http.Method, string) {
 	if attrs.len == 0 {
@@ -32,7 +36,7 @@ fn parse_attrs(name string, attrs []string) ?([]http.Method, string) {
 		}
 		i++
 	}
-	if x.len > 0 {
+	if x.len > 0 && x.any(!web.attrs_to_ignore.contains(it)) {
 		return IError(http.UnexpectedExtraAttributeError{
 			attributes: x
 		})

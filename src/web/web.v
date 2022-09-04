@@ -18,6 +18,8 @@ pub struct Context {
 pub:
 	// HTTP Request
 	req http.Request
+	// API key used when authenticating requests
+	api_key string
 	// TODO Response
 pub mut:
 	// TCP connection to client.
@@ -101,9 +103,10 @@ fn (mut ctx Context) send_custom_response(resp &http.Response) ? {
 // send_response_header constructs a valid HTTP response with an empty body &
 // sends it to the client.
 pub fn (mut ctx Context) send_response_header() ? {
-	mut resp := http.Response{
+	mut resp := http.new_response(
 		header: ctx.header.join(headers_close)
-	}
+	)
+	resp.header.add(.content_type, ctx.content_type)
 	resp.set_status(ctx.status)
 
 	ctx.send_custom_response(resp)?
@@ -131,6 +134,15 @@ pub fn (mut ctx Context) send_reader_response(mut reader io.Reader, size u64) bo
 	ctx.send_reader(mut reader, size) or { return false }
 
 	return true
+}
+
+// is_authenticated checks whether the request passes a correct API key.
+pub fn (ctx &Context) is_authenticated() bool {
+	if provided_key := ctx.req.header.get_custom('X-Api-Key') {
+		return provided_key == ctx.api_key
+	}
+
+	return false
 }
 
 // json<T> HTTP_OK with json_s as payload with content-type `application/json`
@@ -177,9 +189,12 @@ pub fn (mut ctx Context) file(f_path string) Result {
 		file.close()
 	}
 
+	// Currently, this only supports a single provided range, e.g.
+	// bytes=0-1023, and not multiple ranges, e.g. bytes=0-50, 100-150
 	if range_str := ctx.req.header.get(.range) {
 		mut parts := range_str.split_nth('=', 2)
 
+		// We only support the 'bytes' range type
 		if parts[0] != 'bytes' {
 			ctx.status = .requested_range_not_satisfiable
 			ctx.header.delete(.content_length)
@@ -376,7 +391,9 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		static_mime_types: app.static_mime_types
 		reader: reader
 		logger: app.logger
+		api_key: app.api_key
 	}
+
 
 	// Calling middleware...
 	app.before_request()
@@ -394,31 +411,27 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 				// Used for route matching
 				route_words := route.path.split('/').filter(it != '')
 
-				// Route immediate matches first
+				// Route immediate matches & index files first
 				// For example URL `/register` matches route `/:user`, but `fn register()`
 				// should be called first.
-				if !route.path.contains('/:') && url_words == route_words {
-					// We found a match
-					if head.method == .post && method.args.len > 0 {
-						// TODO implement POST requests
-						// Populate method args with form values
-						// mut args := []string{cap: method.args.len}
-						// for param in method.args {
-						// 	args << form[param.name]
-						// }
-						// app.$method(args)
-					} else {
-						app.$method()
+				if (!route.path.contains('/:') && url_words == route_words)
+					|| (url_words.len == 0 && route_words == ['index'] && method.name == 'index') {
+					// Check whether the request is authorised
+					if 'auth' in method.attrs && !app.is_authenticated() {
+						conn.write(http_401.bytes()) or {}
+						return
 					}
-					return
-				}
 
-				if url_words.len == 0 && route_words == ['index'] && method.name == 'index' {
+					// We found a match
 					app.$method()
 					return
-				}
+				} else if params := route_matches(url_words, route_words) {
+					// Check whether the request is authorised
+					if 'auth' in method.attrs && !app.is_authenticated() {
+						conn.write(http_401.bytes()) or {}
+						return
+					}
 
-				if params := route_matches(url_words, route_words) {
 					method_args := params.clone()
 					if method_args.len != method.args.len {
 						eprintln('warning: uneven parameters count ($method.args.len) in `$method.name`, compared to the web route `$method.attrs` ($method_args.len)')
