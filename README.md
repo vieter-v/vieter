@@ -37,7 +37,6 @@ that.
 
 Besides a V installer, Vieter also requires the following libraries to work:
 
-* gc
 * libarchive
 * openssl
 * sqlite3
@@ -49,7 +48,8 @@ update`.
 ### Compiler
 
 I used to maintain a mirror that tracked the latest master, but nowadays, I
-solely target V 0.3 as a compiler.
+maintain a Docker image containing the specific compiler version that Vieter
+builds with. Currently, this is V 0.3.
 
 ## Contributing
 

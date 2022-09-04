@@ -83,13 +83,6 @@ fmt:
 test:
 	$(V) test $(SRC_DIR)
 
-# Build & patch the V compiler
-.PHONY: v
-v: v/v
-v/v:
-	git clone --single-branch https://git.rustybever.be/vieter-v/v v
-	make -C v
-
 .PHONY: clean
 clean:
 	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs' 'docs/public'
