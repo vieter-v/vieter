@@ -12,146 +12,25 @@ import time
 import json
 import log
 
-// A dummy structure that returns from routes to indicate that you actually sent something to a user
-[noinit]
-pub struct Result {}
-
-pub const (
-	methods_with_form = [http.Method.post, .put, .patch]
-	headers_close     = http.new_custom_header_from_map({
-		'Server':                           'VWeb'
-		http.CommonHeader.connection.str(): 'close'
-	}) or { panic('should never fail') }
-
-	http_302          = http.new_response(
-		status: .found
-		body: '302 Found'
-		header: headers_close
-	)
-	http_400          = http.new_response(
-		status: .bad_request
-		body: '400 Bad Request'
-		header: http.new_header(
-			key: .content_type
-			value: 'text/plain'
-		).join(headers_close)
-	)
-	http_404          = http.new_response(
-		status: .not_found
-		body: '404 Not Found'
-		header: http.new_header(
-			key: .content_type
-			value: 'text/plain'
-		).join(headers_close)
-	)
-	http_500          = http.new_response(
-		status: .internal_server_error
-		body: '500 Internal Server Error'
-		header: http.new_header(
-			key: .content_type
-			value: 'text/plain'
-		).join(headers_close)
-	)
-	mime_types        = {
-		'.aac':    'audio/aac'
-		'.abw':    'application/x-abiword'
-		'.arc':    'application/x-freearc'
-		'.avi':    'video/x-msvideo'
-		'.azw':    'application/vnd.amazon.ebook'
-		'.bin':    'application/octet-stream'
-		'.bmp':    'image/bmp'
-		'.bz':     'application/x-bzip'
-		'.bz2':    'application/x-bzip2'
-		'.cda':    'application/x-cdf'
-		'.csh':    'application/x-csh'
-		'.css':    'text/css'
-		'.csv':    'text/csv'
-		'.doc':    'application/msword'
-		'.docx':   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-		'.eot':    'application/vnd.ms-fontobject'
-		'.epub':   'application/epub+zip'
-		'.gz':     'application/gzip'
-		'.gif':    'image/gif'
-		'.htm':    'text/html'
-		'.html':   'text/html'
-		'.ico':    'image/vnd.microsoft.icon'
-		'.ics':    'text/calendar'
-		'.jar':    'application/java-archive'
-		'.jpeg':   'image/jpeg'
-		'.jpg':    'image/jpeg'
-		'.js':     'text/javascript'
-		'.json':   'application/json'
-		'.jsonld': 'application/ld+json'
-		'.mid':    'audio/midi audio/x-midi'
-		'.midi':   'audio/midi audio/x-midi'
-		'.mjs':    'text/javascript'
-		'.mp3':    'audio/mpeg'
-		'.mp4':    'video/mp4'
-		'.mpeg':   'video/mpeg'
-		'.mpkg':   'application/vnd.apple.installer+xml'
-		'.odp':    'application/vnd.oasis.opendocument.presentation'
-		'.ods':    'application/vnd.oasis.opendocument.spreadsheet'
-		'.odt':    'application/vnd.oasis.opendocument.text'
-		'.oga':    'audio/ogg'
-		'.ogv':    'video/ogg'
-		'.ogx':    'application/ogg'
-		'.opus':   'audio/opus'
-		'.otf':    'font/otf'
-		'.png':    'image/png'
-		'.pdf':    'application/pdf'
-		'.php':    'application/x-httpd-php'
-		'.ppt':    'application/vnd.ms-powerpoint'
-		'.pptx':   'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-		'.rar':    'application/vnd.rar'
-		'.rtf':    'application/rtf'
-		'.sh':     'application/x-sh'
-		'.svg':    'image/svg+xml'
-		'.swf':    'application/x-shockwave-flash'
-		'.tar':    'application/x-tar'
-		'.tif':    'image/tiff'
-		'.tiff':   'image/tiff'
-		'.ts':     'video/mp2t'
-		'.ttf':    'font/ttf'
-		'.txt':    'text/plain'
-		'.vsd':    'application/vnd.visio'
-		'.wav':    'audio/wav'
-		'.weba':   'audio/webm'
-		'.webm':   'video/webm'
-		'.webp':   'image/webp'
-		'.woff':   'font/woff'
-		'.woff2':  'font/woff2'
-		'.xhtml':  'application/xhtml+xml'
-		'.xls':    'application/vnd.ms-excel'
-		'.xlsx':   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-		'.xml':    'application/xml'
-		'.xul':    'application/vnd.mozilla.xul+xml'
-		'.zip':    'application/zip'
-		'.3gp':    'video/3gpp'
-		'.3g2':    'video/3gpp2'
-		'.7z':     'application/x-7z-compressed'
-	}
-	max_http_post_size = 1024 * 1024
-	default_port       = 8080
-)
-
 // The Context struct represents the Context which hold the HTTP request and response.
 // It has fields for the query, form, files.
 pub struct Context {
-mut:
-	content_type string      = 'text/plain'
-	status       http.Status = http.Status.ok
 pub:
 	// HTTP Request
 	req http.Request
+	// API key used when authenticating requests
+	api_key string
 	// TODO Response
 pub mut:
-	done bool
+	// TCP connection to client.
+	// But beware, do not store it for further use, after request processing web will close connection.
+	conn &net.TcpConn
+	// Gives access to a shared logger object
+	logger shared log.Log
 	// time.ticks() from start of web connection handle.
 	// You can use it to determine how much time is spent on your request.
 	page_gen_start i64
-	// TCP connection to client.
-	// But beware, do not store it for further use, after request processing web will close connection.
-	conn              &net.TcpConn
+	// REQUEST
 	static_files      map[string]string
 	static_mime_types map[string]string
 	// Map containing query params for the route.
@@ -161,14 +40,13 @@ pub mut:
 	form map[string]string
 	// Files from multipart-form.
 	files map[string][]http.FileData
-
-	header http.Header // response headers
-	// ? It doesn't seem to be used anywhere
-	form_error string
 	// Allows reading the request body
 	reader io.BufferedReader
-	// Gives access to a shared logger object
-	logger shared log.Log
+	// RESPONSE
+	status       http.Status = http.Status.ok
+	content_type string      = 'text/plain'
+	// response headers
+	header http.Header
 }
 
 struct FileData {
@@ -188,50 +66,92 @@ struct Route {
 // Probably you can use it for check user session cookie or add header.
 pub fn (ctx Context) before_request() {}
 
-// send_string
-fn send_string(mut conn net.TcpConn, s string) ? {
-	conn.write(s.bytes())?
+// send_string writes the given string to the TCP connection socket.
+fn (mut ctx Context) send_string(s string) ? {
+	ctx.conn.write(s.bytes())?
 }
 
-// send_response_to_client sends a response to the client
-[manualfree]
-pub fn (mut ctx Context) send_response_to_client(mimetype string, res string) bool {
-	if ctx.done {
-		return false
-	}
-	ctx.done = true
+// send_reader reads at most `size` bytes from the given reader & writes them
+// to the TCP connection socket. Internally, a 10KB buffer is used, to avoid
+// having to store all bytes in memory at once.
+fn (mut ctx Context) send_reader(mut reader io.Reader, size u64) ? {
+	mut buf := []u8{len: 10_000}
+	mut bytes_left := size
 
-	// build header
-	header := http.new_header_from_map({
-		http.CommonHeader.content_type:   mimetype
-		http.CommonHeader.content_length: res.len.str()
-	}).join(ctx.header)
+	// Repeat as long as the stream still has data
+	for bytes_left > 0 {
+		bytes_read := reader.read(mut buf)?
+		bytes_left -= u64(bytes_read)
 
-	mut resp := http.Response{
-		header: header.join(web.headers_close)
-		body: res
+		mut to_write := bytes_read
+
+		for to_write > 0 {
+			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { break }
+
+			to_write = to_write - bytes_written
+		}
 	}
-	resp.set_version(.v1_1)
+}
+
+// send_custom_response sends the given http.Response to the client. It can be
+// used to overwrite the Context object & send a completely custom
+// http.Response instead.
+fn (mut ctx Context) send_custom_response(resp &http.Response) ? {
+	ctx.send_string(resp.bytestr())?
+}
+
+// send_response_header constructs a valid HTTP response with an empty body &
+// sends it to the client.
+pub fn (mut ctx Context) send_response_header() ? {
+	mut resp := http.new_response(
+		header: ctx.header.join(headers_close)
+	)
+	resp.header.add(.content_type, ctx.content_type)
 	resp.set_status(ctx.status)
-	send_string(mut ctx.conn, resp.bytestr()) or { return false }
+
+	ctx.send_custom_response(resp)?
+}
+
+// send is a convenience function for sending the HTTP response with an empty
+// body.
+pub fn (mut ctx Context) send() bool {
+	return ctx.send_response('')
+}
+
+// send_response constructs the resulting HTTP response with the given body
+// string & sends it to the client.
+pub fn (mut ctx Context) send_response(res string) bool {
+	ctx.send_response_header() or { return false }
+	ctx.send_string(res) or { return false }
+
 	return true
 }
 
-// text responds to a request with some plaintext.
-pub fn (mut ctx Context) text(status http.Status, s string) Result {
-	ctx.status = status
+// send_reader_response constructs the resulting HTTP response with the given
+// body & streams the reader's contents to the client.
+pub fn (mut ctx Context) send_reader_response(mut reader io.Reader, size u64) bool {
+	ctx.send_response_header() or { return false }
+	ctx.send_reader(mut reader, size) or { return false }
 
-	ctx.send_response_to_client('text/plain', s)
+	return true
+}
 
-	return Result{}
+// is_authenticated checks whether the request passes a correct API key.
+pub fn (ctx &Context) is_authenticated() bool {
+	if provided_key := ctx.req.header.get_custom('X-Api-Key') {
+		return provided_key == ctx.api_key
+	}
+
+	return false
 }
 
 // json<T> HTTP_OK with json_s as payload with content-type `application/json`
 pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 	ctx.status = status
+	ctx.content_type = 'application/json'
 
 	json_s := json.encode(j)
-	ctx.send_response_to_client('application/json', json_s)
+	ctx.send_response(json_s)
 
 	return Result{}
 }
@@ -239,119 +159,112 @@ pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
 // file Response HTTP_OK with file as payload
 // This function manually implements responses because it needs to stream the file contents
 pub fn (mut ctx Context) file(f_path string) Result {
-	if ctx.done {
+	// If the file doesn't exist, just respond with a 404
+	if !os.is_file(f_path) {
+		ctx.status = .not_found
+		ctx.send()
+
 		return Result{}
 	}
 
-	if !os.is_file(f_path) {
-		return ctx.not_found()
+	ctx.header.add(.accept_ranges, 'bytes')
+
+	file_size := os.file_size(f_path)
+	ctx.header.add(http.CommonHeader.content_length, file_size.str())
+
+	// A HEAD request only returns the size of the file.
+	if ctx.req.method == .head {
+		ctx.send()
+
+		return Result{}
 	}
 
-	// ext := os.file_ext(f_path)
-	// data := os.read_file(f_path) or {
-	// 	eprint(err.msg())
-	// 	ctx.server_error(500)
-	// 	return Result{}
-	// }
-	// content_type := web.mime_types[ext]
-	// if content_type == '' {
-	// 	eprintln('no MIME type found for extension $ext')
-	// 	ctx.server_error(500)
-
-	// 	return Result{}
-	// }
-
-	// First, we return the headers for the request
-
-	// We open the file before sending the headers in case reading fails
-	file_size := os.file_size(f_path)
-
-	file := os.open(f_path) or {
+	mut file := os.open(f_path) or {
 		eprintln(err.msg())
 		ctx.server_error(500)
 		return Result{}
 	}
 
-	// build header
-	header := http.new_header_from_map({
-		// http.CommonHeader.content_type:   content_type
-		http.CommonHeader.content_length: file_size.str()
-	}).join(ctx.header)
-
-	mut resp := http.Response{
-		header: header.join(web.headers_close)
+	defer {
+		file.close()
 	}
-	resp.set_version(.v1_1)
-	resp.set_status(ctx.status)
-	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
 
-	mut buf := []u8{len: 1_000_000}
-	mut bytes_left := file_size
+	// Currently, this only supports a single provided range, e.g.
+	// bytes=0-1023, and not multiple ranges, e.g. bytes=0-50, 100-150
+	if range_str := ctx.req.header.get(.range) {
+		mut parts := range_str.split_nth('=', 2)
 
-	// Repeat as long as the stream still has data
-	for bytes_left > 0 {
-		// TODO check if just breaking here is safe
-		bytes_read := file.read(mut buf) or { break }
-		bytes_left -= u64(bytes_read)
-
-		mut to_write := bytes_read
-
-		for to_write > 0 {
-			// TODO don't just loop infinitely here
-			bytes_written := ctx.conn.write(buf[bytes_read - to_write..bytes_read]) or { continue }
-
-			to_write = to_write - bytes_written
+		// We only support the 'bytes' range type
+		if parts[0] != 'bytes' {
+			ctx.status = .requested_range_not_satisfiable
+			ctx.header.delete(.content_length)
+			ctx.send()
+			return Result{}
 		}
+
+		parts = parts[1].split_nth('-', 2)
+
+		start := parts[0].i64()
+		end := if parts[1] == '' { file_size - 1 } else { parts[1].u64() }
+
+		// Either the actual number 0 or the result of an invalid integer
+		if end == 0 {
+			ctx.status = .requested_range_not_satisfiable
+			ctx.header.delete(.content_length)
+			ctx.send()
+			return Result{}
+		}
+
+		// Move cursor to start of data to read
+		file.seek(start, .start) or {
+			ctx.server_error(500)
+			return Result{}
+		}
+
+		length := end - u64(start) + 1
+
+		ctx.status = .partial_content
+		ctx.header.set(.content_length, length.str())
+		ctx.send_reader_response(mut file, length)
+	} else {
+		ctx.send_reader_response(mut file, file_size)
 	}
 
-	ctx.done = true
 	return Result{}
 }
 
 // status responds with an empty textual response, essentially only returning
 // the given status code.
 pub fn (mut ctx Context) status(status http.Status) Result {
-	return ctx.text(status, '')
+	ctx.status = status
+	ctx.send()
+
+	return Result{}
 }
 
 // server_error Response a server error
 pub fn (mut ctx Context) server_error(ecode int) Result {
-	$if debug {
-		eprintln('> ctx.server_error ecode: $ecode')
-	}
-	if ctx.done {
-		return Result{}
-	}
-	send_string(mut ctx.conn, web.http_500.bytestr()) or {}
+	ctx.send_custom_response(http_500) or {}
+
 	return Result{}
 }
 
 // redirect Redirect to an url
 pub fn (mut ctx Context) redirect(url string) Result {
-	if ctx.done {
-		return Result{}
-	}
-	ctx.done = true
-	mut resp := web.http_302
+	mut resp := http_302
 	resp.header = resp.header.join(ctx.header)
 	resp.header.add(.location, url)
-	send_string(mut ctx.conn, resp.bytestr()) or { return Result{} }
+
+	ctx.send_custom_response(resp) or {}
+
 	return Result{}
 }
 
 // not_found Send an not_found response
 pub fn (mut ctx Context) not_found() Result {
-	return ctx.status(http.Status.not_found)
-}
+	ctx.send_custom_response(http_404) or {}
 
-// add_header Adds an header to the response with key and val
-pub fn (mut ctx Context) add_header(key string, val string) {
-	ctx.header.add_custom(key, val) or {}
-}
-
-// get_header Returns the header data from the key
-pub fn (ctx &Context) get_header(key string) string {
-	return ctx.req.header.get_custom(key) or { '' }
+	return Result{}
 }
 
 interface DbInterface {
@@ -478,6 +391,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		static_mime_types: app.static_mime_types
 		reader: reader
 		logger: app.logger
+		api_key: app.api_key
 	}
 
 	// Calling middleware...
@@ -496,31 +410,27 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 				// Used for route matching
 				route_words := route.path.split('/').filter(it != '')
 
-				// Route immediate matches first
+				// Route immediate matches & index files first
 				// For example URL `/register` matches route `/:user`, but `fn register()`
 				// should be called first.
-				if !route.path.contains('/:') && url_words == route_words {
-					// We found a match
-					if head.method == .post && method.args.len > 0 {
-						// TODO implement POST requests
-						// Populate method args with form values
-						// mut args := []string{cap: method.args.len}
-						// for param in method.args {
-						// 	args << form[param.name]
-						// }
-						// app.$method(args)
-					} else {
-						app.$method()
+				if (!route.path.contains('/:') && url_words == route_words)
+					|| (url_words.len == 0 && route_words == ['index'] && method.name == 'index') {
+					// Check whether the request is authorised
+					if 'auth' in method.attrs && !app.is_authenticated() {
+						conn.write(http_401.bytes()) or {}
+						return
 					}
-					return
-				}
 
-				if url_words.len == 0 && route_words == ['index'] && method.name == 'index' {
+					// We found a match
 					app.$method()
 					return
-				}
+				} else if params := route_matches(url_words, route_words) {
+					// Check whether the request is authorised
+					if 'auth' in method.attrs && !app.is_authenticated() {
+						conn.write(http_401.bytes()) or {}
+						return
+					}
 
-				if params := route_matches(url_words, route_words) {
 					method_args := params.clone()
 					if method_args.len != method.args.len {
 						eprintln('warning: uneven parameters count ($method.args.len) in `$method.name`, compared to the web route `$method.attrs` ($method_args.len)')
@@ -532,7 +442,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		}
 	}
 	// Route not found
-	conn.write(web.http_404.bytes()) or {}
+	conn.write(http_404.bytes()) or {}
 }
 
 // route_matches returns wether a route matches
@@ -576,28 +486,6 @@ fn route_matches(url_words []string, route_words []string) ?[]string {
 	}
 	params << url_words[route_words.len - 1..url_words.len].join('/')
 	return params
-}
-
-// ip Returns the ip address from the current user
-pub fn (ctx &Context) ip() string {
-	mut ip := ctx.req.header.get(.x_forwarded_for) or { '' }
-	if ip == '' {
-		ip = ctx.req.header.get_custom('X-Real-Ip') or { '' }
-	}
-
-	if ip.contains(',') {
-		ip = ip.all_before(',')
-	}
-	if ip == '' {
-		ip = ctx.conn.peer_ip() or { '' }
-	}
-	return ip
-}
-
-// error Set s to the form error
-pub fn (mut ctx Context) error(s string) {
-	println('web error: $s')
-	ctx.form_error = s
 }
 
 // filter Do not delete.

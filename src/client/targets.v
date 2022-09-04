@@ -2,7 +2,7 @@ module client
 
 import models { Target, TargetFilter }
 import net.http { Method }
-import response { Response }
+import web.response { Response }
 
 // get_targets returns a list of targets, given a filter object.
 pub fn (c &Client) get_targets(filter TargetFilter) ?[]Target {

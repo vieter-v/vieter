@@ -2,17 +2,13 @@ module server
 
 import web
 import net.http
-import response { new_data_response, new_response }
+import web.response { new_data_response, new_response }
 import db
 import models { Target, TargetArch, TargetFilter }
 
 // v1_get_targets returns the current list of targets.
-['/api/v1/targets'; get]
+['/api/v1/targets'; auth; get]
 fn (mut app App) v1_get_targets() web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	filter := models.from_params<TargetFilter>(app.query) or {
 		return app.json(http.Status.bad_request, new_response('Invalid query parameters.'))
 	}
@@ -22,24 +18,16 @@ fn (mut app App) v1_get_targets() web.Result {
 }
 
 // v1_get_single_target returns the information for a single target.
-['/api/v1/targets/:id'; get]
+['/api/v1/targets/:id'; auth; get]
 fn (mut app App) v1_get_single_target(id int) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	repo := app.db.get_target(id) or { return app.not_found() }
 
 	return app.json(http.Status.ok, new_data_response(repo))
 }
 
 // v1_post_target creates a new target from the provided query string.
-['/api/v1/targets'; post]
+['/api/v1/targets'; auth; post]
 fn (mut app App) v1_post_target() web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	mut params := app.query.clone()
 
 	// If a repo is created without specifying the arch, we assume it's meant
@@ -63,24 +51,16 @@ fn (mut app App) v1_post_target() web.Result {
 }
 
 // v1_delete_target removes a given target from the server's list.
-['/api/v1/targets/:id'; delete]
+['/api/v1/targets/:id'; auth; delete]
 fn (mut app App) v1_delete_target(id int) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	app.db.delete_target(id)
 
 	return app.json(http.Status.ok, new_response('Repo removed successfully.'))
 }
 
 // v1_patch_target updates a target's data with the given query params.
-['/api/v1/targets/:id'; patch]
+['/api/v1/targets/:id'; auth; patch]
 fn (mut app App) v1_patch_target(id int) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	app.db.update_target(id, app.query)
 
 	if 'arch' in app.query {

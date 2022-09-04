@@ -7,13 +7,13 @@ import time
 import rand
 import util
 import net.http
-import response { new_response }
+import web.response { new_response }
 
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
 ['/health'; get]
 pub fn (mut app App) healthcheck() web.Result {
-	return app.json(http.Status.ok, new_response('Healthy.'))
+	return app.json(.ok, new_response('Healthy.'))
 }
 
 // get_repo_file handles all Pacman-related routes. It returns both the
@@ -45,25 +45,12 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 		full_path = os.join_path(app.repo.repos_dir, repo, arch, filename, 'desc')
 	}
 
-	// Scuffed way to respond to HEAD requests
-	if app.req.method == http.Method.head {
-		if os.exists(full_path) {
-			return app.status(http.Status.ok)
-		}
-
-		return app.not_found()
-	}
-
 	return app.file(full_path)
 }
 
 // put_package handles publishing a package to a repository.
-['/:repo/publish'; post]
+['/:repo/publish'; auth; post]
 fn (mut app App) put_package(repo string) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	mut pkg_path := ''
 
 	if length := app.req.header.get(.content_length) {
