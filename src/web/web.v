@@ -394,7 +394,6 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		api_key: app.api_key
 	}
 
-
 	// Calling middleware...
 	app.before_request()
 

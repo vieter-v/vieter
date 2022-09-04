@@ -5,12 +5,8 @@ import net.http
 import web.response { new_response }
 
 // delete_package tries to remove the given package.
-['/:repo/:arch/:pkg'; delete]
+['/:repo/:arch/:pkg'; auth; delete]
 fn (mut app App) delete_package(repo string, arch string, pkg string) web.Result {
-	if !app.is_authorized() {
-		return app.json(.unauthorized, new_response('Unauthorized.'))
-	}
-
 	res := app.repo.remove_pkg_from_arch_repo(repo, arch, pkg, true) or {
 		app.lerror('Error while deleting package: $err.msg()')
 
@@ -29,12 +25,8 @@ fn (mut app App) delete_package(repo string, arch string, pkg string) web.Result
 }
 
 // delete_arch_repo tries to remove the given arch-repo.
-['/:repo/:arch'; delete]
+['/:repo/:arch'; auth; delete]
 fn (mut app App) delete_arch_repo(repo string, arch string) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	res := app.repo.remove_arch_repo(repo, arch) or {
 		app.lerror('Error while deleting arch-repo: $err.msg()')
 
@@ -53,12 +45,8 @@ fn (mut app App) delete_arch_repo(repo string, arch string) web.Result {
 }
 
 // delete_repo tries to remove the given repo.
-['/:repo'; delete]
+['/:repo'; auth; delete]
 fn (mut app App) delete_repo(repo string) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	res := app.repo.remove_repo(repo) or {
 		app.lerror('Error while deleting repo: $err.msg()')
 

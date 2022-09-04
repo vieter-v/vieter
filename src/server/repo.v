@@ -49,12 +49,8 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 }
 
 // put_package handles publishing a package to a repository.
-['/:repo/publish'; post]
+['/:repo/publish'; auth; post]
 fn (mut app App) put_package(repo string) web.Result {
-	if !app.is_authorized() {
-		return app.json(http.Status.unauthorized, new_response('Unauthorized.'))
-	}
-
 	mut pkg_path := ''
 
 	if length := app.req.header.get(.content_length) {
