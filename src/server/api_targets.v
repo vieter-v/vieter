@@ -2,7 +2,7 @@ module server
 
 import web
 import net.http
-import web.response { new_data_response, new_response }
+import web.response { new_data_response, new_response, new_full_response }
 import db
 import models { Target, TargetArch, TargetFilter }
 
@@ -45,9 +45,9 @@ fn (mut app App) v1_post_target() web.Result {
 		return app.json(http.Status.bad_request, new_response('Invalid kind.'))
 	}
 
-	app.db.add_target(new_repo)
+	id := app.db.add_target(new_repo)
 
-	return app.json(http.Status.ok, new_response('Repo added successfully.'))
+	return app.json(http.Status.ok, new_data_response(id))
 }
 
 // v1_delete_target removes a given target from the server's list.

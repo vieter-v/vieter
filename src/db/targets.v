@@ -38,10 +38,14 @@ pub fn (db &VieterDb) get_target(target_id int) ?Target {
 }
 
 // add_target inserts the given target into the database.
-pub fn (db &VieterDb) add_target(repo Target) {
+pub fn (db &VieterDb) add_target(repo Target) int {
 	sql db.conn {
 		insert repo into Target
 	}
+
+	inserted_id := db.conn.last_id() as int
+
+	return inserted_id
 }
 
 // delete_target deletes the target with the given id from the database.
