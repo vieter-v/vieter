@@ -60,7 +60,9 @@ pub fn cmd() cli.Command {
 						filter.repo = repo
 					}
 
-					list(conf, filter)?
+					raw := cmd.flags.get_bool('raw')?
+
+					list(conf, filter, raw)?
 				}
 			},
 			cli.Command{
@@ -193,12 +195,16 @@ pub fn cmd() cli.Command {
 // ID. If multiple or none are found, an error is raised.
 
 // list prints out a list of all repositories.
-fn list(conf Config, filter TargetFilter) ? {
+fn list(conf Config, filter TargetFilter, raw bool) ? {
 	c := client.new(conf.address, conf.api_key)
 	repos := c.get_targets(filter)?
 	data := repos.map([it.id.str(), it.kind, it.url, it.repo])
 
-	println(console.pretty_table(['id', 'kind', 'url', 'repo'], data)?)
+	if raw {
+		println(console.tabbed_table(data))
+	} else {
+		println(console.pretty_table(['id', 'kind', 'url', 'repo'], data)?)
+	}
 }
 
 // add adds a new repository to the server's list.

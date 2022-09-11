@@ -24,6 +24,13 @@ fn main() {
 				global: true
 				default_value: [os.expand_tilde_to_home('~/.vieterrc')]
 			},
+			cli.Flag{
+				flag: cli.FlagType.bool
+				name: 'raw'
+				abbrev: 'r'
+				description: 'Only output minimal information (no formatted tables, etc.)'
+				global: true
+			},
 		]
 		commands: [
 			server.cmd(),
