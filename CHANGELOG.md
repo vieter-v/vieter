@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Repo POST requests now return information on published package
 * `api` can no longer be used as a repository name
 * CLI client now allows setting values to an empty value
+* API endpoints now return id of newly created entries
 
 ### Removed
 
