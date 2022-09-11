@@ -23,8 +23,9 @@ pub:
 
 pub struct RepoAddResult {
 pub:
-	added bool         [required]
-	pkg   &package.Pkg [required]
+	name    string
+	version string
+	archs   []string
 }
 
 // new creates a new RepoGroupManager & creates the directories as needed
@@ -53,10 +54,10 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 		return error('Failed to read package file: $err.msg()')
 	}
 
-	added := r.add_pkg_in_repo(repo, pkg)?
+	archs := r.add_pkg_in_repo(repo, pkg)?
 
 	// If the add was successful, we move the file to the packages directory
-	for arch in added {
+	for arch in archs {
 		repo_pkg_path := os.real_path(os.join_path(r.pkg_dir, repo, arch))
 		dest_path := os.join_path_single(repo_pkg_path, pkg.filename())
 
@@ -71,8 +72,9 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 	os.rm(pkg_path)?
 
 	return RepoAddResult{
-		added: added.len > 0
-		pkg: &pkg
+		name: pkg.info.name
+		version: pkg.info.version
+		archs: archs
 	}
 }
 
@@ -87,11 +89,9 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 	// A package not of arch 'any' can be handled easily by adding it to the
 	// respective repo
 	if pkg.info.arch != 'any' {
-		if r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)? {
-			return [pkg.info.arch]
-		} else {
-			return []
-		}
+		r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)?
+
+		return [pkg.info.arch]
 	}
 
 	mut arch_repos := []string{}
@@ -113,25 +113,22 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 		arch_repos << r.default_arch
 	}
 
-	mut added := []string{}
-
-	// We add the package to each repository. If any of the repositories
-	// return true, the result of the function is also true.
+	// Add the package to each found architecture
+	// NOTE: if any of these fail, the function fails. This means the user does
+	// not know which arch-repositories did succeed in adding the package, if
+	// any.
 	for arch in arch_repos {
-		if r.add_pkg_in_arch_repo(repo, arch, pkg)? {
-			added << arch
-		}
+		r.add_pkg_in_arch_repo(repo, arch, pkg)?
 	}
 
-	return added
+	return arch_repos
 }
 
 // add_pkg_in_arch_repo is the function that actually adds a package to a given
 // arch-repo. It records the package's data in the arch-repo's desc & files
 // files, and afterwards updates the db & files archives to reflect these
-// changes. The function returns false if the package was already present in
-// the repo, and true otherwise.
-fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &package.Pkg) ?bool {
+// changes.
+fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &package.Pkg) ? {
 	pkg_dir := os.join_path(r.repos_dir, repo, arch, '$pkg.info.name-$pkg.info.version')
 
 	// Remove the previous version of the package, if present
@@ -151,6 +148,4 @@ fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &pac
 	}
 
 	r.sync(repo, arch)?
-
-	return true
 }

@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Build containers now explicitely set the PATH variable
 * Refactor of web framework
 * API endpoints now return id of newly created entries
+* Repo POST requests now return information on published package
 
 ### Removed
 
