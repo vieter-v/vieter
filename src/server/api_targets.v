@@ -2,7 +2,7 @@ module server
 
 import web
 import net.http
-import web.response { new_data_response, new_response, new_full_response }
+import web.response { new_data_response, new_response }
 import db
 import models { Target, TargetArch, TargetFilter }
 
@@ -14,7 +14,7 @@ fn (mut app App) v1_get_targets() web.Result {
 	}
 	repos := app.db.get_targets(filter)
 
-	return app.json(http.Status.ok, new_data_response(repos))
+	return app.json(.ok, new_data_response(repos))
 }
 
 // v1_get_single_target returns the information for a single target.
@@ -22,7 +22,7 @@ fn (mut app App) v1_get_targets() web.Result {
 fn (mut app App) v1_get_single_target(id int) web.Result {
 	repo := app.db.get_target(id) or { return app.not_found() }
 
-	return app.json(http.Status.ok, new_data_response(repo))
+	return app.json(.ok, new_data_response(repo))
 }
 
 // v1_post_target creates a new target from the provided query string.
@@ -55,7 +55,7 @@ fn (mut app App) v1_post_target() web.Result {
 fn (mut app App) v1_delete_target(id int) web.Result {
 	app.db.delete_target(id)
 
-	return app.json(http.Status.ok, new_response('Repo removed successfully.'))
+	return app.status(.ok)
 }
 
 // v1_patch_target updates a target's data with the given query params.
@@ -69,5 +69,5 @@ fn (mut app App) v1_patch_target(id int) web.Result {
 		app.db.update_target_archs(id, arch_objs)
 	}
 
-	return app.json(http.Status.ok, new_response('Repo updated successfully.'))
+	return app.status(.ok)
 }

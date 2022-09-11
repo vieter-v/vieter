@@ -206,7 +206,7 @@ fn add(conf Config, t &NewTarget) ? {
 	c := client.new(conf.address, conf.api_key)
 	res := c.add_target(t)?
 
-	println("Target added with id $res.data")
+	println('Target added with id $res.data')
 }
 
 // remove removes a repository from the server's list.
