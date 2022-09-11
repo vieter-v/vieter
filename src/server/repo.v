@@ -50,6 +50,12 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 // put_package handles publishing a package to a repository.
 ['/:repo/publish'; auth; post]
 fn (mut app App) put_package(repo string) web.Result {
+	// api is a reserved keyword for api routes & should never be allowed to be
+	// a repository.
+	if repo.to_lower() == 'api' {
+		return app.json(.bad_request, new_response("'api' is a reserved keyword & cannot be used as a repository name."))
+	}
+
 	mut pkg_path := ''
 
 	if length := app.req.header.get(.content_length) {
