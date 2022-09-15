@@ -1,3 +1,6 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
 matrix:
   PLATFORM:
     - 'linux/amd64'
@@ -9,7 +12,7 @@ platform: ${PLATFORM}
 
 pipeline:
   install-modules:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     pull: true
     commands:
       - export VMODULES=$PWD/.vmodules
@@ -18,7 +21,7 @@ pipeline:
       event: [pull_request]
 
   test:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     pull: true
     commands:
       - export VMODULES=$PWD/.vmodules

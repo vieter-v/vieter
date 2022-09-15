@@ -1,3 +1,6 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
 platform: 'linux/amd64'
 branches: [ 'main' ]
 depends_on:
@@ -8,7 +11,7 @@ skip_clone: true
 
 pipeline:
   prepare:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     pull: true
     secrets: [ s3_username, s3_password ]
     commands:

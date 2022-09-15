@@ -1,3 +1,6 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
 # These checks already get performed on the feature branches
 branches:
   exclude: [ main ]
@@ -5,7 +8,7 @@ platform: 'linux/amd64'
 
 pipeline:
   lint:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     pull: true
     commands:
       - make lint

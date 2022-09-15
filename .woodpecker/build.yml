@@ -1,3 +1,6 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
 matrix:
   PLATFORM:
     - 'linux/amd64'
@@ -7,7 +10,7 @@ platform: ${PLATFORM}
 
 pipeline:
   install-modules:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     pull: true
     commands:
       - export VMODULES=$PWD/.vmodules
@@ -16,7 +19,7 @@ pipeline:
       event: [push, pull_request]
 
   debug:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     commands:
       - export VMODULES=$PWD/.vmodules
       - make
@@ -26,7 +29,7 @@ pipeline:
         exclude: [main]
 
   prod:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     environment:
       - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static
     commands:
@@ -44,7 +47,7 @@ pipeline:
       event: [push, pull_request]
 
   upload:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     secrets: [ s3_username, s3_password ]
     commands:
       # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f
