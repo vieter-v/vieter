@@ -112,6 +112,17 @@ id | ID of requested log
 
 ## Publish build log
 
+> JSON output format
+
+```json
+{
+  "message": "",
+  "data": {
+    "id": 15
+  }
+}
+```
+
 <aside class="warning">
 
 You should probably not use this endpoint, as it's used by the build system to

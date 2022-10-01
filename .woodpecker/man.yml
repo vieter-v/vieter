@@ -1,3 +1,6 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
 platform: 'linux/amd64'
 branches:
   exclude: [ main ]
@@ -9,7 +12,7 @@ skip_clone: true
 
 pipeline:
   generate:
-    image: 'chewingbever/vlang:0.3'
+    image: *vlang_image
     pull: true
     commands:
       - curl -o vieter -L "https://s3.rustybever.be/vieter/commits/$CI_COMMIT_SHA/vieter-linux-amd64"
