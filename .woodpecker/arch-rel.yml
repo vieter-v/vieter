@@ -1,0 +1,39 @@
+matrix:
+  PLATFORM:
+    - linux/amd64
+    - linux/arm64
+
+platform: ${PLATFORM}
+branches: [main]
+skip_clone: true
+
+pipeline:
+  build:
+    image: 'menci/archlinuxarm:base-devel'
+    commands:
+      # Add the vieter repository so we can use the compiler
+      - echo -e '[vieter]\nServer = https://arch.r8r.be/$repo/$arch\nSigLevel = Optional' >> /etc/pacman.conf
+      # Update packages
+      - pacman -Syu --noconfirm
+      # Create non-root user to perform build & switch to their home
+      - groupadd -g 1000 builder
+      - useradd -mg builder builder
+      - chown -R builder:builder "$PWD"
+      - "echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
+      - su builder
+      # Due to a bug with the V compiler, we can't just use the PKGBUILD from
+      # inside the repo
+      - curl -OL "https://git.rustybever.be/vieter-v/vieter/raw/tag/$CI_COMMIT_TAG/PKGBUILD"
+      - makepkg -s --noconfirm --needed
+    when:
+      event: tag
+
+  publish:
+    image: 'curlimages/curl'
+    commands:
+      # Publish the package
+      - 'for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $VIETER_API_KEY" https://arch.r8r.be/vieter/publish; done'
+    secrets:
+      - vieter_api_key
+    when:
+      event: tag

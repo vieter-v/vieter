@@ -6,10 +6,10 @@ import datatypes { MinHeap }
 import cron.expression { CronExpression, parse_expression }
 import math
 import build
-import docker
+import vieter_v.docker
 import os
 import client
-import models { GitRepo }
+import models { Target }
 
 const (
 	// How many seconds to wait before retrying to update API if failed
@@ -20,7 +20,7 @@ const (
 
 struct ScheduledBuild {
 pub:
-	repo      GitRepo
+	target    Target
 	timestamp time.Time
 }
 
@@ -37,9 +37,9 @@ mut:
 	global_schedule         CronExpression
 	api_update_frequency    int
 	image_rebuild_frequency int
-	// Repos currently loaded from API.
-	repos []GitRepo
-	// At what point to update the list of repositories.
+	// Targets currently loaded from API.
+	targets []Target
+	// At what point to update the list of targets.
 	api_update_timestamp  time.Time
 	image_build_timestamp time.Time
 	queue                 MinHeap<ScheduledBuild>
@@ -51,7 +51,7 @@ mut:
 	logger  shared log.Log
 }
 
-// init_daemon initializes a new Daemon object. It renews the repositories &
+// init_daemon initializes a new Daemon object. It renews the targets &
 // populates the build queue for the first time.
 pub fn init_daemon(logger log.Log, address string, api_key string, base_image string, global_schedule CronExpression, max_concurrent_builds int, api_update_frequency int, image_rebuild_frequency int) ?Daemon {
 	mut d := Daemon{
@@ -65,8 +65,8 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 		logger: logger
 	}
 
-	// Initialize the repos & queue
-	d.renew_repos()
+	// Initialize the targets & queue
+	d.renew_targets()
 	d.renew_queue()
 	if !d.rebuild_base_image() {
 		return error('The base image failed to build. The Vieter cron daemon cannot run without an initial builder image.')
@@ -76,21 +76,21 @@ pub fn init_daemon(logger log.Log, address string, api_key string, base_image st
 }
 
 // run starts the actual daemon process. It runs builds when possible &
-// periodically refreshes the list of repositories to ensure we stay in sync.
+// periodically refreshes the list of targets to ensure we stay in sync.
 pub fn (mut d Daemon) run() {
 	for {
 		finished_builds := d.clean_finished_builds()
 
 		// Update the API's contents if needed & renew the queue
 		if time.now() >= d.api_update_timestamp {
-			d.renew_repos()
+			d.renew_targets()
 			d.renew_queue()
 		}
 		// The finished builds should only be rescheduled if the API contents
 		// haven't been renewed.
 		else {
 			for sb in finished_builds {
-				d.schedule_build(sb.repo)
+				d.schedule_build(sb.target)
 			}
 		}
 
@@ -114,7 +114,7 @@ pub fn (mut d Daemon) run() {
 		// every second to clean up any finished builds & start new ones.
 		mut delay := time.Duration(1 * time.second)
 
-		// Sleep either until we have to refresh the repos or when the next
+		// Sleep either until we have to refresh the targets or when the next
 		// build has to start, with a minimum of 1 second.
 		if d.current_build_count() == 0 {
 			now := time.now()
@@ -148,12 +148,13 @@ pub fn (mut d Daemon) run() {
 	}
 }
 
-// schedule_build adds the next occurence of the given repo build to the queue.
-fn (mut d Daemon) schedule_build(repo GitRepo) {
-	ce := if repo.schedule != '' {
-		parse_expression(repo.schedule) or {
+// schedule_build adds the next occurence of the given targets build to the
+// queue.
+fn (mut d Daemon) schedule_build(target Target) {
+	ce := if target.schedule != '' {
+		parse_expression(target.schedule) or {
 			// TODO This shouldn't return an error if the expression is empty.
-			d.lerror("Error while parsing cron expression '$repo.schedule' (id $repo.id): $err.msg()")
+			d.lerror("Error while parsing cron expression '$target.schedule' (id $target.id): $err.msg()")
 
 			d.global_schedule
 		}
@@ -161,41 +162,41 @@ fn (mut d Daemon) schedule_build(repo GitRepo) {
 		d.global_schedule
 	}
 
-	// A repo that can't be scheduled will just be skipped for now
+	// A target that can't be scheduled will just be skipped for now
 	timestamp := ce.next_from_now() or {
-		d.lerror("Couldn't calculate next timestamp from '$repo.schedule'; skipping")
+		d.lerror("Couldn't calculate next timestamp from '$target.schedule'; skipping")
 		return
 	}
 
 	d.queue.insert(ScheduledBuild{
-		repo: repo
+		target: target
 		timestamp: timestamp
 	})
 }
 
-// renew_repos requests the newest list of Git repos from the server & replaces
+// renew_targets requests the newest list of targets from the server & replaces
 // the old one.
-fn (mut d Daemon) renew_repos() {
-	d.linfo('Renewing repos...')
+fn (mut d Daemon) renew_targets() {
+	d.linfo('Renewing targets...')
 
-	mut new_repos := d.client.get_all_git_repos() or {
-		d.lerror('Failed to renew repos. Retrying in ${daemon.api_update_retry_timeout}s...')
+	mut new_targets := d.client.get_all_targets() or {
+		d.lerror('Failed to renew targets. Retrying in ${daemon.api_update_retry_timeout}s...')
 		d.api_update_timestamp = time.now().add_seconds(daemon.api_update_retry_timeout)
 
 		return
 	}
 
-	// Filter out any repos that shouldn't run on this architecture
+	// Filter out any targets that shouldn't run on this architecture
 	cur_arch := os.uname().machine
-	new_repos = new_repos.filter(it.arch.any(it.value == cur_arch))
+	new_targets = new_targets.filter(it.arch.any(it.value == cur_arch))
 
-	d.repos = new_repos
+	d.targets = new_targets
 
 	d.api_update_timestamp = time.now().add_seconds(60 * d.api_update_frequency)
 }
 
 // renew_queue replaces the old queue with a new one that reflects the newest
-// values in repos_map.
+// values in targets.
 fn (mut d Daemon) renew_queue() {
 	d.linfo('Renewing queue...')
 	mut new_queue := MinHeap<ScheduledBuild>{}
@@ -225,10 +226,10 @@ fn (mut d Daemon) renew_queue() {
 
 	d.queue = new_queue
 
-	// For each repository in repos_map, parse their cron expression (or use
-	// the default one if not present) & add them to the queue
-	for repo in d.repos {
-		d.schedule_build(repo)
+	// For each target in targets, parse their cron expression (or use the
+	// default one if not present) & add them to the queue
+	for target in d.targets {
+		d.schedule_build(target)
 	}
 }
 

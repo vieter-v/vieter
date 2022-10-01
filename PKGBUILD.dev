@@ -5,13 +5,13 @@ pkgbase='vieter-git'
 pkgname='vieter-git'
 pkgver=0.2.0.r25.g20112b8
 pkgrel=1
-pkgdesc="Vieter is a lightweight implementation of an Arch repository server."
+pkgdesc="Lightweight Arch repository server & package build system (development version)"
 depends=('glibc' 'openssl' 'libarchive' 'sqlite')
-makedepends=('git' 'vieter-v')
+makedepends=('git' 'vlang')
 arch=('x86_64' 'aarch64')
-url='https://git.rustybever.be/vieter/vieter'
+url='https://git.rustybever.be/vieter-v/vieter'
 license=('AGPL3')
-source=("$pkgname::git+https://git.rustybever.be/vieter/vieter#branch=dev")
+source=("$pkgname::git+https://git.rustybever.be/vieter-v/vieter#branch=dev")
 md5sums=('SKIP')
 provides=('vieter')
 conflicts=('vieter')
@@ -22,7 +22,15 @@ pkgver() {
     git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
+prepare() {
+    export VMODULES="$srcdir/.vmodules"
+
+    cd "$pkgname/src" && v install
+}
+
 build() {
+    export VMODULES="$srcdir/.vmodules"
+
     cd "$pkgname"
 
     make prod

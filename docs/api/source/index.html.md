@@ -9,7 +9,7 @@ toc_footers:
 
 includes:
   - repository
-  - git
+  - targets
   - logs
 
 search: true

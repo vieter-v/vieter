@@ -1,0 +1,73 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
+matrix:
+  PLATFORM:
+    - 'linux/amd64'
+    - 'linux/arm64'
+
+platform: ${PLATFORM}
+
+pipeline:
+  install-modules:
+    image: *vlang_image
+    pull: true
+    commands:
+      - export VMODULES=$PWD/.vmodules
+      - 'cd src && v install'
+    when:
+      event: [push, pull_request]
+
+  debug:
+    image: *vlang_image
+    commands:
+      - export VMODULES=$PWD/.vmodules
+      - make
+    when:
+      event: [pull_request]
+      branch:
+        exclude: [main]
+
+  prod:
+    image: *vlang_image
+    environment:
+      - LDFLAGS=-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static
+    commands:
+      - export VMODULES=$PWD/.vmodules
+      # Apparently this -D is *very* important
+      - CFLAGS='-DGC_THREADS=1' make prod
+      # Make sure the binary is actually statically built
+      - readelf -d pvieter
+      - du -h pvieter
+      - '[ "$(readelf -d pvieter | grep NEEDED | wc -l)" = 0 ]'
+      # This removes so much, it's amazing
+      - strip -s pvieter
+      - du -h pvieter
+    when:
+      event: [push, pull_request]
+
+  upload:
+    image: *vlang_image
+    secrets: [ s3_username, s3_password ]
+    commands:
+      # https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f
+      - export URL=s3.rustybever.be
+      - export DATE="$(date -R --utc)"
+      - export CONTENT_TYPE='application/zstd'
+
+      - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:g')"
+      - export SIG_STRING="PUT\n\n$CONTENT_TYPE\n$DATE\n$OBJ_PATH"
+      - export SIGNATURE="$(echo -en $SIG_STRING | openssl sha1 -hmac $S3_PASSWORD -binary | base64)"
+      - >
+        curl 
+        --silent
+        --fail
+        -XPUT
+        -T pvieter
+        -H "Host: $URL"
+        -H "Date: $DATE"
+        -H "Content-Type: $CONTENT_TYPE"
+        -H "Authorization: AWS $S3_USERNAME:$SIGNATURE"
+        https://$URL$OBJ_PATH
+    when:
+      event: [push, pull_request]

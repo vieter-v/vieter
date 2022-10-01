@@ -83,16 +83,9 @@ fmt:
 test:
 	$(V) test $(SRC_DIR)
 
-# Build & patch the V compiler
-.PHONY: v
-v: v/v
-v/v:
-	git clone --single-branch https://git.rustybever.be/Chewing_Bever/v v
-	make -C v
-
 .PHONY: clean
 clean:
-	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'dvieterctl' 'vieterctl' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs' 'docs/public'
+	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs' 'docs/public'
 
 
 # =====EXPERIMENTAL=====

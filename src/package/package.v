@@ -4,7 +4,7 @@ import os
 import util
 
 // Represents a read archive
-struct Pkg {
+pub struct Pkg {
 pub:
 	path        string   [required]
 	info        PkgInfo  [required]
@@ -42,8 +42,8 @@ pub mut:
 	checkdepends []string
 }
 
-// checksum calculates the md5 & sha256 hash of the package
-pub fn (p &Pkg) checksum() ?(string, string) {
+// checksum calculates the sha256 hash of the package
+pub fn (p &Pkg) checksum() ?string {
 	return util.hash_file(p.path)
 }
 
@@ -201,8 +201,7 @@ pub fn (pkg &Pkg) filename() string {
 }
 
 // to_desc returns a desc file valid string representation
-// TODO calculate md5 & sha256 instead of believing the file
-pub fn (pkg &Pkg) to_desc() string {
+pub fn (pkg &Pkg) to_desc() ?string {
 	p := pkg.info
 
 	// filename
@@ -223,9 +222,8 @@ pub fn (pkg &Pkg) to_desc() string {
 	desc += format_entry('CSIZE', p.csize.str())
 	desc += format_entry('ISIZE', p.size.str())
 
-	md5sum, sha256sum := pkg.checksum() or { '', '' }
+	sha256sum := pkg.checksum()?
 
-	desc += format_entry('MD5SUM', md5sum)
 	desc += format_entry('SHA256SUM', sha256sum)
 
 	// TODO add pgpsig stuff

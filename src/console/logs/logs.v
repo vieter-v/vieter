@@ -1,7 +1,7 @@
 module logs
 
 import cli
-import env
+import vieter_v.conf as vconf
 import client
 import console
 import time
@@ -12,7 +12,7 @@ struct Config {
 	api_key string [required]
 }
 
-// cmd returns the cli module that handles the build repos API.
+// cmd returns the cli module that handles the build logs API.
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'logs'
@@ -33,8 +33,8 @@ pub fn cmd() cli.Command {
 						flag: cli.FlagType.int
 					},
 					cli.Flag{
-						name: 'repo'
-						description: 'Only return logs for this repo id.'
+						name: 'target'
+						description: 'Only return logs for this target id.'
 						flag: cli.FlagType.int
 					},
 					cli.Flag{
@@ -65,7 +65,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := env.load<Config>(config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					mut filter := BuildLogFilter{}
 
@@ -79,9 +79,9 @@ pub fn cmd() cli.Command {
 						filter.offset = u64(offset)
 					}
 
-					repo_id := cmd.flags.get_int('repo')?
-					if repo_id != 0 {
-						filter.repo = repo_id
+					target_id := cmd.flags.get_int('target')?
+					if target_id != 0 {
+						filter.target = target_id
 					}
 
 					tz_offset := time.offset()
@@ -133,7 +133,9 @@ pub fn cmd() cli.Command {
 						]
 					}
 
-					list(conf, filter)?
+					raw := cmd.flags.get_bool('raw')?
+
+					list(conf, filter, raw)?
 				}
 			},
 			cli.Command{
@@ -143,7 +145,7 @@ pub fn cmd() cli.Command {
 				description: 'Show all info for a specific build log.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := env.load<Config>(config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					id := cmd.args[0].int()
 					info(conf, id)?
@@ -156,7 +158,7 @@ pub fn cmd() cli.Command {
 				description: 'Output the content of a build log to stdout.'
 				execute: fn (cmd cli.Command) ? {
 					config_file := cmd.flags.get_string('config-file')?
-					conf := env.load<Config>(config_file)?
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
 
 					id := cmd.args[0].int()
 					content(conf, id)?
@@ -167,27 +169,31 @@ pub fn cmd() cli.Command {
 }
 
 // print_log_list prints a list of logs.
-fn print_log_list(logs []BuildLog) ? {
-	data := logs.map([it.id.str(), it.repo_id.str(), it.start_time.local().str(),
+fn print_log_list(logs []BuildLog, raw bool) ? {
+	data := logs.map([it.id.str(), it.target_id.str(), it.start_time.local().str(),
 		it.exit_code.str()])
 
-	println(console.pretty_table(['id', 'repo', 'start time', 'exit code'], data)?)
+	if raw {
+		println(console.tabbed_table(data))
+	} else {
+		println(console.pretty_table(['id', 'target', 'start time', 'exit code'], data)?)
+	}
 }
 
 // list prints a list of all build logs.
-fn list(conf Config, filter BuildLogFilter) ? {
+fn list(conf Config, filter BuildLogFilter, raw bool) ? {
 	c := client.new(conf.address, conf.api_key)
 	logs := c.get_build_logs(filter)?.data
 
-	print_log_list(logs)?
+	print_log_list(logs, raw)?
 }
 
-// list prints a list of all build logs for a given repo.
-fn list_for_repo(conf Config, repo_id int) ? {
+// list prints a list of all build logs for a given target.
+fn list_for_target(conf Config, target_id int, raw bool) ? {
 	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs_for_repo(repo_id)?.data
+	logs := c.get_build_logs_for_target(target_id)?.data
 
-	print_log_list(logs)?
+	print_log_list(logs, raw)?
 }
 
 // info print the detailed info for a given build log.

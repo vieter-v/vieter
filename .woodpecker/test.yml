@@ -1,0 +1,30 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
+matrix:
+  PLATFORM:
+    - 'linux/amd64'
+    - 'linux/arm64'
+
+branches:
+  exclude: [ main ]
+platform: ${PLATFORM}
+
+pipeline:
+  install-modules:
+    image: *vlang_image
+    pull: true
+    commands:
+      - export VMODULES=$PWD/.vmodules
+      - 'cd src && v install'
+    when:
+      event: [pull_request]
+
+  test:
+    image: *vlang_image
+    pull: true
+    commands:
+      - export VMODULES=$PWD/.vmodules
+      - make test
+    when:
+      event: [pull_request]

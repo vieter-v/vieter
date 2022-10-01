@@ -2,7 +2,7 @@ module client
 
 import net.http { Method }
 import net.urllib
-import response { Response }
+import web.response { Response }
 import json
 
 pub struct Client {
@@ -30,12 +30,10 @@ fn (c &Client) send_request_raw(method Method, url string, params map[string]str
 		// Escape each query param
 		for k, v in params {
 			// An empty parameter should be the same as not providing it at all
-			if v != '' {
-				params_escaped[k] = urllib.query_escape(v)
-			}
+			params_escaped[k] = urllib.query_escape(v)
 		}
 
-		params_str := params_escaped.keys().map('$it=${params[it]}').join('&')
+		params_str := params_escaped.keys().map('$it=${params_escaped[it]}').join('&')
 
 		full_url = '$full_url?$params_str'
 	}

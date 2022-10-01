@@ -1,16 +1,19 @@
 module build
 
-import docker
+import vieter_v.docker
 import encoding.base64
 import time
 import os
 import strings
 import util
-import models { GitRepo }
+import models { Target }
 
 const (
 	container_build_dir = '/build'
 	build_image_repo    = 'vieter-build'
+	// Contents of PATH variable in build containers
+	path_dirs           = ['/sbin', '/bin', '/usr/sbin', '/usr/bin', '/usr/local/sbin',
+		'/usr/local/bin', '/usr/bin/site_perl', '/usr/bin/vendor_perl', '/usr/bin/core_perl']
 )
 
 // create_build_image creates a builder image given some base image which can
@@ -56,13 +59,13 @@ pub fn create_build_image(base_image string) ?string {
 	// We pull the provided image
 	dd.pull_image(image_name, image_tag)?
 
-	id := dd.create_container(c)?.id
+	id := dd.container_create(c)?.id
 	// id := docker.create_container(c)?
-	dd.start_container(id)?
+	dd.container_start(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for {
-		data := dd.inspect_container(id)?
+		data := dd.container_inspect(id)?
 
 		if !data.state.running {
 			break
@@ -77,7 +80,7 @@ pub fn create_build_image(base_image string) ?string {
 	// conflicts.
 	tag := time.sys_mono_now().str()
 	image := dd.create_image_from_container(id, 'vieter-build', tag)?
-	dd.remove_container(id)?
+	dd.container_remove(id)?
 
 	return image.id
 }
@@ -90,10 +93,10 @@ pub:
 	logs       string
 }
 
-// build_repo builds, packages & publishes a given Arch package based on the
-// provided GitRepo. The base image ID should be of an image previously created
+// build_target builds, packages & publishes a given Arch package based on the
+// provided target. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
-pub fn build_repo(address string, api_key string, base_image_id string, repo &GitRepo) ?BuildResult {
+pub fn build_target(address string, api_key string, base_image_id string, target &Target) ?BuildResult {
 	mut dd := docker.new_conn()?
 
 	defer {
@@ -101,7 +104,7 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &Gi
 	}
 
 	build_arch := os.uname().machine
-	build_script := create_build_script(address, repo, build_arch)
+	build_script := create_build_script(address, target, build_arch)
 
 	// We convert the build script into a base64 string, which then gets passed
 	// to the container as an env var
@@ -109,32 +112,38 @@ pub fn build_repo(address string, api_key string, base_image_id string, repo &Gi
 
 	c := docker.NewContainer{
 		image: '$base_image_id'
-		env: ['BUILD_SCRIPT=$base64_script', 'API_KEY=$api_key']
+		env: [
+			'BUILD_SCRIPT=$base64_script',
+			'API_KEY=$api_key',
+			// `archlinux:base-devel` does not correctly set the path variable,
+			// causing certain builds to fail. This fixes it.
+			'PATH=${build.path_dirs.join(':')}',
+		]
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/bash -e']
 		work_dir: '/build'
 		user: '0:0'
 	}
 
-	id := dd.create_container(c)?.id
-	dd.start_container(id)?
+	id := dd.container_create(c)?.id
+	dd.container_start(id)?
 
-	mut data := dd.inspect_container(id)?
+	mut data := dd.container_inspect(id)?
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for data.state.running {
 		time.sleep(1 * time.second)
 
-		data = dd.inspect_container(id)?
+		data = dd.container_inspect(id)?
 	}
 
-	mut logs_stream := dd.get_container_logs(id)?
+	mut logs_stream := dd.container_get_logs(id)?
 
 	// Read in the entire stream
 	mut logs_builder := strings.new_builder(10 * 1024)
 	util.reader_to_writer(mut logs_stream, mut logs_builder)?
 
-	dd.remove_container(id)?
+	dd.container_remove(id)?
 
 	return BuildResult{
 		start_time: data.state.start_time

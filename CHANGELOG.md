@@ -5,13 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://git.rustybever.be/vieter/vieter/src/branch/dev)
+## [Unreleased](https://git.rustybever.be/vieter-v/vieter/src/branch/dev)
 
-## [0.3.0](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0)
+## [0.4.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.4.0)
+
+### Added
+
+* Server port can now be configured
+* Targets now have a 'kind' field describing whether it's a Git repository or a
+  URL to a PKGBUILD
+* Targets with kind 'url' can provide a direct URL to a PKGBUILD instead of
+  providing a Git repository
+* CLI commands for searching the AUR & directly adding packages
+* HTTP routes for removing packages, arch-repos & repos
+* All endpoints serving files now support HTTP byte range requests
+* Better CLI UX
+    * When adding targets, the ID of the created target is returned
+    * The `-r` flag only shows raw data of action
+        * When adding a target, only ID is shown and not surrounding text
+        * Tabled output returns a tab-separated list (easy to script using
+          `cut`)
+
+### Changed
+
+* Moved all API routes under `/v1` namespace
+* Renamed `vieter repos` to `vieter targets`
+* Renamed `/api/v1/repos` namespace to `/api/v1/targets`
+* Branch name for 'git' targets is now optional; if not provided, the
+  repository will be cloned with the default branch
+* Build containers now explicitely set the PATH variable
+* Refactor of web framework
+* API endpoints now return id of newly created entries
+* Repo POST requests now return information on published package
+* `api` can no longer be used as a repository name
+* CLI client now allows setting values to an empty value
+
+### Removed
+
+* md5 hashes are no longer calculated for packages
+
+## [0.3.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0)
 
 Nothing besides bumping the versions.
 
-## [0.3.0-rc.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-rc.1)
+## [0.3.0-rc.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0-rc.1)
 
 ### Added
 
@@ -39,7 +76,7 @@ Nothing besides bumping the versions.
 
 * `POST /api/logs` now correctly uses epoch timestamps instead of strings
 
-## [0.3.0-alpha.2](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.2)
+## [0.3.0-alpha.2](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0-alpha.2)
 
 ### Added
 
@@ -64,7 +101,7 @@ Nothing besides bumping the versions.
     * `vieter-git` is the latest commit on the dev branch
 * Full refactor of Docker socket code
 
-## [0.3.0-alpha.1](https://git.rustybever.be/vieter/vieter/src/tag/0.3.0-alpha.1)
+## [0.3.0-alpha.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.3.0-alpha.1)
 
 ### Changed
 
@@ -83,7 +120,7 @@ Nothing besides bumping the versions.
 
 * Binary no longer panics when an env var is missing
 
-## [0.2.0](https://git.rustybever.be/vieter/vieter/src/tag/0.2.0)
+## [0.2.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.2.0)
 
 ### Changed
 
@@ -117,13 +154,13 @@ Nothing besides bumping the versions.
 * Packages with unknown fields in .PKGINFO are now allowed
 * Old packages are now properly removed
 
-## [0.1.0](https://git.rustybever.be/vieter/vieter/src/tag/0.1.0)
+## [0.1.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.1.0)
 
 ### Changed
 
 * Improved logging
 
-## [0.1.0-rc.1](https://git.rustybever.be/vieter/vieter/src/tag/0.1.0-rc.1)
+## [0.1.0-rc.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.1.0-rc.1)
 
 ### Added
 

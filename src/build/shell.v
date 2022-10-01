@@ -1,6 +1,6 @@
 module build
 
-import models { GitRepo }
+import models { Target }
 
 // escape_shell_string escapes any characters that could be interpreted
 // incorrectly by a shell. The resulting value should be safe to use inside an
@@ -22,21 +22,46 @@ pub fn echo_commands(cmds []string) []string {
 	return out
 }
 
-// create_build_script generates a shell script that builds a given GitRepo.
-fn create_build_script(address string, repo &GitRepo, build_arch string) string {
-	repo_url := '$address/$repo.repo'
+// create_build_script generates a shell script that builds a given Target.
+fn create_build_script(address string, target &Target, build_arch string) string {
+	repo_url := '$address/$target.repo'
 
-	commands := echo_commands([
+	mut commands := [
 		// This will later be replaced by a proper setting for changing the
 		// mirrorlist
-		"echo -e '[$repo.repo]\\nServer = $address/\$repo/\$arch\\nSigLevel = Optional' >> /etc/pacman.conf"
+		"echo -e '[$target.repo]\\nServer = $address/\$repo/\$arch\\nSigLevel = Optional' >> /etc/pacman.conf"
 		// We need to update the package list of the repo we just added above.
 		// This should however not pull in a lot of packages as long as the
 		// builder image is rebuilt frequently.
 		'pacman -Syu --needed --noconfirm',
 		// makepkg can't run as root
 		'su builder',
-		'git clone --single-branch --depth 1 --branch $repo.branch $repo.url repo',
+	]
+
+	commands << match target.kind {
+		'git' {
+			if target.branch == '' {
+				[
+					"git clone --single-branch --depth 1 '$target.url' repo",
+				]
+			} else {
+				[
+					"git clone --single-branch --depth 1 --branch $target.branch '$target.url' repo",
+				]
+			}
+		}
+		'url' {
+			[
+				'mkdir repo',
+				"curl -o repo/PKGBUILD -L '$target.url'",
+			]
+		}
+		else {
+			panic("Invalid kind. This shouldn't be possible.")
+		}
+	}
+
+	commands << [
 		'cd repo',
 		'makepkg --nobuild --syncdeps --needed --noconfirm',
 		'source PKGBUILD',
@@ -49,7 +74,7 @@ fn create_build_script(address string, repo &GitRepo, build_arch string) string 
 		// we're in root so we don't proceed.
 		'[ "\$(id -u)" == 0 ] && exit 0',
 		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $repo_url/publish; done',
-	])
+	]
 
-	return commands.join('\n')
+	return echo_commands(commands).join('\n')
 }

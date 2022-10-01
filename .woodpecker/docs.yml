@@ -1,0 +1,49 @@
+variables:
+  - &vlang_image 'chewingbever/vlang:0.3'
+
+platform: 'linux/amd64'
+branches:
+  exclude: [ main ]
+
+pipeline:
+  docs:
+    image: 'klakegg/hugo:ext-alpine'
+    group: 'generate'
+    commands:
+      - apk add git
+      - make docs
+
+  api-docs:
+    image: *vlang_image
+    pull: true
+    group: 'generate'
+    commands:
+      - make api-docs
+
+  slate-docs:
+    image: 'slatedocs/slate'
+    group: 'generate'
+    commands:
+      - cd docs/api
+      - bundle exec middleman build --clean
+
+  archive:
+    image: 'alpine'
+    commands:
+      - cp -r docs/api/build docs/public/api
+      - 'cd docs/public && tar czvf ../../docs.tar.gz *'
+      - 'cd ../../src/_docs && tar czvf ../../api-docs.tar.gz *'
+    when:
+      event: push
+      branch: dev
+
+  deploy:
+    image: 'curlimages/curl'
+    secrets:
+      - 'site_api_key'
+    commands:
+      - 'curl -XPOST --fail -s -H "Authorization: Bearer $SITE_API_KEY" -T docs.tar.gz https://rustybever.be/api/deploy?dir=docs-vieter'
+      - 'curl -XPOST --fail -s -H "Authorization: Bearer $SITE_API_KEY" -T api-docs.tar.gz https://rustybever.be/api/deploy?dir=api-docs-vieter'
+    when:
+      event: push
+      branch: dev

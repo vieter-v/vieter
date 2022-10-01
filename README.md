@@ -1,10 +1,11 @@
 # Vieter
 
-## Documentation
-
 I host documentation for Vieter over at https://rustybever.be/docs/vieter/. API
 documentation for the current codebase can be found at
 https://rustybever.be/api-docs/vieter/.
+
+For more information, questions or just a chat, there's
+[#vieter:rustybever.be](https://matrix.to/#/#vieter:rustybever.be) on Matrix!
 
 ## Overview
 
@@ -36,22 +37,19 @@ that.
 
 Besides a V installer, Vieter also requires the following libraries to work:
 
-* gc
 * libarchive
 * openssl
 * sqlite3
 
+Vieter also depends on some external V modules which you can install using `cd
+src && v install`. Make sure to keep these dependencies up to date using `v
+update`.
+
 ### Compiler
 
-Vieter compiles with the standard Vlang compiler. However, I do maintain a
-[mirror](https://git.rustybever.be/vieter/v). This is to ensure my CI does not
-break without reason, as I control when & how frequently the mirror is updated
-to reflect the official repository.
-
-If you encounter issues using the latest V compiler, try using my mirror
-instead. `make v` will clone the repository & build the mirror. Afterwards,
-prepending any make command with `V_PATH=v/v` tells make to use the locally
-compiled mirror instead.
+I used to maintain a mirror that tracked the latest master, but nowadays, I
+maintain a Docker image containing the specific compiler version that Vieter
+builds with. Currently, this is V 0.3.
 
 ## Contributing
 

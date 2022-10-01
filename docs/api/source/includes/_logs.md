@@ -13,7 +13,7 @@ Endpoints for interacting with stored build logs.
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/logs?offset=10&limit=20
+  https://example.com/api/v1/logs?offset=10&limit=20
 ```
 
 > JSON output format
@@ -24,7 +24,7 @@ curl \
   "data": [
     {
       "id": 1,
-      "repo_id": 3,
+      "target_id": 3,
       "start_time": 1652008554,
       "end_time": 1652008559,
       "arch": "x86_64",
@@ -38,7 +38,7 @@ Retrieve a list of build logs.
 
 ### HTTP Request
 
-`GET /api/logs`
+`GET /api/v1/logs`
 
 ### Query Parameters
 
@@ -46,7 +46,7 @@ Parameter | Description
 --------- | -----------
 limit | Maximum amount of results to return.
 offset | Offset of results.
-repo | Only return builds published to this repository.
+target | Only return builds for this target id.
 before | Only return logs started before this time (UTC epoch)
 after | Only return logs started after this time (UTC epoch)
 arch | Only return logs built on this architecture
@@ -58,7 +58,7 @@ exit_codes | Comma-separated list of exit codes to limit result to; using `!` as
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/logs/15
+  https://example.com/api/v1/logs/1
 ```
 
 > JSON output format
@@ -68,7 +68,7 @@ curl \
   "message": "",
   "data": {
     "id": 1,
-    "repo_id": 3,
+    "target_id": 3,
     "start_time": 1652008554,
     "end_time": 1652008559,
     "arch": "x86_64",
@@ -81,7 +81,7 @@ Retrieve info about a specific build log.
 
 ### HTTP Request
 
-`GET /api/logs/:id`
+`GET /api/v1/logs/:id`
 
 ### URL Parameters
 
@@ -94,7 +94,7 @@ id | ID of requested log
 ```shell
 curl \
   -H 'X-Api-Key: secret' \
-  https://example.com/api/logs/15/content
+  https://example.com/api/v1/logs/15/content
 ```
 
 Retrieve the contents of a build log. The response is the build log in
@@ -102,7 +102,7 @@ plaintext.
 
 ### HTTP Request
 
-`GET /api/logs/:id/content`
+`GET /api/v1/logs/:id/content`
 
 ### URL Parameters
 
@@ -111,6 +111,17 @@ Parameter | Description
 id | ID of requested log
 
 ## Publish build log
+
+> JSON output format
+
+```json
+{
+  "message": "",
+  "data": {
+    "id": 15
+  }
+}
+```
 
 <aside class="warning">
 
@@ -123,17 +134,17 @@ Publish a new build log to the server.
 
 ### HTTP Request
 
-`POST /api/logs`
+`POST /api/v1/logs`
 
 ### Query parameters
 
 Parameter | Description
 --------- | -----------
-id | ID of requested log
 startTime | Start time of the build (UTC epoch)
 endTime | End time of the build (UTC epoch)
 arch | Architecture on which the build was done
 exitCode | Exit code of the build container
+target | id of target this build is for
 
 ### Request body
 

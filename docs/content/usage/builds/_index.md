@@ -16,28 +16,28 @@ info to the system. The Vieter repository server exposes an HTTP API for this
 info). For ease of use, the Vieter binary contains a CLI interface for
 interacting with this API (see [Configuration](/configuration) for
 configuration details). The [man
-pages](https://rustybever.be/man/vieter/vieter-repos.1.html) describe this in
+pages](https://rustybever.be/man/vieter/vieter-targets.1.html) describe this in
 greater detail, but the basic usage is as follows:
 
 ```
-vieter repos add some-url some-branch some-repository
+vieter targets add some-url some-repository
 ```
 
 Here, `some-url` is the URL of the Git repository containing the PKGBUILD. This
 URL is passed to `git clone`, meaning the repository should be public. Vieter
 expects the same format as an AUR Git repository, so you can directly use AUR
-URLs here.
+URLs here. Alternatively, you can also provide the URL to a PKGBUILD file
+instead. See
+[vieter-targets-add(1)](https://rustybever.be/man/vieter/vieter-targets-add.1.html)
+for more information.
 
-`some-branch` is the branch of the Git repository the build should check out.
-If you're using an AUR package, this should be `master`.
-
-Finally, `some-repo` is the repository to which the built package archives
-should be published.
+`some-repo` is the repository to which the built package archives should be
+published.
 
 The above command intentionally leaves out a few parameters to make the CLI
 more useable. For information on how to modify all parameters using the CLI,
 see
-[vieter-repos-edit(1)](https://rustybever.be/man/vieter/vieter-repos-edit.1.html).
+[vieter-targets(1)](https://rustybever.be/man/vieter/vieter-targets.1.html).
 
 ## Reading logs
 

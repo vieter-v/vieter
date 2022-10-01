@@ -1,7 +1,6 @@
 module util
 
 import os
-import crypto.md5
 import crypto.sha256
 
 const (
@@ -23,12 +22,10 @@ pub fn exit_with_message(code int, msg string) {
 	exit(code)
 }
 
-// hash_file returns the md5 & sha256 hash of a given file
-// TODO actually implement sha256
-pub fn hash_file(path &string) ?(string, string) {
+// hash_file returns the sha256 hash of a given file
+pub fn hash_file(path &string) ?string {
 	file := os.open(path) or { return error('Failed to open file.') }
 
-	mut md5sum := md5.new()
 	mut sha256sum := sha256.new()
 
 	buf_size := int(1_000_000)
@@ -40,16 +37,12 @@ pub fn hash_file(path &string) ?(string, string) {
 		bytes_read := file.read(mut buf) or { return error('Failed to read from file.') }
 		bytes_left -= u64(bytes_read)
 
-		// For now we'll assume that this always works
-		md5sum.write(buf[..bytes_read]) or {
-			return error('Failed to update md5 checksum. This should never happen.')
-		}
-		sha256sum.write(buf[..bytes_read]) or {
-			return error('Failed to update sha256 checksum. This should never happen.')
-		}
+		// This function never actually fails, but returns an option to follow
+		// the Writer interface.
+		sha256sum.write(buf[..bytes_read])?
 	}
 
-	return md5sum.checksum().hex(), sha256sum.checksum().hex()
+	return sha256sum.checksum().hex()
 }
 
 // pretty_bytes converts a byte count to human-readable version
