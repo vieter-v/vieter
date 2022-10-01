@@ -94,7 +94,9 @@ pub fn cmd() cli.Command {
 						branch: cmd.flags.get_string('branch') or { '' }
 					}
 
-					add(conf, t)?
+					raw := cmd.flags.get_bool('raw')?
+
+					add(conf, t, raw)?
 				}
 			},
 			cli.Command{
@@ -208,11 +210,15 @@ fn list(conf Config, filter TargetFilter, raw bool) ? {
 }
 
 // add adds a new repository to the server's list.
-fn add(conf Config, t &NewTarget) ? {
+fn add(conf Config, t &NewTarget, raw bool) ? {
 	c := client.new(conf.address, conf.api_key)
 	res := c.add_target(t)?
 
-	println('Target added with id $res.data')
+	if raw {
+		println(res.data)
+	} else {
+		println('Target added with id $res.data')
+	}
 }
 
 // remove removes a repository from the server's list.
