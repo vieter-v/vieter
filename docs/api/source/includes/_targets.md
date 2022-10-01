@@ -100,6 +100,17 @@ id | id of requested target
 
 ## Create a new target
 
+> JSON output format
+
+```json
+{
+  "message": "",
+  "data": {
+    "id": 15
+  }
+}
+```
+
 Create a new target with the given data.
 
 ### HTTP Request
