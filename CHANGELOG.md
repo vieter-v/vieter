@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * CLI commands for searching the AUR & directly adding packages
 * HTTP routes for removing packages, arch-repos & repos
 * All endpoints serving files now support HTTP byte range requests
+* Better CLI UX
+    * When adding targets, the ID of the created target is returned
+    * The `-r` flag only shows raw data of action
+        * When adding a target, only ID is shown and not surrounding text
+        * Tabled output returns a tab-separated list (easy to script using
+          `cut`)
 
 ### Changed
 
@@ -27,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository will be cloned with the default branch
 * Build containers now explicitely set the PATH variable
 * Refactor of web framework
+* API endpoints now return id of newly created entries
+* Repo POST requests now return information on published package
 
 ### Removed
 

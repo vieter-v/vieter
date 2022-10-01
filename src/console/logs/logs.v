@@ -133,7 +133,9 @@ pub fn cmd() cli.Command {
 						]
 					}
 
-					list(conf, filter)?
+					raw := cmd.flags.get_bool('raw')?
+
+					list(conf, filter, raw)?
 				}
 			},
 			cli.Command{
@@ -167,27 +169,31 @@ pub fn cmd() cli.Command {
 }
 
 // print_log_list prints a list of logs.
-fn print_log_list(logs []BuildLog) ? {
+fn print_log_list(logs []BuildLog, raw bool) ? {
 	data := logs.map([it.id.str(), it.target_id.str(), it.start_time.local().str(),
 		it.exit_code.str()])
 
-	println(console.pretty_table(['id', 'target', 'start time', 'exit code'], data)?)
+	if raw {
+		println(console.tabbed_table(data))
+	} else {
+		println(console.pretty_table(['id', 'target', 'start time', 'exit code'], data)?)
+	}
 }
 
 // list prints a list of all build logs.
-fn list(conf Config, filter BuildLogFilter) ? {
+fn list(conf Config, filter BuildLogFilter, raw bool) ? {
 	c := client.new(conf.address, conf.api_key)
 	logs := c.get_build_logs(filter)?.data
 
-	print_log_list(logs)?
+	print_log_list(logs, raw)?
 }
 
 // list prints a list of all build logs for a given target.
-fn list_for_target(conf Config, target_id int) ? {
+fn list_for_target(conf Config, target_id int, raw bool) ? {
 	c := client.new(conf.address, conf.api_key)
 	logs := c.get_build_logs_for_target(target_id)?.data
 
-	print_log_list(logs)?
+	print_log_list(logs, raw)?
 }
 
 // info print the detailed info for a given build log.

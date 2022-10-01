@@ -19,7 +19,7 @@ fn (mut app App) v1_get_logs() web.Result {
 	}
 	logs := app.db.get_build_logs(filter)
 
-	return app.json(http.Status.ok, new_data_response(logs))
+	return app.json(.ok, new_data_response(logs))
 }
 
 // v1_get_single_log returns the build log with the given id.
@@ -27,7 +27,7 @@ fn (mut app App) v1_get_logs() web.Result {
 fn (mut app App) v1_get_single_log(id int) web.Result {
 	log := app.db.get_build_log(id) or { return app.not_found() }
 
-	return app.json(http.Status.ok, new_data_response(log))
+	return app.json(.ok, new_data_response(log))
 }
 
 // v1_get_log_content returns the actual build log file for the given id.
@@ -95,7 +95,8 @@ fn (mut app App) v1_post_log() web.Result {
 		exit_code: exit_code
 	}
 
-	app.db.add_build_log(log)
+	// id of newly created log
+	log_id := app.db.add_build_log(log)
 
 	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, target_id.str(), arch)
 
@@ -122,5 +123,5 @@ fn (mut app App) v1_post_log() web.Result {
 		return app.status(http.Status.length_required)
 	}
 
-	return app.json(http.Status.ok, new_response('Logs added successfully.'))
+	return app.json(.ok, new_data_response(log_id))
 }

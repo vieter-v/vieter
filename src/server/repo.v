@@ -6,8 +6,7 @@ import repo
 import time
 import rand
 import util
-import net.http
-import web.response { new_response }
+import web.response { new_data_response, new_response }
 
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
@@ -65,7 +64,7 @@ fn (mut app App) put_package(repo string) web.Result {
 		util.reader_to_file(mut app.reader, length.int(), pkg_path) or {
 			app.lwarn("Failed to upload '$pkg_path'")
 
-			return app.json(http.Status.internal_server_error, new_response('Failed to upload file.'))
+			return app.status(.internal_server_error)
 		}
 
 		sw.stop()
@@ -74,7 +73,7 @@ fn (mut app App) put_package(repo string) web.Result {
 		app.lwarn('Tried to upload package without specifying a Content-Length.')
 
 		// length required
-		return app.status(http.Status.length_required)
+		return app.status(.length_required)
 	}
 
 	res := app.repo.add_pkg_from_path(repo, pkg_path) or {
@@ -82,18 +81,10 @@ fn (mut app App) put_package(repo string) web.Result {
 
 		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg()") }
 
-		return app.json(http.Status.internal_server_error, new_response('Failed to add package.'))
+		return app.status(.internal_server_error)
 	}
 
-	if !res.added {
-		os.rm(pkg_path) or { app.lerror("Failed to remove download '$pkg_path': $err.msg()") }
+	app.linfo("Added '$res.name-$res.version' to '$repo (${res.archs.join(',')})'.")
 
-		app.lwarn("Duplicate package '$res.pkg.full_name()' in repo '$repo'.")
-
-		return app.json(http.Status.bad_request, new_response('File already exists.'))
-	}
-
-	app.linfo("Added '$res.pkg.full_name()' to repo '$repo ($res.pkg.info.arch)'.")
-
-	return app.json(http.Status.ok, new_response('Package added successfully.'))
+	return app.json(.ok, new_data_response(res))
 }

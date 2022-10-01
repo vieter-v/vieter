@@ -49,9 +49,9 @@ pub struct NewTarget {
 }
 
 // add_target adds a new target to the server.
-pub fn (c &Client) add_target(t NewTarget) ?Response<string> {
+pub fn (c &Client) add_target(t NewTarget) ?Response<int> {
 	params := models.params_from<NewTarget>(t)
-	data := c.send_request<string>(Method.post, '/api/v1/targets', params)?
+	data := c.send_request<int>(Method.post, '/api/v1/targets', params)?
 
 	return data
 }

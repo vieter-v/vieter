@@ -5,6 +5,11 @@ import strings
 import cli
 import os
 
+// tabbed_table returns a simple textual table, with tabs as separators.
+pub fn tabbed_table(data [][]string) string {
+	return data.map(it.join('\t')).join('\n')
+}
+
 // pretty_table converts a list of string data into a pretty table. Many thanks
 // to @hungrybluedev in the Vlang Discord for providing this code!
 // https://ptb.discord.com/channels/592103645835821068/592106336838352923/970278787143045192

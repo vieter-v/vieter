@@ -39,7 +39,7 @@ pub fn (c &Client) get_build_log_content(id int) ?string {
 }
 
 // add_build_log adds a new build log to the server.
-pub fn (c &Client) add_build_log(target_id int, start_time time.Time, end_time time.Time, arch string, exit_code int, content string) ?Response<string> {
+pub fn (c &Client) add_build_log(target_id int, start_time time.Time, end_time time.Time, arch string, exit_code int, content string) ?Response<int> {
 	params := {
 		'target':    target_id.str()
 		'startTime': start_time.unix_time().str()
@@ -48,7 +48,7 @@ pub fn (c &Client) add_build_log(target_id int, start_time time.Time, end_time t
 		'exitCode':  exit_code.str()
 	}
 
-	data := c.send_request_with_body<string>(Method.post, '/api/v1/logs', params, content)?
+	data := c.send_request_with_body<int>(Method.post, '/api/v1/logs', params, content)?
 
 	return data
 }

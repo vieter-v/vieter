@@ -79,10 +79,14 @@ pub fn (db &VieterDb) get_build_log(id int) ?BuildLog {
 }
 
 // add_build_log inserts the given BuildLog into the database.
-pub fn (db &VieterDb) add_build_log(log BuildLog) {
+pub fn (db &VieterDb) add_build_log(log BuildLog) int {
 	sql db.conn {
 		insert log into BuildLog
 	}
+
+	inserted_id := db.conn.last_id() as int
+
+	return inserted_id
 }
 
 // delete_build_log delete the BuildLog with the given ID from the database.
