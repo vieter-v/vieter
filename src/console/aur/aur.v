@@ -3,8 +3,8 @@ module aur
 import cli
 import console
 import client
-import vieter_v.aur
-import vieter_v.conf as vconf
+import aur
+import conf as vconf
 
 struct Config {
 	address string [required]
