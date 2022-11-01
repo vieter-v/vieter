@@ -23,7 +23,7 @@ pub fn exit_with_message(code int, msg string) {
 }
 
 // hash_file returns the sha256 hash of a given file
-pub fn hash_file(path &string) ?string {
+pub fn hash_file(path &string) !string {
 	file := os.open(path) or { return error('Failed to open file.') }
 
 	mut sha256sum := sha256.new()
@@ -39,7 +39,7 @@ pub fn hash_file(path &string) ?string {
 
 		// This function never actually fails, but returns an option to follow
 		// the Writer interface.
-		sha256sum.write(buf[..bytes_read])?
+		sha256sum.write(buf[..bytes_read])!
 	}
 
 	return sha256sum.checksum().hex()

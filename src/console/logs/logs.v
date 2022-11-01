@@ -63,30 +63,30 @@ pub fn cmd() cli.Command {
 						flag: cli.FlagType.string
 					},
 				]
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
 					mut filter := BuildLogFilter{}
 
-					limit := cmd.flags.get_int('limit')?
+					limit := cmd.flags.get_int('limit')!
 					if limit != 0 {
 						filter.limit = u64(limit)
 					}
 
-					offset := cmd.flags.get_int('offset')?
+					offset := cmd.flags.get_int('offset')!
 					if offset != 0 {
 						filter.offset = u64(offset)
 					}
 
-					target_id := cmd.flags.get_int('target')?
+					target_id := cmd.flags.get_int('target')!
 					if target_id != 0 {
 						filter.target = target_id
 					}
 
 					tz_offset := time.offset()
 
-					if cmd.flags.get_bool('today')? {
+					if cmd.flags.get_bool('today')! {
 						today := time.now()
 
 						filter.after = time.new_time(time.Time{
@@ -98,12 +98,12 @@ pub fn cmd() cli.Command {
 					}
 					// The -today flag overwrites any of the other date flags.
 					else {
-						day_str := cmd.flags.get_string('day')?
-						before_str := cmd.flags.get_string('before')?
-						after_str := cmd.flags.get_string('after')?
+						day_str := cmd.flags.get_string('day')!
+						before_str := cmd.flags.get_string('before')!
+						after_str := cmd.flags.get_string('after')!
 
 						if day_str != '' {
-							day := time.parse_rfc3339(day_str)?
+							day := time.parse_rfc3339(day_str)!
 							day_utc := time.new_time(time.Time{
 								year: day.year
 								month: day.month
@@ -118,24 +118,24 @@ pub fn cmd() cli.Command {
 							filter.before = day_utc.add_days(1)
 						} else {
 							if before_str != '' {
-								filter.before = time.parse(before_str)?.add_seconds(-tz_offset)
+								filter.before = time.parse(before_str)!.add_seconds(-tz_offset)
 							}
 
 							if after_str != '' {
-								filter.after = time.parse(after_str)?.add_seconds(-tz_offset)
+								filter.after = time.parse(after_str)!.add_seconds(-tz_offset)
 							}
 						}
 					}
 
-					if cmd.flags.get_bool('failed')? {
+					if cmd.flags.get_bool('failed')! {
 						filter.exit_codes = [
 							'!0',
 						]
 					}
 
-					raw := cmd.flags.get_bool('raw')?
+					raw := cmd.flags.get_bool('raw')!
 
-					list(conf, filter, raw)?
+					list(conf, filter, raw)!
 				}
 			},
 			cli.Command{
@@ -143,12 +143,12 @@ pub fn cmd() cli.Command {
 				required_args: 1
 				usage: 'id'
 				description: 'Show all info for a specific build log.'
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
 					id := cmd.args[0].int()
-					info(conf, id)?
+					info(conf, id)!
 				}
 			},
 			cli.Command{
@@ -156,12 +156,12 @@ pub fn cmd() cli.Command {
 				required_args: 1
 				usage: 'id'
 				description: 'Output the content of a build log to stdout.'
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
 					id := cmd.args[0].int()
-					content(conf, id)?
+					content(conf, id)!
 				}
 			},
 		]
@@ -169,46 +169,46 @@ pub fn cmd() cli.Command {
 }
 
 // print_log_list prints a list of logs.
-fn print_log_list(logs []BuildLog, raw bool) ? {
+fn print_log_list(logs []BuildLog, raw bool) ! {
 	data := logs.map([it.id.str(), it.target_id.str(), it.start_time.local().str(),
 		it.exit_code.str()])
 
 	if raw {
 		println(console.tabbed_table(data))
 	} else {
-		println(console.pretty_table(['id', 'target', 'start time', 'exit code'], data)?)
+		println(console.pretty_table(['id', 'target', 'start time', 'exit code'], data)!)
 	}
 }
 
 // list prints a list of all build logs.
-fn list(conf Config, filter BuildLogFilter, raw bool) ? {
+fn list(conf Config, filter BuildLogFilter, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs(filter)?.data
+	logs := c.get_build_logs(filter)!.data
 
-	print_log_list(logs, raw)?
+	print_log_list(logs, raw)!
 }
 
 // list prints a list of all build logs for a given target.
-fn list_for_target(conf Config, target_id int, raw bool) ? {
+fn list_for_target(conf Config, target_id int, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs_for_target(target_id)?.data
+	logs := c.get_build_logs_for_target(target_id)!.data
 
-	print_log_list(logs, raw)?
+	print_log_list(logs, raw)!
 }
 
 // info print the detailed info for a given build log.
-fn info(conf Config, id int) ? {
+fn info(conf Config, id int) ! {
 	c := client.new(conf.address, conf.api_key)
-	log := c.get_build_log(id)?.data
+	log := c.get_build_log(id)!.data
 
 	print(log)
 }
 
 // content outputs the contents of the log file for a given build log to
 // stdout.
-fn content(conf Config, id int) ? {
+fn content(conf Config, id int) ! {
 	c := client.new(conf.address, conf.api_key)
-	content := c.get_build_log_content(id)?
+	content := c.get_build_log_content(id)!
 
 	println(content)
 }

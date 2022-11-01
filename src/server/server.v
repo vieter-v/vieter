@@ -24,7 +24,7 @@ pub mut:
 }
 
 // server starts the web server & starts listening for requests
-pub fn server(conf Config) ? {
+pub fn server(conf Config) ! {
 	// Prevent using 'any' as the default arch
 	if conf.default_arch == 'any' {
 		util.exit_with_message(1, "'any' is not allowed as the value for default_arch.")

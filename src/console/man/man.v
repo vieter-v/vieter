@@ -11,11 +11,11 @@ pub fn cmd() cli.Command {
 		description: 'Generate all man pages & save them in the given directory.'
 		usage: 'dir'
 		required_args: 1
-		execute: fn (cmd cli.Command) ? {
+		execute: fn (cmd cli.Command) ! {
 			root := cmd.root()
-			os.mkdir_all(cmd.args[0])?
+			os.mkdir_all(cmd.args[0])!
 
-			console.export_man_pages(root, cmd.args[0])?
+			console.export_man_pages(root, cmd.args[0])!
 		}
 	}
 }
