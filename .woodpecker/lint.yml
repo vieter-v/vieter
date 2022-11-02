@@ -7,10 +7,21 @@ branches:
 platform: 'linux/amd64'
 
 pipeline:
+  # vfmt seems to get confused if these aren't present
+  install-modules:
+    image: *vlang_image
+    pull: true
+    commands:
+      - export VMODULES=$PWD/.vmodules
+      - 'cd src && v install'
+    when:
+      event: [pull_request]
+
   lint:
     image: *vlang_image
     pull: true
     commands:
+      - export VMODULES=$PWD/.vmodules
       - make lint
     when:
-      event: [ pull_request ]
+      event: [pull_request]

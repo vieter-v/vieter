@@ -92,9 +92,9 @@ clean:
 .PHONY: autofree
 autofree: afvieter
 afvieter: $(SOURCES)
-	$(V_PATH) -showcc -autofree -o afvieter $(SRC_DIR)
+	$(V) -showcc -autofree -o afvieter $(SRC_DIR)
 
 .PHONY: skip-unused
 skip-unused: suvieter
 suvieter: $(SOURCES)
-	$(V_PATH) -showcc -skip-unused -o suvieter $(SRC_DIR)
+	$(V) -skip-unused -o suvieter $(SRC_DIR)
