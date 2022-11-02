@@ -6,7 +6,7 @@ import datatypes { MinHeap }
 import cron.expression { CronExpression, parse_expression }
 import math
 import build
-import vieter_v.docker
+import docker
 import os
 import client
 import models { Target }
@@ -53,7 +53,7 @@ mut:
 
 // init_daemon initializes a new Daemon object. It renews the targets &
 // populates the build queue for the first time.
-pub fn init_daemon(logger log.Log, address string, api_key string, base_image string, global_schedule CronExpression, max_concurrent_builds int, api_update_frequency int, image_rebuild_frequency int) ?Daemon {
+pub fn init_daemon(logger log.Log, address string, api_key string, base_image string, global_schedule CronExpression, max_concurrent_builds int, api_update_frequency int, image_rebuild_frequency int) !Daemon {
 	mut d := Daemon{
 		client: client.new(address, api_key)
 		base_image: base_image
@@ -207,7 +207,7 @@ fn (mut d Daemon) renew_queue() {
 
 	// For some reason, using
 	// ```v
-	// for d.queue.len() > 0 && d.queue.peek() ?.timestamp < now {
+	// for d.queue.len() > 0 && d.queue.peek() !.timestamp < now {
 	//```
 	// here causes the function to prematurely just exit, without any errors or anything, very weird
 	// https://github.com/vlang/v/issues/14042

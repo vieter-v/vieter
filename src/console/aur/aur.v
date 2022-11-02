@@ -3,8 +3,8 @@ module aur
 import cli
 import console
 import client
-import vieter_v.aur
-import vieter_v.conf as vconf
+import aur
+import conf as vconf
 
 struct Config {
 	address string [required]
@@ -21,12 +21,12 @@ pub fn cmd() cli.Command {
 				name: 'search'
 				description: 'Search for packages.'
 				required_args: 1
-				execute: fn (cmd cli.Command) ? {
+				execute: fn (cmd cli.Command) ! {
 					c := aur.new()
-					pkgs := c.search(cmd.args[0])?
+					pkgs := c.search(cmd.args[0])!
 					data := pkgs.map([it.name, it.description])
 
-					println(console.pretty_table(['name', 'description'], data)?)
+					println(console.pretty_table(['name', 'description'], data)!)
 				}
 			},
 			cli.Command{
@@ -34,12 +34,12 @@ pub fn cmd() cli.Command {
 				usage: 'repo pkg-name [pkg-name...]'
 				description: 'Add the given AUR package(s) to Vieter. Non-existent packages will be silently ignored.'
 				required_args: 2
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
 					c := aur.new()
-					pkgs := c.info(cmd.args[1..])?
+					pkgs := c.info(cmd.args[1..])!
 
 					vc := client.new(conf.address, conf.api_key)
 

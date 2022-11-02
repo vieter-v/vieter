@@ -1,6 +1,6 @@
 module build
 
-import vieter_v.docker
+import docker
 import encoding.base64
 import time
 import os
@@ -21,8 +21,8 @@ const (
 // system, install some necessary packages & creates a non-root user to run
 // makepkg with. The base image should be some Linux distribution that uses
 // Pacman as its package manager.
-pub fn create_build_image(base_image string) ?string {
-	mut dd := docker.new_conn()?
+pub fn create_build_image(base_image string) !string {
+	mut dd := docker.new_conn()!
 
 	defer {
 		dd.close() or {}
@@ -57,15 +57,15 @@ pub fn create_build_image(base_image string) ?string {
 	image_tag := if image_parts.len > 1 { image_parts[1] } else { 'latest' }
 
 	// We pull the provided image
-	dd.pull_image(image_name, image_tag)?
+	dd.pull_image(image_name, image_tag)!
 
-	id := dd.container_create(c)?.id
-	// id := docker.create_container(c)?
-	dd.container_start(id)?
+	id := dd.container_create(c)!.id
+	// id := docker.create_container(c)!
+	dd.container_start(id)!
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for {
-		data := dd.container_inspect(id)?
+		data := dd.container_inspect(id)!
 
 		if !data.state.running {
 			break
@@ -79,8 +79,8 @@ pub fn create_build_image(base_image string) ?string {
 	// TODO also add the base image's name into the image name to prevent
 	// conflicts.
 	tag := time.sys_mono_now().str()
-	image := dd.create_image_from_container(id, 'vieter-build', tag)?
-	dd.container_remove(id)?
+	image := dd.create_image_from_container(id, 'vieter-build', tag)!
+	dd.container_remove(id)!
 
 	return image.id
 }
@@ -96,8 +96,8 @@ pub:
 // build_target builds, packages & publishes a given Arch package based on the
 // provided target. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
-pub fn build_target(address string, api_key string, base_image_id string, target &Target) ?BuildResult {
-	mut dd := docker.new_conn()?
+pub fn build_target(address string, api_key string, base_image_id string, target &Target) !BuildResult {
+	mut dd := docker.new_conn()!
 
 	defer {
 		dd.close() or {}
@@ -125,25 +125,25 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 		user: '0:0'
 	}
 
-	id := dd.container_create(c)?.id
-	dd.container_start(id)?
+	id := dd.container_create(c)!.id
+	dd.container_start(id)!
 
-	mut data := dd.container_inspect(id)?
+	mut data := dd.container_inspect(id)!
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for data.state.running {
 		time.sleep(1 * time.second)
 
-		data = dd.container_inspect(id)?
+		data = dd.container_inspect(id)!
 	}
 
-	mut logs_stream := dd.container_get_logs(id)?
+	mut logs_stream := dd.container_get_logs(id)!
 
 	// Read in the entire stream
 	mut logs_builder := strings.new_builder(10 * 1024)
-	util.reader_to_writer(mut logs_stream, mut logs_builder)?
+	util.reader_to_writer(mut logs_stream, mut logs_builder)!
 
-	dd.container_remove(id)?
+	dd.container_remove(id)!
 
 	return BuildResult{
 		start_time: data.state.start_time

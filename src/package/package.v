@@ -43,12 +43,12 @@ pub mut:
 }
 
 // checksum calculates the sha256 hash of the package
-pub fn (p &Pkg) checksum() ?string {
+pub fn (p &Pkg) checksum() !string {
 	return util.hash_file(p.path)
 }
 
 // parse_pkg_info_string parses a PkgInfo object from a string
-fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
+fn parse_pkg_info_string(pkg_info_str &string) !PkgInfo {
 	mut pkg_info := PkgInfo{}
 
 	// Iterate over the entire string
@@ -101,7 +101,7 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 
 // read_pkg_archive extracts the file list & .PKGINFO contents from an archive
 // NOTE: this command only supports zstd-, xz- & gzip-compressed tarballs.
-pub fn read_pkg_archive(pkg_path string) ?Pkg {
+pub fn read_pkg_archive(pkg_path string) !Pkg {
 	if !os.is_file(pkg_path) {
 		return error("'$pkg_path' doesn't exist or isn't a file.")
 	}
@@ -159,7 +159,7 @@ pub fn read_pkg_archive(pkg_path string) ?Pkg {
 
 			pkg_text := unsafe { buf.vstring_with_len(size).clone() }
 
-			pkg_info = parse_pkg_info_string(pkg_text)?
+			pkg_info = parse_pkg_info_string(pkg_text)!
 		} else {
 			C.archive_read_data_skip(a)
 		}
@@ -201,7 +201,7 @@ pub fn (pkg &Pkg) filename() string {
 }
 
 // to_desc returns a desc file valid string representation
-pub fn (pkg &Pkg) to_desc() ?string {
+pub fn (pkg &Pkg) to_desc() !string {
 	p := pkg.info
 
 	// filename
@@ -222,7 +222,7 @@ pub fn (pkg &Pkg) to_desc() ?string {
 	desc += format_entry('CSIZE', p.csize.str())
 	desc += format_entry('ISIZE', p.size.str())
 
-	sha256sum := pkg.checksum()?
+	sha256sum := pkg.checksum()!
 
 	desc += format_entry('SHA256SUM', sha256sum)
 

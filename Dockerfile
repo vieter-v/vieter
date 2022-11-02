@@ -1,4 +1,4 @@
-FROM chewingbever/vlang:0.3 AS builder
+FROM git.rustybever.be/chewing_bever/vlang:0.3.2 AS builder
 
 ARG TARGETPLATFORM
 ARG CI_COMMIT_SHA

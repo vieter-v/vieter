@@ -1,7 +1,7 @@
 module targets
 
 import cli
-import vieter_v.conf as vconf
+import conf as vconf
 import cron.expression { parse_expression }
 import client { NewTarget }
 import console
@@ -39,30 +39,30 @@ pub fn cmd() cli.Command {
 						flag: cli.FlagType.string
 					},
 				]
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
 					mut filter := TargetFilter{}
 
-					limit := cmd.flags.get_int('limit')?
+					limit := cmd.flags.get_int('limit')!
 					if limit != 0 {
 						filter.limit = u64(limit)
 					}
 
-					offset := cmd.flags.get_int('offset')?
+					offset := cmd.flags.get_int('offset')!
 					if offset != 0 {
 						filter.offset = u64(offset)
 					}
 
-					repo := cmd.flags.get_string('repo')?
+					repo := cmd.flags.get_string('repo')!
 					if repo != '' {
 						filter.repo = repo
 					}
 
-					raw := cmd.flags.get_bool('raw')?
+					raw := cmd.flags.get_bool('raw')!
 
-					list(conf, filter, raw)?
+					list(conf, filter, raw)!
 				}
 			},
 			cli.Command{
@@ -83,20 +83,20 @@ pub fn cmd() cli.Command {
 						flag: cli.FlagType.string
 					},
 				]
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
 					t := NewTarget{
-						kind: cmd.flags.get_string('kind')?
+						kind: cmd.flags.get_string('kind')!
 						url: cmd.args[0]
 						repo: cmd.args[1]
 						branch: cmd.flags.get_string('branch') or { '' }
 					}
 
-					raw := cmd.flags.get_bool('raw')?
+					raw := cmd.flags.get_bool('raw')!
 
-					add(conf, t, raw)?
+					add(conf, t, raw)!
 				}
 			},
 			cli.Command{
@@ -104,11 +104,11 @@ pub fn cmd() cli.Command {
 				required_args: 1
 				usage: 'id'
 				description: 'Remove a target that matches the given id.'
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
-					remove(conf, cmd.args[0])?
+					remove(conf, cmd.args[0])!
 				}
 			},
 			cli.Command{
@@ -116,11 +116,11 @@ pub fn cmd() cli.Command {
 				required_args: 1
 				usage: 'id'
 				description: 'Show detailed information for the target matching the id.'
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
-					info(conf, cmd.args[0])?
+					info(conf, cmd.args[0])!
 				}
 			},
 			cli.Command{
@@ -160,9 +160,9 @@ pub fn cmd() cli.Command {
 						flag: cli.FlagType.string
 					},
 				]
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
 					found := cmd.flags.get_all_found()
 
@@ -170,11 +170,11 @@ pub fn cmd() cli.Command {
 
 					for f in found {
 						if f.name != 'config-file' {
-							params[f.name] = f.get_string()?
+							params[f.name] = f.get_string()!
 						}
 					}
 
-					patch(conf, cmd.args[0], params)?
+					patch(conf, cmd.args[0], params)!
 				}
 			},
 			cli.Command{
@@ -182,11 +182,11 @@ pub fn cmd() cli.Command {
 				required_args: 1
 				usage: 'id'
 				description: 'Build the target with the given id & publish it.'
-				execute: fn (cmd cli.Command) ? {
-					config_file := cmd.flags.get_string('config-file')?
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
-					build(conf, cmd.args[0].int())?
+					build(conf, cmd.args[0].int())!
 				}
 			},
 		]
@@ -197,22 +197,22 @@ pub fn cmd() cli.Command {
 // ID. If multiple or none are found, an error is raised.
 
 // list prints out a list of all repositories.
-fn list(conf Config, filter TargetFilter, raw bool) ? {
+fn list(conf Config, filter TargetFilter, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	repos := c.get_targets(filter)?
+	repos := c.get_targets(filter)!
 	data := repos.map([it.id.str(), it.kind, it.url, it.repo])
 
 	if raw {
 		println(console.tabbed_table(data))
 	} else {
-		println(console.pretty_table(['id', 'kind', 'url', 'repo'], data)?)
+		println(console.pretty_table(['id', 'kind', 'url', 'repo'], data)!)
 	}
 }
 
 // add adds a new repository to the server's list.
-fn add(conf Config, t &NewTarget, raw bool) ? {
+fn add(conf Config, t &NewTarget, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	res := c.add_target(t)?
+	res := c.add_target(t)!
 
 	if raw {
 		println(res.data)
@@ -222,18 +222,18 @@ fn add(conf Config, t &NewTarget, raw bool) ? {
 }
 
 // remove removes a repository from the server's list.
-fn remove(conf Config, id string) ? {
+fn remove(conf Config, id string) ! {
 	id_int := id.int()
 
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.remove_target(id_int)?
+		res := c.remove_target(id_int)!
 		println(res.message)
 	}
 }
 
 // patch patches a given repository with the provided params.
-fn patch(conf Config, id string, params map[string]string) ? {
+fn patch(conf Config, id string, params map[string]string) ! {
 	// We check the cron expression first because it's useless to send an
 	// invalid one to the server.
 	if 'schedule' in params && params['schedule'] != '' {
@@ -245,14 +245,14 @@ fn patch(conf Config, id string, params map[string]string) ? {
 	id_int := id.int()
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.patch_target(id_int, params)?
+		res := c.patch_target(id_int, params)!
 
 		println(res.message)
 	}
 }
 
 // info shows detailed information for a given repo.
-fn info(conf Config, id string) ? {
+fn info(conf Config, id string) ! {
 	id_int := id.int()
 
 	if id_int == 0 {
@@ -260,6 +260,6 @@ fn info(conf Config, id string) ? {
 	}
 
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_target(id_int)?
+	repo := c.get_target(id_int)!
 	println(repo)
 }

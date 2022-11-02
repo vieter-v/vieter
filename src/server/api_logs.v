@@ -43,9 +43,9 @@ fn (mut app App) v1_get_log_content(id int) web.Result {
 
 // parse_query_time unescapes an HTTP query parameter & tries to parse it as a
 // time.Time struct.
-fn parse_query_time(query string) ?time.Time {
-	unescaped := urllib.query_unescape(query)?
-	t := time.parse(unescaped)?
+fn parse_query_time(query string) !time.Time {
+	unescaped := urllib.query_unescape(query)!
+	t := time.parse(unescaped)!
 
 	return t
 }

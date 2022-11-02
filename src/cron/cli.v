@@ -1,7 +1,7 @@
 module cron
 
 import cli
-import vieter_v.conf as vconf
+import conf as vconf
 
 struct Config {
 pub:
@@ -22,11 +22,11 @@ pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'cron'
 		description: 'Start the cron service that periodically runs builds.'
-		execute: fn (cmd cli.Command) ? {
-			config_file := cmd.flags.get_string('config-file')?
-			conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)?
+		execute: fn (cmd cli.Command) ! {
+			config_file := cmd.flags.get_string('config-file')!
+			conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
-			cron(conf)?
+			cron(conf)!
 		}
 	}
 }

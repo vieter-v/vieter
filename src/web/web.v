@@ -24,7 +24,7 @@ pub:
 pub mut:
 	// TCP connection to client.
 	// But beware, do not store it for further use, after request processing web will close connection.
-	conn &net.TcpConn
+	conn &net.TcpConn = unsafe { nil }
 	// Gives access to a shared logger object
 	logger shared log.Log
 	// time.ticks() from start of web connection handle.
@@ -67,20 +67,20 @@ struct Route {
 pub fn (ctx Context) before_request() {}
 
 // send_string writes the given string to the TCP connection socket.
-fn (mut ctx Context) send_string(s string) ? {
-	ctx.conn.write(s.bytes())?
+fn (mut ctx Context) send_string(s string) ! {
+	ctx.conn.write(s.bytes())!
 }
 
 // send_reader reads at most `size` bytes from the given reader & writes them
 // to the TCP connection socket. Internally, a 10KB buffer is used, to avoid
 // having to store all bytes in memory at once.
-fn (mut ctx Context) send_reader(mut reader io.Reader, size u64) ? {
+fn (mut ctx Context) send_reader(mut reader io.Reader, size u64) ! {
 	mut buf := []u8{len: 10_000}
 	mut bytes_left := size
 
 	// Repeat as long as the stream still has data
 	for bytes_left > 0 {
-		bytes_read := reader.read(mut buf)?
+		bytes_read := reader.read(mut buf)!
 		bytes_left -= u64(bytes_read)
 
 		mut to_write := bytes_read
@@ -96,20 +96,20 @@ fn (mut ctx Context) send_reader(mut reader io.Reader, size u64) ? {
 // send_custom_response sends the given http.Response to the client. It can be
 // used to overwrite the Context object & send a completely custom
 // http.Response instead.
-fn (mut ctx Context) send_custom_response(resp &http.Response) ? {
-	ctx.send_string(resp.bytestr())?
+fn (mut ctx Context) send_custom_response(resp &http.Response) ! {
+	ctx.send_string(resp.bytestr())!
 }
 
 // send_response_header constructs a valid HTTP response with an empty body &
 // sends it to the client.
-pub fn (mut ctx Context) send_response_header() ? {
+pub fn (mut ctx Context) send_response_header() ! {
 	mut resp := http.new_response(
 		header: ctx.header.join(headers_close)
 	)
 	resp.header.add(.content_type, ctx.content_type)
 	resp.set_status(ctx.status)
 
-	ctx.send_custom_response(resp)?
+	ctx.send_custom_response(resp)!
 }
 
 // send is a convenience function for sending the HTTP response with an empty

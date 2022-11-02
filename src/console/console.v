@@ -13,7 +13,7 @@ pub fn tabbed_table(data [][]string) string {
 // pretty_table converts a list of string data into a pretty table. Many thanks
 // to @hungrybluedev in the Vlang Discord for providing this code!
 // https://ptb.discord.com/channels/592103645835821068/592106336838352923/970278787143045192
-pub fn pretty_table(header []string, data [][]string) ?string {
+pub fn pretty_table(header []string, data [][]string) !string {
 	column_count := header.len
 
 	mut column_widths := []int{len: column_count, init: header[it].len}
@@ -26,7 +26,7 @@ pub fn pretty_table(header []string, data [][]string) ?string {
 		}
 	}
 
-	single_line_length := arrays.sum(column_widths)? + (column_count + 1) * 3 - 4
+	single_line_length := arrays.sum(column_widths)! + (column_count + 1) * 3 - 4
 
 	horizontal_line := '+' + strings.repeat(`-`, single_line_length) + '+'
 	mut buffer := strings.new_builder(data.len * single_line_length)
@@ -64,12 +64,12 @@ pub fn pretty_table(header []string, data [][]string) ?string {
 
 // export_man_pages recursively generates all man pages for the given
 // cli.Command & writes them to the given directory.
-pub fn export_man_pages(cmd cli.Command, path string) ? {
+pub fn export_man_pages(cmd cli.Command, path string) ! {
 	man := cmd.manpage()
 	os.write_file(os.join_path_single(path, cmd.full_name().replace(' ', '-') + '.1'),
-		man)?
+		man)!
 
 	for sub_cmd in cmd.commands {
-		export_man_pages(sub_cmd, path)?
+		export_man_pages(sub_cmd, path)!
 	}
 }

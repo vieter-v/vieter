@@ -12,7 +12,7 @@ pub struct CronExpression {
 // next calculates the earliest time this cron expression is valid. It will
 // always pick a moment in the future, even if ref matches completely up to the
 // minute. This function conciously does not take gap years into account.
-pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
+pub fn (ce &CronExpression) next(ref time.Time) !time.Time {
 	// If the given ref matches the next cron occurence up to the minute, it
 	// will return that value. Because we always want to return a value in the
 	// future, we artifically shift the ref 60 seconds to make sure we always
@@ -117,19 +117,19 @@ pub fn (ce &CronExpression) next(ref time.Time) ?time.Time {
 
 // next_from_now returns the result of ce.next(ref) where ref is the result of
 // time.now().
-pub fn (ce &CronExpression) next_from_now() ?time.Time {
+pub fn (ce &CronExpression) next_from_now() !time.Time {
 	return ce.next(time.now())
 }
 
 // next_n returns the n next occurences of the expression, given a starting
 // time.
-pub fn (ce &CronExpression) next_n(ref time.Time, n int) ?[]time.Time {
+pub fn (ce &CronExpression) next_n(ref time.Time, n int) ![]time.Time {
 	mut times := []time.Time{cap: n}
 
-	times << ce.next(ref)?
+	times << ce.next(ref)!
 
 	for i in 1 .. n {
-		times << ce.next(times[i - 1])?
+		times << ce.next(times[i - 1])!
 	}
 
 	return times
@@ -137,7 +137,7 @@ pub fn (ce &CronExpression) next_n(ref time.Time, n int) ?[]time.Time {
 
 // parse_range parses a given string into a range of sorted integers, if
 // possible.
-fn parse_range(s string, min int, max int, mut bitv []bool) ? {
+fn parse_range(s string, min int, max int, mut bitv []bool) ! {
 	mut start := min
 	mut end := max
 	mut interval := 1
@@ -228,11 +228,11 @@ fn bitv_to_ints(bitv []bool, min int) []int {
 
 // parse_part parses a given part of a cron expression & returns the
 // corresponding array of ints.
-fn parse_part(s string, min int, max int) ?[]int {
+fn parse_part(s string, min int, max int) ![]int {
 	mut bitv := []bool{len: max - min + 1, init: false}
 
 	for range in s.split(',') {
-		parse_range(range, min, max, mut bitv)?
+		parse_range(range, min, max, mut bitv)!
 	}
 
 	return bitv_to_ints(bitv, min)
@@ -240,7 +240,7 @@ fn parse_part(s string, min int, max int) ?[]int {
 
 // parse_expression parses an entire cron expression string into a
 // CronExpression object, if possible.
-pub fn parse_expression(exp string) ?CronExpression {
+pub fn parse_expression(exp string) !CronExpression {
 	// The filter allows for multiple spaces between parts
 	mut parts := exp.split(' ').filter(it != '')
 

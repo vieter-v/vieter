@@ -9,7 +9,7 @@ skip_clone: true
 
 pipeline:
   build:
-    image: 'menci/archlinuxarm:base-devel'
+    image: 'git.rustybever.be/vieter-v/vieter-builder'
     commands:
       # Add the vieter repository so we can use the compiler
       - echo -e '[vieter]\nServer = https://arch.r8r.be/$repo/$arch\nSigLevel = Optional' >> /etc/pacman.conf
