@@ -227,8 +227,7 @@ fn remove(conf Config, id string) ! {
 
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.remove_target(id_int)!
-		println(res.message)
+		c.remove_target(id_int)!
 	}
 }
 
@@ -245,9 +244,7 @@ fn patch(conf Config, id string, params map[string]string) ! {
 	id_int := id.int()
 	if id_int != 0 {
 		c := client.new(conf.address, conf.api_key)
-		res := c.patch_target(id_int, params)!
-
-		println(res.message)
+		c.patch_target(id_int, params)!
 	}
 }
 
