@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Migrated codebase to V 0.3.2
 
+### Fixed
+
+* Arch value for target is now properly set if not provided
+* All API endpoints now return proper JSON on success
+    * CLI no longer exits with non-zero status code when removing/patching
+      target
+* Allow NULL values for branch in database
+
 ## [0.4.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.4.0)
 
 ### Added
