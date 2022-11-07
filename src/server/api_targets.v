@@ -32,7 +32,7 @@ fn (mut app App) v1_post_target() web.Result {
 
 	// If a repo is created without specifying the arch, we assume it's meant
 	// for the default architecture.
-	if 'arch' !in params {
+	if 'arch' !in params || params['arch'] == '' {
 		params['arch'] = app.conf.default_arch
 	}
 
