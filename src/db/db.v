@@ -17,11 +17,13 @@ const (
 		$embed_file('migrations/001-initial/up.sql'),
 		$embed_file('migrations/002-rename-to-targets/up.sql'),
 		$embed_file('migrations/003-target-url-type/up.sql'),
+		$embed_file('migrations/004-nullable-branch/up.sql')
 	]
 	migrations_down = [
 		$embed_file('migrations/001-initial/down.sql'),
 		$embed_file('migrations/002-rename-to-targets/down.sql'),
 		$embed_file('migrations/003-target-url-type/down.sql'),
+		$embed_file('migrations/004-nullable-branch/down.sql')
 	]
 )
 
@@ -60,7 +62,7 @@ pub fn init(db_path string) !VieterDb {
 			res := conn.exec_none(part)
 
 			if res != sqlite.sqlite_done {
-				return error('An error occurred while applying migration $version_num')
+				return error('An error occurred while applying migration $version_num: SQLite error code $res')
 			}
 		}
 
