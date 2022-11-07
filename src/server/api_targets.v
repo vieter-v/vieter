@@ -47,7 +47,7 @@ fn (mut app App) v1_post_target() web.Result {
 
 	id := app.db.add_target(new_repo)
 
-	return app.json(http.Status.ok, new_data_response(id))
+	return app.json(.ok, new_data_response(id))
 }
 
 // v1_delete_target removes a given target from the server's list.
@@ -55,7 +55,7 @@ fn (mut app App) v1_post_target() web.Result {
 fn (mut app App) v1_delete_target(id int) web.Result {
 	app.db.delete_target(id)
 
-	return app.status(.ok)
+	return app.json(.ok, new_response(''))
 }
 
 // v1_patch_target updates a target's data with the given query params.
@@ -69,5 +69,7 @@ fn (mut app App) v1_patch_target(id int) web.Result {
 		app.db.update_target_archs(id, arch_objs)
 	}
 
-	return app.status(.ok)
+	repo := app.db.get_target(id) or { return app.status(.internal_server_error) }
+
+	return app.json(.ok, new_data_response(repo))
 }
