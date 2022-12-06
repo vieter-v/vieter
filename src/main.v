@@ -9,6 +9,7 @@ import console.schedule
 import console.man
 import console.aur
 import cron
+import agent
 
 fn main() {
 	mut app := cli.Command{
@@ -40,6 +41,7 @@ fn main() {
 			schedule.cmd(),
 			man.cmd(),
 			aur.cmd(),
+			agent.cmd()
 		]
 	}
 	app.setup()

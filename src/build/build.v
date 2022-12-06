@@ -16,6 +16,16 @@ const (
 		'/usr/local/bin', '/usr/bin/site_perl', '/usr/bin/vendor_perl', '/usr/bin/core_perl']
 )
 
+pub struct BuildConfig {
+pub:
+	id int
+	kind string
+	url string
+	branch string
+	repo string
+	base_image string
+}
+
 // create_build_image creates a builder image given some base image which can
 // then be used to build & package Arch images. It mostly just updates the
 // system, install some necessary packages & creates a non-root user to run
