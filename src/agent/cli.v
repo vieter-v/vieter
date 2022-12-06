@@ -5,15 +5,15 @@ import conf as vconf
 
 struct Config {
 pub:
-	log_level               string = 'WARN'
-	api_key                 string
-	address                 string
-	data_dir                string
-	max_concurrent_builds   int    = 1
-	polling_frequency int = 30
+	log_level             string = 'WARN'
+	api_key               string
+	address               string
+	data_dir              string
+	max_concurrent_builds int = 1
+	polling_frequency     int = 30
 	// Architecture of agent
-	/* arch string */
-	/* image_rebuild_frequency int    = 1440 */
+	// arch string
+	// image_rebuild_frequency int    = 1440
 }
 
 // cmd returns the cli module that handles the cron daemon.

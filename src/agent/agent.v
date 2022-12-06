@@ -20,6 +20,6 @@ pub fn agent(conf Config) ! {
 	logger.set_full_logpath(log_file)
 	logger.log_to_console_too()
 
-	mut d := agent.agent_init(logger, conf)
+	mut d := agent_init(logger, conf)
 	d.run()
 }

@@ -13,13 +13,13 @@ const (
 
 struct AgentDaemon {
 	logger shared log.Log
-	conf Config
+	conf   Config
 	// Which builds are currently running; length is same as
 	// conf.max_concurrent_builds
 	builds []BuildConfig
 	// Atomic variables used to detect when a build has finished; length is the
 	// same as conf.max_concurrent_builds
-	client                  client.Client
+	client  client.Client
 	atomics []u64
 }
 
@@ -39,10 +39,8 @@ pub fn (mut d AgentDaemon) run() {
 	for {
 		free_builds := d.update_atomics()
 
-	  if  free_builds > 0  {
-		
-	  }
-		
+		if free_builds > 0 {
+		}
 	}
 }
 

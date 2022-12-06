@@ -18,11 +18,11 @@ const (
 
 pub struct BuildConfig {
 pub:
-	id int
-	kind string
-	url string
-	branch string
-	repo string
+	target_id  int
+	kind       string
+	url        string
+	branch     string
+	repo       string
 	base_image string
 }
 

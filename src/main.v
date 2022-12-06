@@ -41,7 +41,7 @@ fn main() {
 			schedule.cmd(),
 			man.cmd(),
 			aur.cmd(),
-			agent.cmd()
+			agent.cmd(),
 		]
 	}
 	app.setup()
