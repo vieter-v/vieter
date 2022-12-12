@@ -24,34 +24,25 @@ pub mut:
 	repo repo.RepoGroupManager [required; web_global]
 	// Keys are the various architectures for packages
 	job_queue BuildJobQueue [required; web_global]
-	db           db.VieterDb
+	db        db.VieterDb
 }
 
-// fn (mut app App) init_build_queues() {
-//	// Initialize build queues
-//	mut i := 0
-//	mut targets := app.db.get_targets(limit: 25)
+fn (mut app App) init_job_queue() ! {
+	// Initialize build queues
+	mut targets := app.db.get_targets(limit: 25)
+	mut i := u64(0)
 
-//	default_ce := expression.parse_expression(conf.global_schedule) or { return }
+	for targets.len > 0 {
+		for target in targets {
+			for arch in target.arch {
+				app.job_queue.insert(target, arch.value)!
+			}
+		}
 
-//	for targets.len > 0 {
-//		for t in targets {
-//			ce := parse_expression(t.schedule) or { default_ce }
-
-//			for arch in t.arch {
-//				if arch !in app.build_queues {
-//					app.build_queues[arch] = Minheap<ScheduledBuild>{}
-//				}
-
-//				build_config := BuildConfig{}
-//				app.build_queues[arch].push(ScheduledBuild{
-//					timestamp: ce.next()
-//					config: build_config
-//				})
-//			}
-//		}
-//	}
-//}
+		i += 25
+		targets = app.db.get_targets(limit: 25, offset: i)
+	}
+}
 
 // server starts the web server & starts listening for requests
 pub fn server(conf Config) ! {
@@ -105,14 +96,17 @@ pub fn server(conf Config) ! {
 		util.exit_with_message(1, 'Failed to initialize database: $err.msg()')
 	}
 
-	mut queue := build.new_job_queue(global_ce, conf.base_image)
-
-	web.run(&App{
+	mut app := &App{
 		logger: logger
 		api_key: conf.api_key
 		conf: conf
 		repo: repo
 		db: db
-		job_queue: queue
-	}, conf.port)
+		job_queue: build.new_job_queue(global_ce, conf.base_image)
+	}
+	app.init_job_queue() or {
+		util.exit_with_message(1, 'Failed to inialize job queue: $err.msg()')
+	}
+
+	web.run(app, conf.port)
 }
