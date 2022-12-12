@@ -14,8 +14,7 @@ const (
 struct AgentDaemon {
 	logger shared log.Log
 	conf   Config
-	// List of last built builder images
-	builder_images          []string
+	images ImageManager
 	// Which builds are currently running; length is same as
 	// conf.max_concurrent_builds
 	builds []BuildConfig
@@ -30,6 +29,7 @@ fn agent_init(logger log.Log, conf Config) AgentDaemon {
 		logger: logger
 		client: client.new(conf.address, conf.api_key)
 		conf: conf
+		images: new_image_manager(conf.image_rebuild_frequency)
 		builds: []BuildConfig{len: conf.max_concurrent_builds}
 		atomics: []u64{len: conf.max_concurrent_builds}
 	}

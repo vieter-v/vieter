@@ -13,7 +13,7 @@ pub:
 	polling_frequency     int = 30
 	// Architecture of agent
 	// arch string
-	// image_rebuild_frequency int    = 1440
+	image_rebuild_frequency int = 1440
 }
 
 // cmd returns the cli module that handles the cron daemon.
