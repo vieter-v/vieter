@@ -41,6 +41,10 @@ fn agent_init(logger log.Log, conf Config) AgentDaemon {
 }
 
 pub fn (mut d AgentDaemon) run() {
+	// This is just so that the very first time the loop is ran, the jobs are
+	// always polled
+	mut last_poll_time := time.now().add_seconds(-d.conf.polling_frequency)
+
 	for {
 		free_builds := d.update_atomics()
 
@@ -54,16 +58,37 @@ pub fn (mut d AgentDaemon) run() {
 		d.images.clean_old_images()
 
 		// Poll for new jobs
-		new_configs := d.client.poll_jobs(free_builds) or {
-			d.lerror('Failed to poll jobs: $err.msg()')
+		if time.now() >= last_poll_time.add_seconds(d.conf.polling_frequency) {
+			new_configs := d.client.poll_jobs(d.conf.arch, free_builds) or {
+				d.lerror('Failed to poll jobs: $err.msg()')
+
+				time.sleep(5 * time.second)
+				continue
+			}
+			last_poll_time = time.now()
+
+			// Schedule new jobs
+			for config in new_configs {
+				// TODO handle this better than to just skip the config
+				// Make sure a recent build base image is available for building the config
+				d.images.refresh_image(config.base_image) or {
+					d.lerror(err.msg())
+					continue
+				}
+				d.start_build(config)
+			}
 
 			time.sleep(1 * time.second)
-			continue
 		}
-
-		// Schedule new jobs
-		for config in new_configs {
-			d.start_build(config)
+		// Builds are running, so check again after one second
+		else if free_builds < d.conf.max_concurrent_builds {
+			time.sleep(1 * time.second)
+		}
+		// The agent is not doing anything, so we just wait until the next poll
+		// time
+		else {
+			time_until_next_poll := time.now() - last_poll_time
+			time.sleep(time_until_next_poll)
 		}
 	}
 }

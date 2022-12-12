@@ -104,16 +104,16 @@ pub:
 }
 
 pub fn build_target(address string, api_key string, base_image_id string, target &Target) !BuildResult {
-config := BuildConfig{
-	target_id: target.id
-	kind: target.kind
-	url: target.url
-	branch: target.branch
-	repo: target.repo
-	base_image: base_image_id
-		}
+	config := BuildConfig{
+		target_id: target.id
+		kind: target.kind
+		url: target.url
+		branch: target.branch
+		repo: target.repo
+		base_image: base_image_id
+	}
 
-		return build_config(address, api_key, config)
+	return build_config(address, api_key, config)
 }
 
 // build_target builds, packages & publishes a given Arch package based on the

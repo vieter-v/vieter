@@ -1,7 +1,5 @@
 module build
 
-import models { Target }
-
 // escape_shell_string escapes any characters that could be interpreted
 // incorrectly by a shell. The resulting value should be safe to use inside an
 // echo statement.

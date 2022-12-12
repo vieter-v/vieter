@@ -76,7 +76,6 @@ pub fn (mut q BuildJobQueue) insert(target Target, arch string) ! {
 			}
 		}
 
-		dump(job)
 		q.queues[arch].insert(job)
 	}
 }
