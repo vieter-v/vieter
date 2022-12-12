@@ -14,6 +14,8 @@ const (
 struct AgentDaemon {
 	logger shared log.Log
 	conf   Config
+	// List of last built builder images
+	builder_images          []string
 	// Which builds are currently running; length is same as
 	// conf.max_concurrent_builds
 	builds []BuildConfig
@@ -44,9 +46,8 @@ pub fn (mut d AgentDaemon) run() {
 	}
 }
 
-// clean_finished_builds checks for each build whether it's completed, and sets
-// it to free again if so. The return value is how many fields are now set to
-// free.
+// update_atomics checks for each build whether it's completed, and sets it to
+// free again if so. The return value is how many fields are now set to free.
 fn (mut d AgentDaemon) update_atomics() int {
 	mut count := 0
 
