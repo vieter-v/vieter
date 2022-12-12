@@ -8,12 +8,16 @@ import util
 
 struct BuildJob {
 pub:
-	// Earliest point this
+	// Next timestamp from which point this job is allowed to be executed
 	timestamp time.Time
-	config    BuildConfig
+	// Required for calculating next timestamp after having pop'ed a job
+	ce CronExpression
+	// Actual build config sent to the agent
+	config BuildConfig
 }
 
-// Overloaded operator for comparing ScheduledBuild objects
+// Allows BuildJob structs to be sorted according to their timestamp in
+// MinHeaps
 fn (r1 BuildJob) < (r2 BuildJob) bool {
 	return r1.timestamp < r2.timestamp
 }
@@ -39,7 +43,9 @@ pub fn new_job_queue(default_schedule CronExpression, default_base_image string)
 	}
 }
 
-// insert a new job into the queue for a given target on an architecture.
+// insert a new target's job into the queue for the given architecture. This
+// job will then be endlessly rescheduled after being pop'ed, unless removed
+// explicitely.
 pub fn (mut q BuildJobQueue) insert(target Target, arch string) ! {
 	lock q.mutex {
 		if arch !in q.queues {
@@ -58,6 +64,7 @@ pub fn (mut q BuildJobQueue) insert(target Target, arch string) ! {
 
 		job := BuildJob{
 			timestamp: timestamp
+			ce: ce
 			config: BuildConfig{
 				target_id: target.id
 				kind: target.kind
@@ -69,8 +76,23 @@ pub fn (mut q BuildJobQueue) insert(target Target, arch string) ! {
 			}
 		}
 
+		dump(job)
 		q.queues[arch].insert(job)
 	}
+}
+
+// reschedule the given job by calculating the next timestamp and re-adding it
+// to its respective queue. This function is called by the pop functions
+// *after* having pop'ed the job.
+fn (mut q BuildJobQueue) reschedule(job BuildJob, arch string) ! {
+	new_timestamp := job.ce.next_from_now()!
+
+	new_job := BuildJob{
+		...job
+		timestamp: new_timestamp
+	}
+
+	q.queues[arch].insert(new_job)
 }
 
 // peek shows the first job for the given architecture that's ready to be
@@ -99,10 +121,17 @@ pub fn (mut q BuildJobQueue) pop(arch string) ?BuildJob {
 			return none
 		}
 
-		job := q.queues[arch].peek() or { return none }
+		mut job := q.queues[arch].peek() or { return none }
 
 		if job.timestamp < time.now() {
-			return q.queues[arch].pop()
+			job = q.queues[arch].pop()?
+
+			// TODO how do we handle this properly? Is it even possible for a
+			// cron expression to not return a next time if it's already been
+			// used before?
+			q.reschedule(job, arch) or {}
+
+			return job
 		}
 	}
 
@@ -119,10 +148,15 @@ pub fn (mut q BuildJobQueue) pop_n(arch string, n int) []BuildJob {
 		mut out := []BuildJob{}
 
 		for out.len < n {
-			job := q.queues[arch].peek() or { break }
+			mut job := q.queues[arch].peek() or { break }
 
 			if job.timestamp < time.now() {
-				out << q.queues[arch].pop() or { break }
+				job = q.queues[arch].pop() or { break }
+
+				// TODO idem
+				q.reschedule(job, arch) or {}
+
+				out << job
 			} else {
 				break
 			}
