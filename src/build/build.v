@@ -103,10 +103,23 @@ pub:
 	logs       string
 }
 
+pub fn build_target(address string, api_key string, base_image_id string, target &Target) !BuildResult {
+config := BuildConfig{
+	target_id: target.id
+	kind: target.kind
+	url: target.url
+	branch: target.branch
+	repo: target.repo
+	base_image: base_image_id
+		}
+
+		return build_config(address, api_key, config)
+}
+
 // build_target builds, packages & publishes a given Arch package based on the
 // provided target. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
-pub fn build_target(address string, api_key string, base_image_id string, target &Target) !BuildResult {
+pub fn build_config(address string, api_key string, config BuildConfig) !BuildResult {
 	mut dd := docker.new_conn()!
 
 	defer {
@@ -114,14 +127,14 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 	}
 
 	build_arch := os.uname().machine
-	build_script := create_build_script(address, target, build_arch)
+	build_script := create_build_script(address, config, build_arch)
 
 	// We convert the build script into a base64 string, which then gets passed
 	// to the container as an env var
 	base64_script := base64.encode_str(build_script)
 
 	c := docker.NewContainer{
-		image: '$base_image_id'
+		image: '$config.base_image'
 		env: [
 			'BUILD_SCRIPT=$base64_script',
 			'API_KEY=$api_key',

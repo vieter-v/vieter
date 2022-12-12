@@ -6,6 +6,8 @@ import conf as vconf
 struct Config {
 pub:
 	log_level             string = 'WARN'
+	// Architecture that the agent represents
+	arch string
 	api_key               string
 	address               string
 	data_dir              string

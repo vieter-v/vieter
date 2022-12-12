@@ -19,6 +19,10 @@ fn new_image_manager(refresh_frequency int) ImageManager {
 	}
 }
 
+pub fn (m &ImageManager) get(base_image string) string {
+	return m.images[base_image].last()
+}
+
 fn (mut m ImageManager) refresh_image(base_image string) ! {
 	// No need to refresh the image if the previous one is still new enough
 	if base_image in m.timestamps

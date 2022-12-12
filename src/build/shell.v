@@ -23,13 +23,13 @@ pub fn echo_commands(cmds []string) []string {
 }
 
 // create_build_script generates a shell script that builds a given Target.
-fn create_build_script(address string, target &Target, build_arch string) string {
-	repo_url := '$address/$target.repo'
+fn create_build_script(address string, config BuildConfig, build_arch string) string {
+	repo_url := '$address/$config.repo'
 
 	mut commands := [
 		// This will later be replaced by a proper setting for changing the
 		// mirrorlist
-		"echo -e '[$target.repo]\\nServer = $address/\$repo/\$arch\\nSigLevel = Optional' >> /etc/pacman.conf"
+		"echo -e '[$config.repo]\\nServer = $address/\$repo/\$arch\\nSigLevel = Optional' >> /etc/pacman.conf"
 		// We need to update the package list of the repo we just added above.
 		// This should however not pull in a lot of packages as long as the
 		// builder image is rebuilt frequently.
@@ -38,22 +38,22 @@ fn create_build_script(address string, target &Target, build_arch string) string
 		'su builder',
 	]
 
-	commands << match target.kind {
+	commands << match config.kind {
 		'git' {
-			if target.branch == '' {
+			if config.branch == '' {
 				[
-					"git clone --single-branch --depth 1 '$target.url' repo",
+					"git clone --single-branch --depth 1 '$config.url' repo",
 				]
 			} else {
 				[
-					"git clone --single-branch --depth 1 --branch $target.branch '$target.url' repo",
+					"git clone --single-branch --depth 1 --branch $config.branch '$config.url' repo",
 				]
 			}
 		}
 		'url' {
 			[
 				'mkdir repo',
-				"curl -o repo/PKGBUILD -L '$target.url'",
+				"curl -o repo/PKGBUILD -L '$config.url'",
 			]
 		}
 		else {

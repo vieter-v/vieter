@@ -4,6 +4,8 @@ import log
 import sync.stdatomic
 import build { BuildConfig }
 import client
+import time
+import os
 
 const (
 	build_empty   = 0
@@ -14,6 +16,7 @@ const (
 struct AgentDaemon {
 	logger shared log.Log
 	conf   Config
+mut:
 	images ImageManager
 	// Which builds are currently running; length is same as
 	// conf.max_concurrent_builds
@@ -41,13 +44,33 @@ pub fn (mut d AgentDaemon) run() {
 	for {
 		free_builds := d.update_atomics()
 
-		if free_builds > 0 {
+		// All build slots are taken, so there's nothing to be done
+		if free_builds == 0 {
+			time.sleep(1 * time.second)
+			continue
+		}
+
+		// Builds have finished, so old builder images might have freed up.
+		d.images.clean_old_images()
+
+		// Poll for new jobs
+		new_configs := d.client.poll_jobs(free_builds) or {
+			d.lerror('Failed to poll jobs: $err.msg()')
+
+			time.sleep(1 * time.second)
+			continue
+		}
+
+		// Schedule new jobs
+		for config in new_configs {
+			d.start_build(config)
 		}
 	}
 }
 
 // update_atomics checks for each build whether it's completed, and sets it to
-// free again if so. The return value is how many fields are now set to free.
+// free again if so. The return value is how many build slots are currently
+// free.
 fn (mut d AgentDaemon) update_atomics() int {
 	mut count := 0
 
@@ -61,4 +84,54 @@ fn (mut d AgentDaemon) update_atomics() int {
 	}
 
 	return count
+}
+
+// start_build starts a build for the given BuildConfig object.
+fn (mut d AgentDaemon) start_build(config BuildConfig) bool {
+	for i in 0 .. d.atomics.len {
+		if stdatomic.load_u64(&d.atomics[i]) == agent.build_empty {
+			stdatomic.store_u64(&d.atomics[i], agent.build_running)
+			d.builds[i] = config
+
+			go d.run_build(i, config)
+
+			return true
+		}
+	}
+
+	return false
+}
+
+// run_build actually starts the build process for a given target.
+fn (mut d AgentDaemon) run_build(build_index int, config BuildConfig) {
+	d.linfo('started build: $config.url -> $config.repo')
+
+	// 0 means success, 1 means failure
+	mut status := 0
+
+	new_config := BuildConfig{
+		...config
+		base_image: d.images.get(config.base_image)
+	}
+
+	res := build.build_config(d.client.address, d.client.api_key, new_config) or {
+		d.ldebug('build_config error: $err.msg()')
+		status = 1
+
+		build.BuildResult{}
+	}
+
+	if status == 0 {
+		d.linfo('finished build: $config.url -> $config.repo; uploading logs...')
+
+		build_arch := os.uname().machine
+		d.client.add_build_log(config.target_id, res.start_time, res.end_time, build_arch,
+			res.exit_code, res.logs) or {
+			d.lerror('Failed to upload logs for build: $config.url -> $config.repo')
+		}
+	} else {
+		d.linfo('an error occured during build: $config.url -> $config.repo')
+	}
+
+	stdatomic.store_u64(&d.atomics[build_index], agent.build_done)
 }
