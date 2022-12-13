@@ -84,6 +84,8 @@ pub fn (db &VieterDb) add_build_log(log BuildLog) int {
 		insert log into BuildLog
 	}
 
+	// Here, this does work because a log doesn't contain any foreign keys,
+	// meaning the ORM only has to do a single add
 	inserted_id := db.conn.last_id() as int
 
 	return inserted_id
