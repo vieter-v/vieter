@@ -110,6 +110,21 @@ fn (mut q BuildJobQueue) reschedule(job BuildJob, arch string) ! {
 	q.queues[arch].insert(new_job)
 }
 
+// pop_invalid pops all invalid jobs.
+fn (mut q BuildJobQueue) pop_invalid(arch string) {
+	for {
+		job := q.queues[arch].peek() or { return }
+
+		if job.config.target_id in q.invalidated
+			&& job.created < q.invalidated[job.config.target_id] {
+			// This pop *should* never fail according to the source code
+			q.queues[arch].pop() or {}
+		} else {
+			break
+		}
+	}
+}
+
 // peek shows the first job for the given architecture that's ready to be
 // executed, if present.
 pub fn (mut q BuildJobQueue) peek(arch string) ?BuildJob {
@@ -118,20 +133,11 @@ pub fn (mut q BuildJobQueue) peek(arch string) ?BuildJob {
 			return none
 		}
 
-		for {
-			job := q.queues[arch].peek() or { return none }
+		q.pop_invalid(arch)
+		job := q.queues[arch].peek()?
 
-			// Skip any invalidated jobs
-			if job.config.target_id in q.invalidated
-				&& job.created < q.invalidated[job.config.target_id] {
-				// This pop *should* never fail according to the source code
-				q.queues[arch].pop() or { return none }
-				continue
-			}
-
-			if job.timestamp < time.now() {
-				return job
-			}
+		if job.timestamp < time.now() {
+			return job
 		}
 	}
 
@@ -146,27 +152,18 @@ pub fn (mut q BuildJobQueue) pop(arch string) ?BuildJob {
 			return none
 		}
 
-		for {
-			mut job := q.queues[arch].peek() or { return none }
+		q.pop_invalid(arch)
+		mut job := q.queues[arch].peek()?
 
-			// Skip any invalidated jobs
-			if job.config.target_id in q.invalidated
-				&& job.created < q.invalidated[job.config.target_id] {
-				// This pop *should* never fail according to the source code
-				q.queues[arch].pop() or { return none }
-				continue
-			}
+		if job.timestamp < time.now() {
+			job = q.queues[arch].pop()?
 
-			if job.timestamp < time.now() {
-				job = q.queues[arch].pop()?
+			// TODO how do we handle this properly? Is it even possible for a
+			// cron expression to not return a next time if it's already been
+			// used before?
+			q.reschedule(job, arch) or {}
 
-				// TODO how do we handle this properly? Is it even possible for a
-				// cron expression to not return a next time if it's already been
-				// used before?
-				q.reschedule(job, arch) or {}
-
-				return job
-			}
+			return job
 		}
 	}
 
@@ -182,28 +179,19 @@ pub fn (mut q BuildJobQueue) pop_n(arch string, n int) []BuildJob {
 
 		mut out := []BuildJob{}
 
-		outer: for out.len < n {
-			for {
-				mut job := q.queues[arch].peek() or { break outer }
+		for out.len < n {
+			q.pop_invalid(arch)
+			mut job := q.queues[arch].peek() or { break }
 
-				// Skip any invalidated jobs
-				if job.config.target_id in q.invalidated
-					&& job.created < q.invalidated[job.config.target_id] {
-					// This pop *should* never fail according to the source code
-					q.queues[arch].pop() or { break outer }
-					continue
-				}
+			if job.timestamp < time.now() {
+				job = q.queues[arch].pop() or { break }
 
-				if job.timestamp < time.now() {
-					job = q.queues[arch].pop() or { break outer }
+				// TODO idem
+				q.reschedule(job, arch) or {}
 
-					// TODO idem
-					q.reschedule(job, arch) or {}
-
-					out << job
-				} else {
-					break outer
-				}
+				out << job
+			} else {
+				break
 			}
 		}
 
