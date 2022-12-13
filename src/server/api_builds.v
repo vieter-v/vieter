@@ -2,10 +2,8 @@ module server
 
 import web
 import web.response { new_data_response, new_response }
-// import os
-// import util
-// import models { BuildLog, BuildLogFilter }
 
+// v1_poll_job_queue allows agents to poll for new build jobs.
 ['/api/v1/jobs/poll'; auth; get]
 fn (mut app App) v1_poll_job_queue() web.Result {
 	arch := app.query['arch'] or {

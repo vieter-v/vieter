@@ -103,6 +103,7 @@ pub:
 	logs       string
 }
 
+// build_target builds the given target. Internally it calls `build_config`.
 pub fn build_target(address string, api_key string, base_image_id string, target &Target) !BuildResult {
 	config := BuildConfig{
 		target_id: target.id
@@ -116,7 +117,7 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 	return build_config(address, api_key, config)
 }
 
-// build_target builds, packages & publishes a given Arch package based on the
+// build_config builds, packages & publishes a given Arch package based on the
 // provided target. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
 pub fn build_config(address string, api_key string, config BuildConfig) !BuildResult {

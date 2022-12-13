@@ -41,6 +41,7 @@ mut:
 	invalidated map[int]time.Time
 }
 
+// new_job_queue initializes a new job queue
 pub fn new_job_queue(default_schedule CronExpression, default_base_image string) BuildJobQueue {
 	return BuildJobQueue{
 		default_schedule: default_schedule

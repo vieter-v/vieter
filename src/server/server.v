@@ -27,6 +27,8 @@ pub mut:
 	db        db.VieterDb
 }
 
+// init_job_queue populates a fresh job queue with all the targets currently
+// stored in the database.
 fn (mut app App) init_job_queue() ! {
 	// Initialize build queues
 	mut targets := app.db.get_targets(limit: 25)
