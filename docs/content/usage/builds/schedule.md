@@ -37,6 +37,6 @@ Each section can consist of as many of these parts as necessary.
 ## CLI tool
 
 The Vieter binary contains a command that shows you the next matching times for
-a given expression. This can be useful to understand the syntax. For more
+a given expression. This can be useful for understanding the syntax. For more
 information, see
 [vieter-schedule(1)](https://rustybever.be/man/vieter/vieter-schedule.1.html).

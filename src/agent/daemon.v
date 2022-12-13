@@ -32,7 +32,7 @@ fn agent_init(logger log.Log, conf Config) AgentDaemon {
 		logger: logger
 		client: client.new(conf.address, conf.api_key)
 		conf: conf
-		images: new_image_manager(conf.image_rebuild_frequency)
+		images: new_image_manager(conf.image_rebuild_frequency * 60)
 		builds: []BuildConfig{len: conf.max_concurrent_builds}
 		atomics: []u64{len: conf.max_concurrent_builds}
 	}
