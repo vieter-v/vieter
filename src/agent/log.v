@@ -2,7 +2,7 @@ module agent
 
 import log
 
-// log reate a log message with the given level
+// log a message with the given level
 pub fn (mut d AgentDaemon) log(msg string, level log.Level) {
 	lock d.logger {
 		d.logger.send_output(msg, level)

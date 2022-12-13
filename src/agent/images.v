@@ -4,29 +4,42 @@ import time
 import docker
 import build
 
+// An ImageManager is a utility that creates builder images from given base
+// images, updating these builder images if they've become too old. This
+// structure can manage images from any number of base images, paving the way
+// for configurable base images per target/repository.
 struct ImageManager {
 mut:
-	refresh_frequency int
-	images            map[string][]string  [required]
-	timestamps        map[string]time.Time [required]
+	max_image_age int [required]
+	// For each base images, one or more builder images can exist at the same
+	// time
+	images map[string][]string [required]
+	// For each base image, we track when its newest image was built
+	timestamps map[string]time.Time [required]
 }
 
-fn new_image_manager(refresh_frequency int) ImageManager {
+// new_image_manager initializes a new image manager.
+fn new_image_manager(max_image_age int) ImageManager {
 	return ImageManager{
-		refresh_frequency: refresh_frequency
+		max_image_age: max_image_age
 		images: map[string][]string{}
 		timestamps: map[string]time.Time{}
 	}
 }
 
+// get returns the name of the newest image for the given base image. Note that
+// this function should only be called *after* a first call to `refresh_image`.
 pub fn (m &ImageManager) get(base_image string) string {
 	return m.images[base_image].last()
 }
 
+// refresh_image builds a new builder image from the given base image if the
+// previous builder image is too old or non-existent. This function will do
+// nothing if these conditions aren't met, so it's safe to call it every time
+// you want to ensure an image is up to date.
 fn (mut m ImageManager) refresh_image(base_image string) ! {
-	// No need to refresh the image if the previous one is still new enough
 	if base_image in m.timestamps
-		&& m.timestamps[base_image].add_seconds(m.refresh_frequency) > time.now() {
+		&& m.timestamps[base_image].add_seconds(m.max_image_age) > time.now() {
 		return
 	}
 
@@ -39,7 +52,9 @@ fn (mut m ImageManager) refresh_image(base_image string) ! {
 	m.timestamps[base_image] = time.now()
 }
 
-// clean_old_images tries to remove any old but still present builder images.
+// clean_old_images removes all older builder images that are no longer in use.
+// The function will always leave at least one builder image, namely the newest
+// one.
 fn (mut m ImageManager) clean_old_images() {
 	mut dd := docker.new_conn() or { return }
 
