@@ -7,7 +7,7 @@ import datatypes { MinHeap }
 import util
 
 struct BuildJob {
-pub:
+pub mut:
 	// Time at which this build job was created/queued
 	created time.Time
 	// Next timestamp from which point this job is allowed to be executed
@@ -64,6 +64,8 @@ pub struct InsertConfig {
 	target Target [required]
 	arch   string [required]
 	single bool
+	force  bool
+	now    bool
 }
 
 // insert a new target's job into the queue for the given architecture. This
@@ -75,20 +77,8 @@ pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 			q.queues[input.arch] = MinHeap<BuildJob>{}
 		}
 
-		ce := if input.target.schedule != '' {
-			parse_expression(input.target.schedule) or {
-				return error("Error while parsing cron expression '$input.target.schedule' (id $input.target.id): $err.msg()")
-			}
-		} else {
-			q.default_schedule
-		}
-
-		timestamp := ce.next_from_now()!
-
-		job := BuildJob{
+		mut job := BuildJob{
 			created: time.now()
-			timestamp: timestamp
-			ce: ce
 			single: input.single
 			config: BuildConfig{
 				target_id: input.target.id
@@ -98,7 +88,23 @@ pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 				repo: input.target.repo
 				// TODO make this configurable
 				base_image: q.default_base_image
+				force: input.force
 			}
+		}
+
+		if !input.now {
+			ce := if input.target.schedule != '' {
+				parse_expression(input.target.schedule) or {
+					return error("Error while parsing cron expression '$input.target.schedule' (id $input.target.id): $err.msg()")
+				}
+			} else {
+				q.default_schedule
+			}
+
+			job.timestamp = ce.next_from_now()!
+			job.ce = ce
+		} else {
+			job.timestamp = time.now()
 		}
 
 		q.queues[input.arch].insert(job)
@@ -198,8 +204,10 @@ pub fn (mut q BuildJobQueue) pop_n(arch string, n int) []BuildJob {
 			if job.timestamp < time.now() {
 				job = q.queues[arch].pop() or { break }
 
-				// TODO idem
-				q.reschedule(job, arch) or {}
+				if !job.single {
+					// TODO idem
+					q.reschedule(job, arch) or {}
+				}
 
 				out << job
 			} else {

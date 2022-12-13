@@ -30,11 +30,17 @@ fn (mut app App) v1_queue_job() web.Result {
 		return app.json(.bad_request, new_response('Missing arch query arg.'))
 	}
 
+	if arch == '' {
+		app.json(.bad_request, new_response('Empty arch query arg.'))
+	}
+
+	force := 'force' in app.query
+
 	target := app.db.get_target(target_id) or {
 		return app.json(.bad_request, new_response('Unknown target id.'))
 	}
 
-	app.job_queue.insert(target: target, arch: arch, single: true) or {
+	app.job_queue.insert(target: target, arch: arch, single: true, now: true, force: force) or {
 		return app.status(.internal_server_error)
 	}
 
