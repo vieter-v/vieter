@@ -49,6 +49,13 @@ pub fn new_job_queue(default_schedule CronExpression, default_base_image string)
 	}
 }
 
+// insert_all executes insert for each architecture of the given Target.
+pub fn (mut q BuildJobQueue) insert_all(target Target) ! {
+	for arch in target.arch {
+		q.insert(target, arch.value)!
+	}
+}
+
 // insert a new target's job into the queue for the given architecture. This
 // job will then be endlessly rescheduled after being pop'ed, unless removed
 // explicitely.
