@@ -63,14 +63,22 @@ fn create_build_script(address string, config BuildConfig, build_arch string) st
 		'cd repo',
 		'makepkg --nobuild --syncdeps --needed --noconfirm',
 		'source PKGBUILD',
+	]
+
+	if !config.force {
 		// The build container checks whether the package is already present on
 		// the server.
-		'curl -s --head --fail $repo_url/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
-		// If the above curl command succeeds, we don't need to rebuild the
-		// package. However, because we're in a su shell, the exit command will
-		// drop us back into the root shell. Therefore, we must check whether
-		// we're in root so we don't proceed.
-		'[ "\$(id -u)" == 0 ] && exit 0',
+		commands << [
+			'curl -s --head --fail $repo_url/$build_arch/\$pkgname-\$pkgver-\$pkgrel && exit 0',
+			// If the above curl command succeeds, we don't need to rebuild the
+			// package. However, because we're in a su shell, the exit command will
+			// drop us back into the root shell. Therefore, we must check whether
+			// we're in root so we don't proceed.
+			'[ "\$(id -u)" == 0 ] && exit 0',
+		]
+	}
+
+	commands << [
 		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $repo_url/publish; done',
 	]
 

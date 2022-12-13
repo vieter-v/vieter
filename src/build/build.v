@@ -24,6 +24,7 @@ pub:
 	branch     string
 	repo       string
 	base_image string
+	force      bool
 }
 
 // create_build_image creates a builder image given some base image which can
@@ -104,7 +105,7 @@ pub:
 }
 
 // build_target builds the given target. Internally it calls `build_config`.
-pub fn build_target(address string, api_key string, base_image_id string, target &Target) !BuildResult {
+pub fn build_target(address string, api_key string, base_image_id string, target &Target, force bool) !BuildResult {
 	config := BuildConfig{
 		target_id: target.id
 		kind: target.kind
@@ -112,6 +113,7 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 		branch: target.branch
 		repo: target.repo
 		base_image: base_image_id
+		force: force
 	}
 
 	return build_config(address, api_key, config)

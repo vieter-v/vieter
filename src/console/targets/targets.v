@@ -182,11 +182,18 @@ pub fn cmd() cli.Command {
 				required_args: 1
 				usage: 'id'
 				description: 'Build the target with the given id & publish it.'
+				flags: [
+					cli.Flag{
+						name: 'force'
+						description: 'Build the target without checking whether it needs to be renewed.'
+						flag: cli.FlagType.bool
+					},
+				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
-					build(conf, cmd.args[0].int())!
+					build(conf, cmd.args[0].int(), cmd.flags.get_bool('force')!)!
 				}
 			},
 		]
