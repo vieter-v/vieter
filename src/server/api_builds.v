@@ -19,3 +19,24 @@ fn (mut app App) v1_poll_job_queue() web.Result {
 
 	return app.json(.ok, new_data_response(out))
 }
+
+['/api/v1/jobs/queue'; auth; post]
+fn (mut app App) v1_queue_job() web.Result {
+	target_id := app.query['target'] or {
+		return app.json(.bad_request, new_response('Missing target query arg.'))
+	}.int()
+
+	arch := app.query['arch'] or {
+		return app.json(.bad_request, new_response('Missing arch query arg.'))
+	}
+
+	target := app.db.get_target(target_id) or {
+		return app.json(.bad_request, new_response('Unknown target id.'))
+	}
+
+	app.job_queue.insert(target: target, arch: arch, single: true) or {
+		return app.status(.internal_server_error)
+	}
+
+	return app.status(.ok)
+}

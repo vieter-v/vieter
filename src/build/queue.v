@@ -16,6 +16,8 @@ pub:
 	ce CronExpression
 	// Actual build config sent to the agent
 	config BuildConfig
+	// Whether this is a one-time job
+	single bool
 }
 
 // Allows BuildJob structs to be sorted according to their timestamp in
@@ -53,22 +55,29 @@ pub fn new_job_queue(default_schedule CronExpression, default_base_image string)
 // insert_all executes insert for each architecture of the given Target.
 pub fn (mut q BuildJobQueue) insert_all(target Target) ! {
 	for arch in target.arch {
-		q.insert(target, arch.value)!
+		q.insert(target: target, arch: arch.value)!
 	}
+}
+
+[params]
+pub struct InsertConfig {
+	target Target [required]
+	arch   string [required]
+	single bool
 }
 
 // insert a new target's job into the queue for the given architecture. This
 // job will then be endlessly rescheduled after being pop'ed, unless removed
 // explicitely.
-pub fn (mut q BuildJobQueue) insert(target Target, arch string) ! {
+pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 	lock q.mutex {
-		if arch !in q.queues {
-			q.queues[arch] = MinHeap<BuildJob>{}
+		if input.arch !in q.queues {
+			q.queues[input.arch] = MinHeap<BuildJob>{}
 		}
 
-		ce := if target.schedule != '' {
-			parse_expression(target.schedule) or {
-				return error("Error while parsing cron expression '$target.schedule' (id $target.id): $err.msg()")
+		ce := if input.target.schedule != '' {
+			parse_expression(input.target.schedule) or {
+				return error("Error while parsing cron expression '$input.target.schedule' (id $input.target.id): $err.msg()")
 			}
 		} else {
 			q.default_schedule
@@ -80,18 +89,19 @@ pub fn (mut q BuildJobQueue) insert(target Target, arch string) ! {
 			created: time.now()
 			timestamp: timestamp
 			ce: ce
+			single: input.single
 			config: BuildConfig{
-				target_id: target.id
-				kind: target.kind
-				url: target.url
-				branch: target.branch
-				repo: target.repo
+				target_id: input.target.id
+				kind: input.target.kind
+				url: input.target.url
+				branch: input.target.branch
+				repo: input.target.repo
 				// TODO make this configurable
 				base_image: q.default_base_image
 			}
 		}
 
-		q.queues[arch].insert(job)
+		q.queues[input.arch].insert(job)
 	}
 }
 
@@ -158,10 +168,12 @@ pub fn (mut q BuildJobQueue) pop(arch string) ?BuildJob {
 		if job.timestamp < time.now() {
 			job = q.queues[arch].pop()?
 
-			// TODO how do we handle this properly? Is it even possible for a
-			// cron expression to not return a next time if it's already been
-			// used before?
-			q.reschedule(job, arch) or {}
+			if !job.single {
+				// TODO how do we handle this properly? Is it even possible for a
+				// cron expression to not return a next time if it's already been
+				// used before?
+				q.reschedule(job, arch) or {}
+			}
 
 			return job
 		}
