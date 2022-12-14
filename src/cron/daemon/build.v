@@ -79,7 +79,7 @@ fn (mut d Daemon) run_build(build_index int, sb ScheduledBuild) {
 	mut status := 0
 
 	res := build.build_target(d.client.address, d.client.api_key, d.builder_images.last(),
-		&sb.target) or {
+		&sb.target, false) or {
 		d.ldebug('build_target error: $err.msg()')
 		status = 1
 

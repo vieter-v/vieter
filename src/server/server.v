@@ -6,6 +6,8 @@ import log
 import repo
 import util
 import db
+import build { BuildJobQueue }
+import cron.expression
 
 const (
 	log_file_name = 'vieter.log'
@@ -20,7 +22,26 @@ pub:
 	conf Config [required; web_global]
 pub mut:
 	repo repo.RepoGroupManager [required; web_global]
-	db   db.VieterDb
+	// Keys are the various architectures for packages
+	job_queue BuildJobQueue [required; web_global]
+	db        db.VieterDb
+}
+
+// init_job_queue populates a fresh job queue with all the targets currently
+// stored in the database.
+fn (mut app App) init_job_queue() ! {
+	// Initialize build queues
+	mut targets := app.db.get_targets(limit: 25)
+	mut i := u64(0)
+
+	for targets.len > 0 {
+		for target in targets {
+			app.job_queue.insert_all(target)!
+		}
+
+		i += 25
+		targets = app.db.get_targets(limit: 25, offset: i)
+	}
 }
 
 // server starts the web server & starts listening for requests
@@ -28,6 +49,10 @@ pub fn server(conf Config) ! {
 	// Prevent using 'any' as the default arch
 	if conf.default_arch == 'any' {
 		util.exit_with_message(1, "'any' is not allowed as the value for default_arch.")
+	}
+
+	global_ce := expression.parse_expression(conf.global_schedule) or {
+		util.exit_with_message(1, 'Invalid global cron expression: $err.msg()')
 	}
 
 	// Configure logger
@@ -71,11 +96,17 @@ pub fn server(conf Config) ! {
 		util.exit_with_message(1, 'Failed to initialize database: $err.msg()')
 	}
 
-	web.run(&App{
+	mut app := &App{
 		logger: logger
 		api_key: conf.api_key
 		conf: conf
 		repo: repo
 		db: db
-	}, conf.port)
+		job_queue: build.new_job_queue(global_ce, conf.base_image)
+	}
+	app.init_job_queue() or {
+		util.exit_with_message(1, 'Failed to inialize job queue: $err.msg()')
+	}
+
+	web.run(app, conf.port)
 }

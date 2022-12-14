@@ -21,7 +21,8 @@ quicker.
 I chose [V](https://vlang.io/) as I've been very intrigued by this language for
 a while now. I wanted a fast language that I could code while relaxing, without
 having to exert too much mental effort & V seemed like the right choice for
-that.
+that. Sadly, this didn't quite turn out the way I expected, but I'm sticking
+with it anyways ;p
 
 ## Features
 
@@ -49,7 +50,7 @@ update`.
 
 I used to maintain a mirror that tracked the latest master, but nowadays, I
 maintain a Docker image containing the specific compiler version that Vieter
-builds with. Currently, this is V 0.3.
+builds with. Currently, this is V 0.3.2.
 
 ## Contributing
 

@@ -182,11 +182,44 @@ pub fn cmd() cli.Command {
 				required_args: 1
 				usage: 'id'
 				description: 'Build the target with the given id & publish it.'
+				flags: [
+					cli.Flag{
+						name: 'force'
+						description: 'Build the target without checking whether it needs to be renewed.'
+						flag: cli.FlagType.bool
+					},
+					cli.Flag{
+						name: 'remote'
+						description: 'Schedule the build on the server instead of running it locally.'
+						flag: cli.FlagType.bool
+					},
+					cli.Flag{
+						name: 'arch'
+						description: 'Architecture to schedule build for. Required when using -remote.'
+						flag: cli.FlagType.string
+					},
+				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
 					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
 
-					build(conf, cmd.args[0].int())!
+					remote := cmd.flags.get_bool('remote')!
+					force := cmd.flags.get_bool('force')!
+					target_id := cmd.args[0].int()
+
+					if remote {
+						arch := cmd.flags.get_string('arch')!
+
+						if arch == '' {
+							return error('When scheduling the build remotely, you have to specify an architecture.')
+						}
+
+						c := client.new(conf.address, conf.api_key)
+						res := c.queue_job(target_id, arch, force)!
+						println(res.message)
+					} else {
+						build(conf, target_id, force)!
+					}
 				}
 			},
 		]

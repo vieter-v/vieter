@@ -16,6 +16,22 @@ const (
 		'/usr/local/bin', '/usr/bin/site_perl', '/usr/bin/vendor_perl', '/usr/bin/core_perl']
 )
 
+pub struct BuildConfig {
+pub:
+	target_id  int
+	kind       string
+	url        string
+	branch     string
+	repo       string
+	base_image string
+	force      bool
+}
+
+// str return a single-line string representation of a build log
+pub fn (c BuildConfig) str() string {
+	return '{ target: $c.target_id, kind: $c.kind, url: $c.url, branch: $c.branch, repo: $c.repo, base_image: $c.base_image, force: $c.force }'
+}
+
 // create_build_image creates a builder image given some base image which can
 // then be used to build & package Arch images. It mostly just updates the
 // system, install some necessary packages & creates a non-root user to run
@@ -93,10 +109,25 @@ pub:
 	logs       string
 }
 
-// build_target builds, packages & publishes a given Arch package based on the
+// build_target builds the given target. Internally it calls `build_config`.
+pub fn build_target(address string, api_key string, base_image_id string, target &Target, force bool) !BuildResult {
+	config := BuildConfig{
+		target_id: target.id
+		kind: target.kind
+		url: target.url
+		branch: target.branch
+		repo: target.repo
+		base_image: base_image_id
+		force: force
+	}
+
+	return build_config(address, api_key, config)
+}
+
+// build_config builds, packages & publishes a given Arch package based on the
 // provided target. The base image ID should be of an image previously created
 // by create_build_image. It returns the logs of the container.
-pub fn build_target(address string, api_key string, base_image_id string, target &Target) !BuildResult {
+pub fn build_config(address string, api_key string, config BuildConfig) !BuildResult {
 	mut dd := docker.new_conn()!
 
 	defer {
@@ -104,14 +135,14 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 	}
 
 	build_arch := os.uname().machine
-	build_script := create_build_script(address, target, build_arch)
+	build_script := create_build_script(address, config, build_arch)
 
 	// We convert the build script into a base64 string, which then gets passed
 	// to the container as an env var
 	base64_script := base64.encode_str(build_script)
 
 	c := docker.NewContainer{
-		image: '$base_image_id'
+		image: '$config.base_image'
 		env: [
 			'BUILD_SCRIPT=$base64_script',
 			'API_KEY=$api_key',

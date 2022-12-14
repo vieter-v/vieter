@@ -17,7 +17,7 @@ If a variable is both present in the config file & as an environment variable,
 the value in the environment variable is used.
 
 {{< hint info >}}
-**Note**  
+**Note**
 All environment variables can also be provided from a file by appending them
 with `_FILE`. This for example allows you to provide the API key from a Docker
 secrets file.
@@ -97,3 +97,25 @@ configuration variable required for each command.
   build`.
     * Default: `archlinux:base-devel`
 
+### `vieter agent`
+
+* `log_level`: log verbosity level. Value should be one of `FATAL`, `ERROR`,
+  `WARN`, `INFO` or `DEBUG`.
+    * Default: `WARN`
+* `address`: *public* URL of the Vieter repository server to build for. From
+  this server jobs are retrieved. All built packages are published to this
+  server.
+* `api_key`: API key of the above server.
+* `data_dir`: directory to store log file in.
+* `max_concurrent_builds`: how many builds to run at the same time.
+    * Default: `1`
+* `polling_frequency`: how often (in seconds) to poll the server for new
+  builds. Note that the agent might poll more frequently when it's actively
+  processing builds.
+* `image_rebuild_frequency`: Vieter periodically builds images that are then
+  used as a basis for running build containers. This is to prevent each build
+  from downloading an entire repository worth of dependencies. This setting
+  defines how frequently (in minutes) to rebuild these images.
+    * Default: `1440` (every 24 hours)
+* `arch`: architecture for which this agent should pull down builds (e.g.
+  `x86_64`)
