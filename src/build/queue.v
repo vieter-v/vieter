@@ -144,7 +144,9 @@ fn (mut q BuildJobQueue) pop_invalid(arch string) {
 // peek shows the first job for the given architecture that's ready to be
 // executed, if present.
 pub fn (mut q BuildJobQueue) peek(arch string) ?BuildJob {
-	rlock q.mutex {
+	// Even peek requires a write lock, because pop_invalid can modify the data
+	// structure
+	lock q.mutex {
 		if arch !in q.queues {
 			return none
 		}

@@ -36,9 +36,7 @@ fn (mut app App) init_job_queue() ! {
 
 	for targets.len > 0 {
 		for target in targets {
-			for arch in target.arch {
-				app.job_queue.insert(target: target, arch: arch.value)!
-			}
+			app.job_queue.insert_all(target)!
 		}
 
 		i += 25
