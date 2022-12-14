@@ -9,9 +9,9 @@ import build
 // structure can manage images from any number of base images, paving the way
 // for configurable base images per target/repository.
 struct ImageManager {
-mut:
 	max_image_age int [required]
-	// For each base images, one or more builder images can exist at the same
+mut:
+	// For each base image, one or more builder images can exist at the same
 	// time
 	images map[string][]string [required]
 	// For each base image, we track when its newest image was built

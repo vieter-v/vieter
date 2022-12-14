@@ -13,6 +13,8 @@ pub fn (c &Client) poll_jobs(arch string, max int) ![]BuildConfig {
 	return data.data
 }
 
+// queue_job adds a new one-time build job for the given target to the job
+// queue.
 pub fn (c &Client) queue_job(target_id int, arch string, force bool) !Response<string> {
 	data := c.send_request<string>(.post, '/api/v1/jobs/queue', {
 		'target': target_id.str()

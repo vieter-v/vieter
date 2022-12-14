@@ -20,6 +20,7 @@ fn (mut app App) v1_poll_job_queue() web.Result {
 	return app.json(.ok, new_data_response(out))
 }
 
+// v1_queue_job allows queueing a new one-time build job for the given target.
 ['/api/v1/jobs/queue'; auth; post]
 fn (mut app App) v1_queue_job() web.Result {
 	target_id := app.query['target'] or {
