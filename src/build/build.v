@@ -27,6 +27,11 @@ pub:
 	force      bool
 }
 
+// str return a single-line string representation of a build log
+pub fn (c BuildConfig) str() string {
+	return '{ target: $c.target_id, kind: $c.kind, url: $c.url, branch: $c.branch, repo: $c.repo, base_image: $c.base_image, force: $c.force }'
+}
+
 // create_build_image creates a builder image given some base image which can
 // then be used to build & package Arch images. It mostly just updates the
 // system, install some necessary packages & creates a non-root user to run

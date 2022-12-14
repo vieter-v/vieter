@@ -146,7 +146,7 @@ fn (mut d AgentDaemon) start_build(config BuildConfig) bool {
 
 // run_build actually starts the build process for a given target.
 fn (mut d AgentDaemon) run_build(build_index int, config BuildConfig) {
-	d.linfo('started build: $config.url -> $config.repo')
+	d.linfo('started build: $config')
 
 	// 0 means success, 1 means failure
 	mut status := 0
@@ -164,16 +164,14 @@ fn (mut d AgentDaemon) run_build(build_index int, config BuildConfig) {
 	}
 
 	if status == 0 {
-		d.linfo('finished build: $config.url -> $config.repo; uploading logs...')
+		d.linfo('Uploading build logs for $config')
 
 		// TODO use the arch value here
 		build_arch := os.uname().machine
 		d.client.add_build_log(config.target_id, res.start_time, res.end_time, build_arch,
-			res.exit_code, res.logs) or {
-			d.lerror('Failed to upload logs for build: $config.url -> $config.repo')
-		}
+			res.exit_code, res.logs) or { d.lerror('Failed to upload logs for $config') }
 	} else {
-		d.linfo('an error occured during build: $config.url -> $config.repo')
+		d.lwarn('an error occurred during build: $config')
 	}
 
 	stdatomic.store_u64(&d.atomics[build_index], agent.build_done)
