@@ -73,7 +73,21 @@ fn (mut m ImageManager) clean_old_images() {
 			// wasn't deleted. Therefore, we move the index over. If the function
 			// returns true, the array's length has decreased by one so we don't
 			// move the index.
-			dd.remove_image(m.images[image][i]) or { i += 1 }
+			dd.remove_image(m.images[image][i]) or {
+				// The image was removed by an external event
+				if err.code() == 404 {
+					m.images[image].delete(i)
+				}
+				// The image couldn't be removed, so we need to keep track of
+				// it
+				else {
+					i += 1
+				}
+
+				continue
+			}
+
+			m.images[image].delete(i)
 		}
 	}
 }
