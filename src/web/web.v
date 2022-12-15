@@ -260,13 +260,6 @@ pub fn (mut ctx Context) redirect(url string) Result {
 	return Result{}
 }
 
-// not_found Send an not_found response
-pub fn (mut ctx Context) not_found() Result {
-	ctx.send_custom_response(http_404) or {}
-
-	return Result{}
-}
-
 interface DbInterface {
 	db voidptr
 }
