@@ -18,5 +18,5 @@ echo -e '+ curl -s --head --fail https://example.com/vieter/x86_64/$pkgname-$pkg
 curl -s --head --fail https://example.com/vieter/x86_64/$pkgname-$pkgver-$pkgrel && exit 0
 echo -e '+ [ "$(id -u)" == 0 ] && exit 0'
 [ "$(id -u)" == 0 ] && exit 0
-echo -e '+ MAKEFLAGS="-j$(nproc)" makepkg -s --noconfirm --needed && for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $API_KEY" https://example.com/vieter/publish; done'
-MAKEFLAGS="-j$(nproc)" makepkg -s --noconfirm --needed && for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $API_KEY" https://example.com/vieter/publish; done
+echo -e '+ MAKEFLAGS="-j$(nproc)" makepkg -s --noconfirm --needed --noextract && for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $API_KEY" https://example.com/vieter/publish; done'
+MAKEFLAGS="-j$(nproc)" makepkg -s --noconfirm --needed --noextract && for pkg in $(ls -1 *.pkg*); do curl -XPOST -T "$pkg" -H "X-API-KEY: $API_KEY" https://example.com/vieter/publish; done

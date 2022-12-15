@@ -79,7 +79,7 @@ fn create_build_script(address string, config BuildConfig, build_arch string) st
 	}
 
 	commands << [
-		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $repo_url/publish; done',
+		'MAKEFLAGS="-j\$(nproc)" makepkg -s --noconfirm --needed --noextract && for pkg in \$(ls -1 *.pkg*); do curl -XPOST -T "\$pkg" -H "X-API-KEY: \$API_KEY" $repo_url/publish; done',
 	]
 
 	return echo_commands(commands).join('\n')
