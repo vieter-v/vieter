@@ -1,8 +1,8 @@
 module client
 
-import net.http { Method }
+import net.http { Method, Status }
 import net.urllib
-import web.response { Response }
+import web.response { Response, new_data_response }
 import json
 
 pub struct Client {
@@ -56,8 +56,29 @@ fn (c &Client) send_request<T>(method Method, url string, params map[string]stri
 // send_request_with_body<T> calls send_request_raw_response & parses its
 // output as a Response<T> object.
 fn (c &Client) send_request_with_body<T>(method Method, url string, params map[string]string, body string) !Response<T> {
-	res_text := c.send_request_raw_response(method, url, params, body)!
-	data := json.decode(Response<T>, res_text)!
+	res := c.send_request_raw(method, url, params, body)!
+
+	// Just return an empty successful response
+	if res.status_code == Status.no_content.int() {
+		return new_data_response(T{})
+	}
+
+	// Non-successful requests are expected to return either an empty body or
+	// Response<string>
+	if res.status_code < 200 || res.status_code > 299 {
+		status_string := http.status_from_int(res.status_code).str()
+
+		// A non-successful status call will have an empty body
+		if res.body == '' {
+			return error('Error $res.status_code ($status_string): (empty response)')
+		}
+
+		data := json.decode(Response<string>, res.body)!
+
+		return error('Status $res.status_code ($status_string): $data.message')
+	}
+
+	data := json.decode(Response<T>, res.body)!
 
 	return data
 }
