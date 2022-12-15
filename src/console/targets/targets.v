@@ -215,8 +215,7 @@ pub fn cmd() cli.Command {
 						}
 
 						c := client.new(conf.address, conf.api_key)
-						res := c.queue_job(target_id, arch, force)!
-						println(res.message)
+						c.queue_job(target_id, arch, force)!
 					} else {
 						build(conf, target_id, force)!
 					}
@@ -245,23 +244,19 @@ fn list(conf Config, filter TargetFilter, raw bool) ! {
 // add adds a new repository to the server's list.
 fn add(conf Config, t &NewTarget, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	res := c.add_target(t)!
+	target_id := c.add_target(t)!
 
 	if raw {
-		println(res.data)
+		println(target_id)
 	} else {
-		println('Target added with id $res.data')
+		println('Target added with id $target_id')
 	}
 }
 
 // remove removes a repository from the server's list.
 fn remove(conf Config, id string) ! {
-	id_int := id.int()
-
-	if id_int != 0 {
-		c := client.new(conf.address, conf.api_key)
-		c.remove_target(id_int)!
-	}
+	c := client.new(conf.address, conf.api_key)
+	c.remove_target(id.int())!
 }
 
 // patch patches a given repository with the provided params.
@@ -274,22 +269,13 @@ fn patch(conf Config, id string, params map[string]string) ! {
 		}
 	}
 
-	id_int := id.int()
-	if id_int != 0 {
-		c := client.new(conf.address, conf.api_key)
-		c.patch_target(id_int, params)!
-	}
+	c := client.new(conf.address, conf.api_key)
+	c.patch_target(id.int(), params)!
 }
 
 // info shows detailed information for a given repo.
 fn info(conf Config, id string) ! {
-	id_int := id.int()
-
-	if id_int == 0 {
-		return
-	}
-
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_target(id_int)!
+	repo := c.get_target(id.int())!
 	println(repo)
 }

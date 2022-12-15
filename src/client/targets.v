@@ -2,7 +2,6 @@ module client
 
 import models { Target, TargetFilter }
 import net.http { Method }
-import web.response { Response }
 
 // get_targets returns a list of targets, given a filter object.
 pub fn (c &Client) get_targets(filter TargetFilter) ![]Target {
@@ -49,24 +48,24 @@ pub struct NewTarget {
 }
 
 // add_target adds a new target to the server.
-pub fn (c &Client) add_target(t NewTarget) !Response<int> {
+pub fn (c &Client) add_target(t NewTarget) !int {
 	params := models.params_from<NewTarget>(t)
 	data := c.send_request<int>(Method.post, '/api/v1/targets', params)!
 
-	return data
+	return data.data
 }
 
 // remove_target removes the target with the given id from the server.
-pub fn (c &Client) remove_target(id int) !Response<string> {
+pub fn (c &Client) remove_target(id int) !string {
 	data := c.send_request<string>(Method.delete, '/api/v1/targets/$id', {})!
 
-	return data
+	return data.data
 }
 
 // patch_target sends a PATCH request to the given target with the params as
 // payload.
-pub fn (c &Client) patch_target(id int, params map[string]string) !Response<string> {
+pub fn (c &Client) patch_target(id int, params map[string]string) !string {
 	data := c.send_request<string>(Method.patch, '/api/v1/targets/$id', params)!
 
-	return data
+	return data.data
 }
