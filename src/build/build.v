@@ -6,7 +6,7 @@ import time
 import os
 import strings
 import util
-import models { Target }
+import models { BuildConfig, Target }
 
 const (
 	container_build_dir = '/build'
@@ -15,23 +15,6 @@ const (
 	path_dirs           = ['/sbin', '/bin', '/usr/sbin', '/usr/bin', '/usr/local/sbin',
 		'/usr/local/bin', '/usr/bin/site_perl', '/usr/bin/vendor_perl', '/usr/bin/core_perl']
 )
-
-pub struct BuildConfig {
-pub:
-	target_id  int
-	kind       string
-	url        string
-	branch     string
-	path       string
-	repo       string
-	base_image string
-	force      bool
-}
-
-// str return a single-line string representation of a build log
-pub fn (c BuildConfig) str() string {
-	return '{ target: $c.target_id, kind: $c.kind, url: $c.url, branch: $c.branch, path: $c.path, repo: $c.repo, base_image: $c.base_image, force: $c.force }'
-}
 
 // create_build_image creates a builder image given some base image which can
 // then be used to build & package Arch images. It mostly just updates the
@@ -112,16 +95,7 @@ pub:
 
 // build_target builds the given target. Internally it calls `build_config`.
 pub fn build_target(address string, api_key string, base_image_id string, target &Target, force bool) !BuildResult {
-	config := BuildConfig{
-		target_id: target.id
-		kind: target.kind
-		url: target.url
-		branch: target.branch
-		path: target.path
-		repo: target.repo
-		base_image: base_image_id
-		force: force
-	}
+	config := target.as_build_config(base_image_id, force)
 
 	return build_config(address, api_key, config)
 }

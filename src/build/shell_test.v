@@ -1,5 +1,7 @@
 module build
 
+import models { BuildConfig }
+
 fn test_create_build_script_git() {
 	config := BuildConfig{
 		target_id: 1
