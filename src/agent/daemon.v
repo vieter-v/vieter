@@ -71,6 +71,8 @@ pub fn (mut d AgentDaemon) run() {
 		// clustered together (especially when mostly using the global cron
 		// schedule), so there's a much higher chance jobs are available.
 		if finished > 0 || time.now() >= last_poll_time.add_seconds(d.conf.polling_frequency) {
+			d.ldebug('Polling for new jobs')
+
 			new_configs := d.client.poll_jobs(d.conf.arch, finished + empty) or {
 				d.lerror('Failed to poll jobs: $err.msg()')
 
@@ -78,6 +80,9 @@ pub fn (mut d AgentDaemon) run() {
 				time.sleep(5 * time.second)
 				continue
 			}
+
+			d.ldebug('Received $new_configs.len jobs')
+
 			last_poll_time = time.now()
 
 			for config in new_configs {
@@ -105,16 +110,19 @@ pub fn (mut d AgentDaemon) run() {
 			// No new jobs were scheduled and the agent isn't doing anything,
 			// so we just wait until the next polling period.
 			if new_configs.len == 0 && finished + empty == d.conf.max_concurrent_builds {
-				sleep_time = time.now() - last_poll_time
+				sleep_time = last_poll_time.add_seconds(d.conf.polling_frequency) - time.now()
 			}
 		}
 		// The agent is not doing anything, so we just wait until the next poll
 		// time
 		else if finished + empty == d.conf.max_concurrent_builds {
-			sleep_time = time.now() - last_poll_time
+			sleep_time = last_poll_time.add_seconds(d.conf.polling_frequency) - time.now()
 		}
 
-		time.sleep(sleep_time)
+		if sleep_time > 0 {
+			d.ldebug('Sleeping for $sleep_time')
+			time.sleep(sleep_time)
+		}
 	}
 }
 
