@@ -46,16 +46,22 @@ pub fn (mut d AgentDaemon) run() {
 	// This is just so that the very first time the loop is ran, the jobs are
 	// always polled
 	mut last_poll_time := time.now().add_seconds(-d.conf.polling_frequency)
-	mut sleep_time := 1 * time.second
-	mut finished, mut empty := 0, 0
+	mut sleep_time := 0 * time.second
+	mut finished, mut empty, mut running := 0, 0, 0
 
 	for {
+		if sleep_time > 0 {
+			d.ldebug('Sleeping for $sleep_time')
+			time.sleep(sleep_time)
+		}
+
 		finished, empty = d.update_atomics()
+		running = d.conf.max_concurrent_builds - finished - empty
 
 		// No new finished builds and no free slots, so there's nothing to be
 		// done
 		if finished + empty == 0 {
-			time.sleep(1 * time.second)
+			sleep_time = 1 * time.second
 			continue
 		}
 
@@ -71,13 +77,18 @@ pub fn (mut d AgentDaemon) run() {
 		// clustered together (especially when mostly using the global cron
 		// schedule), so there's a much higher chance jobs are available.
 		if finished > 0 || time.now() >= last_poll_time.add_seconds(d.conf.polling_frequency) {
+			d.ldebug('Polling for new jobs')
+
 			new_configs := d.client.poll_jobs(d.conf.arch, finished + empty) or {
 				d.lerror('Failed to poll jobs: $err.msg()')
 
 				// TODO pick a better delay here
-				time.sleep(5 * time.second)
+				sleep_time = 5 * time.second
 				continue
 			}
+
+			d.ldebug('Received $new_configs.len jobs')
+
 			last_poll_time = time.now()
 
 			for config in new_configs {
@@ -100,21 +111,17 @@ pub fn (mut d AgentDaemon) run() {
 				// build.
 
 				d.start_build(config)
-			}
-
-			// No new jobs were scheduled and the agent isn't doing anything,
-			// so we just wait until the next polling period.
-			if new_configs.len == 0 && finished + empty == d.conf.max_concurrent_builds {
-				sleep_time = time.now() - last_poll_time
+				running++
 			}
 		}
+
 		// The agent is not doing anything, so we just wait until the next poll
 		// time
-		else if finished + empty == d.conf.max_concurrent_builds {
-			sleep_time = time.now() - last_poll_time
+		if running == 0 {
+			sleep_time = last_poll_time.add_seconds(d.conf.polling_frequency) - time.now()
+		} else {
+			sleep_time = 1 * time.second
 		}
-
-		time.sleep(sleep_time)
 	}
 }
 
