@@ -12,6 +12,11 @@ import cron
 import agent
 
 fn main() {
+	// Stop buffering output so logs always show up immediately
+	unsafe {
+		C.setbuf(C.stdout, 0)
+	}
+
 	mut app := cli.Command{
 		name: 'vieter'
 		description: 'Vieter is a lightweight implementation of an Arch repository server.'
