@@ -183,15 +183,7 @@ fn print_log_list(logs []BuildLog, raw bool) ! {
 // list prints a list of all build logs.
 fn list(conf Config, filter BuildLogFilter, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs(filter)!.data
-
-	print_log_list(logs, raw)!
-}
-
-// list prints a list of all build logs for a given target.
-fn list_for_target(conf Config, target_id int, raw bool) ! {
-	c := client.new(conf.address, conf.api_key)
-	logs := c.get_build_logs_for_target(target_id)!.data
+	logs := c.get_build_logs(filter)!
 
 	print_log_list(logs, raw)!
 }
@@ -199,7 +191,7 @@ fn list_for_target(conf Config, target_id int, raw bool) ! {
 // info print the detailed info for a given build log.
 fn info(conf Config, id int) ! {
 	c := client.new(conf.address, conf.api_key)
-	log := c.get_build_log(id)!.data
+	log := c.get_build_log(id)!
 
 	print(log)
 }

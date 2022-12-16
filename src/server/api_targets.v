@@ -1,7 +1,6 @@
 module server
 
 import web
-import net.http
 import web.response { new_data_response, new_response }
 import db
 import models { Target, TargetArch, TargetFilter }
@@ -10,7 +9,7 @@ import models { Target, TargetArch, TargetFilter }
 ['/api/v1/targets'; auth; get]
 fn (mut app App) v1_get_targets() web.Result {
 	filter := models.from_params<TargetFilter>(app.query) or {
-		return app.json(http.Status.bad_request, new_response('Invalid query parameters.'))
+		return app.json(.bad_request, new_response('Invalid query parameters.'))
 	}
 	targets := app.db.get_targets(filter)
 
@@ -20,7 +19,7 @@ fn (mut app App) v1_get_targets() web.Result {
 // v1_get_single_target returns the information for a single target.
 ['/api/v1/targets/:id'; auth; get]
 fn (mut app App) v1_get_single_target(id int) web.Result {
-	target := app.db.get_target(id) or { return app.not_found() }
+	target := app.db.get_target(id) or { return app.status(.not_found) }
 
 	return app.json(.ok, new_data_response(target))
 }
@@ -37,12 +36,12 @@ fn (mut app App) v1_post_target() web.Result {
 	}
 
 	mut new_target := models.from_params<Target>(params) or {
-		return app.json(http.Status.bad_request, new_response(err.msg()))
+		return app.json(.bad_request, new_response(err.msg()))
 	}
 
 	// Ensure someone doesn't submit an invalid kind
 	if new_target.kind !in models.valid_kinds {
-		return app.json(http.Status.bad_request, new_response('Invalid kind.'))
+		return app.json(.bad_request, new_response('Invalid kind.'))
 	}
 
 	id := app.db.add_target(new_target)
@@ -61,7 +60,7 @@ fn (mut app App) v1_delete_target(id int) web.Result {
 	app.db.delete_target(id)
 	app.job_queue.invalidate(id)
 
-	return app.json(.ok, new_response(''))
+	return app.status(.ok)
 }
 
 // v1_patch_target updates a target's data with the given query params.

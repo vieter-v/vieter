@@ -33,16 +33,42 @@ pub fn (m &ImageManager) get(base_image string) string {
 	return m.images[base_image].last()
 }
 
-// refresh_image builds a new builder image from the given base image if the
-// previous builder image is too old or non-existent. This function will do
-// nothing if these conditions aren't met, so it's safe to call it every time
-// you want to ensure an image is up to date.
-fn (mut m ImageManager) refresh_image(base_image string) ! {
-	if base_image in m.timestamps
-		&& m.timestamps[base_image].add_seconds(m.max_image_age) > time.now() {
-		return
+// up_to_date returns true if the last known builder image exists and is up to
+// date. If this function returns true, the last builder image may be used to
+// perform a build.
+pub fn (mut m ImageManager) up_to_date(base_image string) bool {
+	if base_image !in m.timestamps
+		|| m.timestamps[base_image].add_seconds(m.max_image_age) <= time.now() {
+		return false
 	}
 
+	// It's possible the image has been removed by some external event, so we
+	// check whether it actually exists as well.
+	mut dd := docker.new_conn() or { return false }
+
+	defer {
+		dd.close() or {}
+	}
+
+	dd.image_inspect(m.images[base_image].last()) or {
+		// Image doesn't exist, so we stop tracking it
+		if err.code() == 404 {
+			m.images[base_image].delete_last()
+			m.timestamps.delete(base_image)
+		}
+
+		// If the inspect fails, it's either because the image doesn't exist or
+		// because of some other error. Either way, we can't know *for certain*
+		// that the image exists, so we return false.
+		return false
+	}
+
+	return true
+}
+
+// refresh_image builds a new builder image from the given base image. This
+// function should only be called if `up_to_date` returned false.
+fn (mut m ImageManager) refresh_image(base_image string) ! {
 	// TODO use better image tags for built images
 	new_image := build.create_build_image(base_image) or {
 		return error('Failed to build builder image from base image $base_image')
@@ -73,7 +99,21 @@ fn (mut m ImageManager) clean_old_images() {
 			// wasn't deleted. Therefore, we move the index over. If the function
 			// returns true, the array's length has decreased by one so we don't
 			// move the index.
-			dd.remove_image(m.images[image][i]) or { i += 1 }
+			dd.remove_image(m.images[image][i]) or {
+				// The image was removed by an external event
+				if err.code() == 404 {
+					m.images[image].delete(i)
+				}
+				// The image couldn't be removed, so we need to keep track of
+				// it
+				else {
+					i += 1
+				}
+
+				continue
+			}
+
+			m.images[image].delete(i)
 		}
 	}
 }

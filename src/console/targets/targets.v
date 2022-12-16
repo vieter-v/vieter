@@ -13,7 +13,7 @@ struct Config {
 	base_image string = 'archlinux:base-devel'
 }
 
-// cmd returns the cli submodule that handles the repos API interaction
+// cmd returns the cli submodule that handles the targets API interaction
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'targets'
@@ -82,6 +82,11 @@ pub fn cmd() cli.Command {
 						description: "Which branch to clone; only applies to kind 'git'."
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'path'
+						description: 'Subdirectory inside Git repository to use.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
@@ -92,6 +97,7 @@ pub fn cmd() cli.Command {
 						url: cmd.args[0]
 						repo: cmd.args[1]
 						branch: cmd.flags.get_string('branch') or { '' }
+						path: cmd.flags.get_string('path') or { '' }
 					}
 
 					raw := cmd.flags.get_bool('raw')!
@@ -159,6 +165,11 @@ pub fn cmd() cli.Command {
 						description: 'Kind of target.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'path'
+						description: 'Subdirectory inside Git repository to use.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
@@ -215,8 +226,7 @@ pub fn cmd() cli.Command {
 						}
 
 						c := client.new(conf.address, conf.api_key)
-						res := c.queue_job(target_id, arch, force)!
-						println(res.message)
+						c.queue_job(target_id, arch, force)!
 					} else {
 						build(conf, target_id, force)!
 					}
@@ -226,14 +236,11 @@ pub fn cmd() cli.Command {
 	}
 }
 
-// get_repo_by_prefix tries to find the repo with the given prefix in its
-// ID. If multiple or none are found, an error is raised.
-
 // list prints out a list of all repositories.
 fn list(conf Config, filter TargetFilter, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	repos := c.get_targets(filter)!
-	data := repos.map([it.id.str(), it.kind, it.url, it.repo])
+	targets := c.get_targets(filter)!
+	data := targets.map([it.id.str(), it.kind, it.url, it.repo])
 
 	if raw {
 		println(console.tabbed_table(data))
@@ -242,29 +249,25 @@ fn list(conf Config, filter TargetFilter, raw bool) ! {
 	}
 }
 
-// add adds a new repository to the server's list.
+// add adds a new target to the server's list.
 fn add(conf Config, t &NewTarget, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	res := c.add_target(t)!
+	target_id := c.add_target(t)!
 
 	if raw {
-		println(res.data)
+		println(target_id)
 	} else {
-		println('Target added with id $res.data')
+		println('Target added with id $target_id')
 	}
 }
 
-// remove removes a repository from the server's list.
+// remove removes a target from the server's list.
 fn remove(conf Config, id string) ! {
-	id_int := id.int()
-
-	if id_int != 0 {
-		c := client.new(conf.address, conf.api_key)
-		c.remove_target(id_int)!
-	}
+	c := client.new(conf.address, conf.api_key)
+	c.remove_target(id.int())!
 }
 
-// patch patches a given repository with the provided params.
+// patch patches a given target with the provided params.
 fn patch(conf Config, id string, params map[string]string) ! {
 	// We check the cron expression first because it's useless to send an
 	// invalid one to the server.
@@ -274,22 +277,13 @@ fn patch(conf Config, id string, params map[string]string) ! {
 		}
 	}
 
-	id_int := id.int()
-	if id_int != 0 {
-		c := client.new(conf.address, conf.api_key)
-		c.patch_target(id_int, params)!
-	}
+	c := client.new(conf.address, conf.api_key)
+	c.patch_target(id.int(), params)!
 }
 
-// info shows detailed information for a given repo.
+// info shows detailed information for a given target.
 fn info(conf Config, id string) ! {
-	id_int := id.int()
-
-	if id_int == 0 {
-		return
-	}
-
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_target(id_int)!
-	println(repo)
+	target := c.get_target(id.int())!
+	println(target)
 }

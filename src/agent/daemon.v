@@ -80,13 +80,24 @@ pub fn (mut d AgentDaemon) run() {
 			last_poll_time = time.now()
 
 			for config in new_configs {
-				// TODO handle this better than to just skip the config
 				// Make sure a recent build base image is available for
 				// building the config
-				d.images.refresh_image(config.base_image) or {
-					d.lerror(err.msg())
-					continue
+				if !d.images.up_to_date(config.base_image) {
+					d.linfo('Building builder image from base image $config.base_image')
+
+					// TODO handle this better than to just skip the config
+					d.images.refresh_image(config.base_image) or {
+						d.lerror(err.msg())
+						continue
+					}
 				}
+
+				// It's technically still possible that the build image is
+				// removed in the very short period between building the
+				// builder image and starting a build container with it. If
+				// this happens, faith really just didn't want you to do this
+				// build.
+
 				d.start_build(config)
 			}
 

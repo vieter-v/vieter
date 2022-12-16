@@ -18,12 +18,14 @@ const (
 		$embed_file('migrations/002-rename-to-targets/up.sql'),
 		$embed_file('migrations/003-target-url-type/up.sql'),
 		$embed_file('migrations/004-nullable-branch/up.sql'),
+		$embed_file('migrations/005-repo-path/up.sql'),
 	]
 	migrations_down = [
 		$embed_file('migrations/001-initial/down.sql'),
 		$embed_file('migrations/002-rename-to-targets/down.sql'),
 		$embed_file('migrations/003-target-url-type/down.sql'),
 		$embed_file('migrations/004-nullable-branch/down.sql'),
+		$embed_file('migrations/005-repo-path/down.sql'),
 	]
 )
 
