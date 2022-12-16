@@ -2,7 +2,8 @@ module agent
 
 import log
 import sync.stdatomic
-import build { BuildConfig }
+import build
+import models { BuildConfig }
 import client
 import time
 import os

@@ -1,6 +1,6 @@
 module build
 
-import models { Target }
+import models { BuildConfig, Target }
 import cron.expression { CronExpression, parse_expression }
 import time
 import datatypes { MinHeap }
@@ -80,16 +80,7 @@ pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 		mut job := BuildJob{
 			created: time.now()
 			single: input.single
-			config: BuildConfig{
-				target_id: input.target.id
-				kind: input.target.kind
-				url: input.target.url
-				branch: input.target.branch
-				repo: input.target.repo
-				// TODO make this configurable
-				base_image: q.default_base_image
-				force: input.force
-			}
+			config: input.target.as_build_config(q.default_base_image, input.force)
 		}
 
 		if !input.now {

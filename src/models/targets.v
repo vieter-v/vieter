@@ -52,6 +52,21 @@ pub fn (t &Target) str() string {
 	return str
 }
 
+// as_build_config converts a Target into a BuildConfig, given some extra
+// needed information.
+pub fn (t &Target) as_build_config(base_image string, force bool) BuildConfig {
+	return BuildConfig{
+		target_id: t.id
+		kind: t.kind
+		url: t.url
+		branch: t.branch
+		path: t.path
+		repo: t.repo
+		base_image: base_image
+		force: force
+	}
+}
+
 [params]
 pub struct TargetFilter {
 pub mut:

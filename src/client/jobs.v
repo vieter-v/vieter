@@ -1,6 +1,6 @@
 module client
 
-import build { BuildConfig }
+import models { BuildConfig }
 
 // poll_jobs requests a list of new build jobs from the server.
 pub fn (c &Client) poll_jobs(arch string, max int) ![]BuildConfig {
