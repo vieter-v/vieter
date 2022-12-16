@@ -22,6 +22,7 @@ pub:
 	kind       string
 	url        string
 	branch     string
+	path       string
 	repo       string
 	base_image string
 	force      bool
@@ -29,7 +30,7 @@ pub:
 
 // str return a single-line string representation of a build log
 pub fn (c BuildConfig) str() string {
-	return '{ target: $c.target_id, kind: $c.kind, url: $c.url, branch: $c.branch, repo: $c.repo, base_image: $c.base_image, force: $c.force }'
+	return '{ target: $c.target_id, kind: $c.kind, url: $c.url, branch: $c.branch, path: $c.path, repo: $c.repo, base_image: $c.base_image, force: $c.force }'
 }
 
 // create_build_image creates a builder image given some base image which can
@@ -116,6 +117,7 @@ pub fn build_target(address string, api_key string, base_image_id string, target
 		kind: target.kind
 		url: target.url
 		branch: target.branch
+		path: target.path
 		repo: target.repo
 		base_image: base_image_id
 		force: force

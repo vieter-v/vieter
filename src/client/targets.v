@@ -44,6 +44,7 @@ pub struct NewTarget {
 	url    string
 	branch string
 	repo   string
+	path   string
 	arch   []string
 }
 

@@ -59,8 +59,13 @@ fn create_build_script(address string, config BuildConfig, build_arch string) st
 		}
 	}
 
+	commands << if config.path != '' {
+		"cd 'repo/$config.path'"
+	} else {
+		'cd repo'
+	}
+
 	commands << [
-		'cd repo',
 		'makepkg --nobuild --syncdeps --needed --noconfirm',
 		'source PKGBUILD',
 	]

@@ -82,6 +82,11 @@ pub fn cmd() cli.Command {
 						description: "Which branch to clone; only applies to kind 'git'."
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'path'
+						description: 'Subdirectory inside Git repository to use.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
@@ -92,6 +97,7 @@ pub fn cmd() cli.Command {
 						url: cmd.args[0]
 						repo: cmd.args[1]
 						branch: cmd.flags.get_string('branch') or { '' }
+						path: cmd.flags.get_string('path') or { '' }
 					}
 
 					raw := cmd.flags.get_bool('raw')!
@@ -157,6 +163,11 @@ pub fn cmd() cli.Command {
 					cli.Flag{
 						name: 'kind'
 						description: 'Kind of target.'
+						flag: cli.FlagType.string
+					},
+					cli.Flag{
+						name: 'path'
+						description: 'Subdirectory inside Git repository to use.'
 						flag: cli.FlagType.string
 					},
 				]
