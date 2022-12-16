@@ -13,7 +13,7 @@ struct Config {
 	base_image string = 'archlinux:base-devel'
 }
 
-// cmd returns the cli submodule that handles the repos API interaction
+// cmd returns the cli submodule that handles the targets API interaction
 pub fn cmd() cli.Command {
 	return cli.Command{
 		name: 'targets'
@@ -236,14 +236,11 @@ pub fn cmd() cli.Command {
 	}
 }
 
-// get_repo_by_prefix tries to find the repo with the given prefix in its
-// ID. If multiple or none are found, an error is raised.
-
 // list prints out a list of all repositories.
 fn list(conf Config, filter TargetFilter, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
-	repos := c.get_targets(filter)!
-	data := repos.map([it.id.str(), it.kind, it.url, it.repo])
+	targets := c.get_targets(filter)!
+	data := targets.map([it.id.str(), it.kind, it.url, it.repo])
 
 	if raw {
 		println(console.tabbed_table(data))
@@ -252,7 +249,7 @@ fn list(conf Config, filter TargetFilter, raw bool) ! {
 	}
 }
 
-// add adds a new repository to the server's list.
+// add adds a new target to the server's list.
 fn add(conf Config, t &NewTarget, raw bool) ! {
 	c := client.new(conf.address, conf.api_key)
 	target_id := c.add_target(t)!
@@ -264,13 +261,13 @@ fn add(conf Config, t &NewTarget, raw bool) ! {
 	}
 }
 
-// remove removes a repository from the server's list.
+// remove removes a target from the server's list.
 fn remove(conf Config, id string) ! {
 	c := client.new(conf.address, conf.api_key)
 	c.remove_target(id.int())!
 }
 
-// patch patches a given repository with the provided params.
+// patch patches a given target with the provided params.
 fn patch(conf Config, id string, params map[string]string) ! {
 	// We check the cron expression first because it's useless to send an
 	// invalid one to the server.
@@ -284,9 +281,9 @@ fn patch(conf Config, id string, params map[string]string) ! {
 	c.patch_target(id.int(), params)!
 }
 
-// info shows detailed information for a given repo.
+// info shows detailed information for a given target.
 fn info(conf Config, id string) ! {
 	c := client.new(conf.address, conf.api_key)
-	repo := c.get_target(id.int())!
-	println(repo)
+	target := c.get_target(id.int())!
+	println(target)
 }

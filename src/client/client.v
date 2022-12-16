@@ -57,12 +57,7 @@ fn (c &Client) send_request<T>(method Method, url string, params map[string]stri
 // output as a Response<T> object.
 fn (c &Client) send_request_with_body<T>(method Method, url string, params map[string]string, body string) !Response<T> {
 	res := c.send_request_raw(method, url, params, body)!
-	status := http.status_from_int(res.status_code)
-
-	// Just return an empty successful response
-	if status.is_success() && res.body == '' {
-		return new_data_response(T{})
-	}
+	status := res.status()
 
 	// Non-successful requests are expected to return either an empty body or
 	// Response<string>
@@ -75,6 +70,11 @@ fn (c &Client) send_request_with_body<T>(method Method, url string, params map[s
 		data := json.decode(Response<string>, res.body)!
 
 		return error('Status $res.status_code ($status.str()): $data.message')
+	}
+
+	// Just return an empty successful response
+	if res.body == '' {
+		return new_data_response(T{})
 	}
 
 	data := json.decode(Response<T>, res.body)!

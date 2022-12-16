@@ -33,9 +33,9 @@ pub fn (m &ImageManager) get(base_image string) string {
 	return m.images[base_image].last()
 }
 
-// up_to_date returns whether the last known builder image is exists and is up
-// to date. If this function returns true, the last builder image may be used
-// to perform a build.
+// up_to_date returns true if the last known builder image exists and is up to
+// date. If this function returns true, the last builder image may be used to
+// perform a build.
 pub fn (mut m ImageManager) up_to_date(base_image string) bool {
 	if base_image !in m.timestamps
 		|| m.timestamps[base_image].add_seconds(m.max_image_age) <= time.now() {
@@ -58,8 +58,8 @@ pub fn (mut m ImageManager) up_to_date(base_image string) bool {
 		}
 
 		// If the inspect fails, it's either because the image doesn't exist or
-		// because of some other error. Either we can't know *for certain* that
-		// the image exists, so we return false.
+		// because of some other error. Either way, we can't know *for certain*
+		// that the image exists, so we return false.
 		return false
 	}
 
@@ -67,7 +67,7 @@ pub fn (mut m ImageManager) up_to_date(base_image string) bool {
 }
 
 // refresh_image builds a new builder image from the given base image. This
-// function should only be called if `up_to_date` return false.
+// function should only be called if `up_to_date` returned false.
 fn (mut m ImageManager) refresh_image(base_image string) ! {
 	// TODO use better image tags for built images
 	new_image := build.create_build_image(base_image) or {
