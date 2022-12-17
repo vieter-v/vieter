@@ -1,4 +1,4 @@
-FROM chewingbever/vlang:0.3 AS builder
+FROM git.rustybever.be/chewing_bever/vlang:0.3.2 AS builder
 
 ARG TARGETPLATFORM
 ARG CI_COMMIT_SHA
@@ -23,6 +23,7 @@ RUN if [ -n "${CI_COMMIT_SHA}" ]; then \
             "https://s3.rustybever.be/vieter/commits/${CI_COMMIT_SHA}/vieter-$(echo "${TARGETPLATFORM}" | sed 's:/:-:g')" && \
             chmod +x vieter ; \
     else \
+        cd src && v install && cd .. && \
         LDFLAGS='-lz -lbz2 -llzma -lexpat -lzstd -llz4 -lsqlite3 -static' make prod && \
         mv pvieter vieter ; \
     fi

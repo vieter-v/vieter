@@ -21,7 +21,7 @@ branch. This branch will be the most up to date, but does not give any
 guarantees about stability, so beware!
 
 Thanks to the single-binary design of Vieter, this image can be used both for
-the repository server & the cron daemon.
+the repository server, the cron daemon and the agent.
 
 Below is an example compose file to set up both the repository server & the
 cron daemon:
@@ -76,7 +76,7 @@ architectures will build on both.
 ## Binary
 
 On the
-[releases](https://git.rustybever.be/vieter/vieter/releases)
+[releases](https://git.rustybever.be/vieter-v/vieter/releases)
 page, you can find statically compiled binaries for all
 released versions. This is the same binary as used inside
 the Docker images.
@@ -106,5 +106,5 @@ guarantee that a compiler update won't temporarily break them.
 
 ## Building from source
 
-The project [README](https://git.rustybever.be/vieter/vieter#building) contains
-instructions for building Vieter from source.
+The project [README](https://git.rustybever.be/vieter-v/vieter#building)
+contains instructions for building Vieter from source.

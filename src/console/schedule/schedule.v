@@ -18,11 +18,11 @@ pub fn cmd() cli.Command {
 				default_value: ['5']
 			},
 		]
-		execute: fn (cmd cli.Command) ? {
-			ce := parse_expression(cmd.args.join(' '))?
-			count := cmd.flags.get_int('count')?
+		execute: fn (cmd cli.Command) ! {
+			ce := parse_expression(cmd.args.join(' '))!
+			count := cmd.flags.get_int('count')!
 
-			for t in ce.next_n(time.now(), count)? {
+			for t in ce.next_n(time.now(), count)! {
 				println(t)
 			}
 		}

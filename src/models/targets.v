@@ -28,25 +28,43 @@ pub mut:
 	repo string [nonull]
 	// Cron schedule describing how frequently to build the repo.
 	schedule string
+	// Subdirectory in the Git repository to cd into
+	path string
 	// On which architectures the package is allowed to be built. In reality,
-	// this controls which builders will periodically build the image.
+	// this controls which agents will build this package when scheduled.
 	arch []TargetArch [fkey: 'target_id']
 }
 
 // str returns a string representation.
-pub fn (gr &Target) str() string {
+pub fn (t &Target) str() string {
 	mut parts := [
-		'id: $gr.id',
-		'kind: $gr.kind',
-		'url: $gr.url',
-		'branch: $gr.branch',
-		'repo: $gr.repo',
-		'schedule: $gr.schedule',
-		'arch: ${gr.arch.map(it.value).join(', ')}',
+		'id: $t.id',
+		'kind: $t.kind',
+		'url: $t.url',
+		'branch: $t.branch',
+		'path: $t.path',
+		'repo: $t.repo',
+		'schedule: $t.schedule',
+		'arch: ${t.arch.map(it.value).join(', ')}',
 	]
 	str := parts.join('\n')
 
 	return str
+}
+
+// as_build_config converts a Target into a BuildConfig, given some extra
+// needed information.
+pub fn (t &Target) as_build_config(base_image string, force bool) BuildConfig {
+	return BuildConfig{
+		target_id: t.id
+		kind: t.kind
+		url: t.url
+		branch: t.branch
+		path: t.path
+		repo: t.repo
+		base_image: base_image
+		force: force
+	}
 }
 
 [params]

@@ -43,12 +43,12 @@ pub mut:
 }
 
 // checksum calculates the sha256 hash of the package
-pub fn (p &Pkg) checksum() ?string {
+pub fn (p &Pkg) checksum() !string {
 	return util.hash_file(p.path)
 }
 
 // parse_pkg_info_string parses a PkgInfo object from a string
-fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
+fn parse_pkg_info_string(pkg_info_str &string) !PkgInfo {
 	mut pkg_info := PkgInfo{}
 
 	// Iterate over the entire string
@@ -101,7 +101,7 @@ fn parse_pkg_info_string(pkg_info_str &string) ?PkgInfo {
 
 // read_pkg_archive extracts the file list & .PKGINFO contents from an archive
 // NOTE: this command only supports zstd-, xz- & gzip-compressed tarballs.
-pub fn read_pkg_archive(pkg_path string) ?Pkg {
+pub fn read_pkg_archive(pkg_path string) !Pkg {
 	if !os.is_file(pkg_path) {
 		return error("'$pkg_path' doesn't exist or isn't a file.")
 	}
@@ -159,7 +159,7 @@ pub fn read_pkg_archive(pkg_path string) ?Pkg {
 
 			pkg_text := unsafe { buf.vstring_with_len(size).clone() }
 
-			pkg_info = parse_pkg_info_string(pkg_text)?
+			pkg_info = parse_pkg_info_string(pkg_text)!
 		} else {
 			C.archive_read_data_skip(a)
 		}
@@ -173,105 +173,4 @@ pub fn read_pkg_archive(pkg_path string) ?Pkg {
 		files: files
 		compression: compression_code
 	}
-}
-
-// format_entry returns a string properly formatted to be added to a desc file.
-fn format_entry(key string, value string) string {
-	return '\n%$key%\n$value\n'
-}
-
-// full_name returns the properly formatted name for the package, including
-// version & architecture
-pub fn (pkg &Pkg) full_name() string {
-	p := pkg.info
-	return '$p.name-$p.version-$p.arch'
-}
-
-// filename returns the correct filename of the package file
-pub fn (pkg &Pkg) filename() string {
-	ext := match pkg.compression {
-		0 { '.tar' }
-		1 { '.tar.gz' }
-		6 { '.tar.xz' }
-		14 { '.tar.zst' }
-		else { panic("Another compression code shouldn't be possible. Faulty code: $pkg.compression") }
-	}
-
-	return '${pkg.full_name()}.pkg$ext'
-}
-
-// to_desc returns a desc file valid string representation
-pub fn (pkg &Pkg) to_desc() ?string {
-	p := pkg.info
-
-	// filename
-	mut desc := '%FILENAME%\n$pkg.filename()\n'
-
-	desc += format_entry('NAME', p.name)
-	desc += format_entry('BASE', p.base)
-	desc += format_entry('VERSION', p.version)
-
-	if p.description.len > 0 {
-		desc += format_entry('DESC', p.description)
-	}
-
-	if p.groups.len > 0 {
-		desc += format_entry('GROUPS', p.groups.join_lines())
-	}
-
-	desc += format_entry('CSIZE', p.csize.str())
-	desc += format_entry('ISIZE', p.size.str())
-
-	sha256sum := pkg.checksum()?
-
-	desc += format_entry('SHA256SUM', sha256sum)
-
-	// TODO add pgpsig stuff
-
-	if p.url.len > 0 {
-		desc += format_entry('URL', p.url)
-	}
-
-	if p.licenses.len > 0 {
-		desc += format_entry('LICENSE', p.licenses.join_lines())
-	}
-
-	desc += format_entry('ARCH', p.arch)
-	desc += format_entry('BUILDDATE', p.build_date.str())
-	desc += format_entry('PACKAGER', p.packager)
-
-	if p.replaces.len > 0 {
-		desc += format_entry('REPLACES', p.replaces.join_lines())
-	}
-
-	if p.conflicts.len > 0 {
-		desc += format_entry('CONFLICTS', p.conflicts.join_lines())
-	}
-
-	if p.provides.len > 0 {
-		desc += format_entry('PROVIDES', p.provides.join_lines())
-	}
-
-	if p.depends.len > 0 {
-		desc += format_entry('DEPENDS', p.depends.join_lines())
-	}
-
-	if p.optdepends.len > 0 {
-		desc += format_entry('OPTDEPENDS', p.optdepends.join_lines())
-	}
-
-	if p.makedepends.len > 0 {
-		desc += format_entry('MAKEDEPENDS', p.makedepends.join_lines())
-	}
-
-	if p.checkdepends.len > 0 {
-		desc += format_entry('CHECKDEPENDS', p.checkdepends.join_lines())
-	}
-
-	return '$desc\n'
-}
-
-// to_files returns a files file valid string representation
-pub fn (pkg &Pkg) to_files() string {
-	return '%FILES%\n$pkg.files.join_lines()\n'
 }

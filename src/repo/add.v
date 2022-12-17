@@ -29,7 +29,7 @@ pub:
 }
 
 // new creates a new RepoGroupManager & creates the directories as needed
-pub fn new(repos_dir string, pkg_dir string, default_arch string) ?RepoGroupManager {
+pub fn new(repos_dir string, pkg_dir string, default_arch string) !RepoGroupManager {
 	if !os.is_dir(repos_dir) {
 		os.mkdir_all(repos_dir) or { return error('Failed to create repos directory: $err.msg()') }
 	}
@@ -49,27 +49,27 @@ pub fn new(repos_dir string, pkg_dir string, default_arch string) ?RepoGroupMana
 // pkg archive. It's a wrapper around add_pkg_in_repo that parses the archive
 // file, passes the result to add_pkg_in_repo, and hard links the archive to
 // the right subdirectories in r.pkg_dir if it was successfully added.
-pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?RepoAddResult {
+pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) !RepoAddResult {
 	pkg := package.read_pkg_archive(pkg_path) or {
 		return error('Failed to read package file: $err.msg()')
 	}
 
-	archs := r.add_pkg_in_repo(repo, pkg)?
+	archs := r.add_pkg_in_repo(repo, pkg)!
 
 	// If the add was successful, we move the file to the packages directory
 	for arch in archs {
 		repo_pkg_path := os.real_path(os.join_path(r.pkg_dir, repo, arch))
 		dest_path := os.join_path_single(repo_pkg_path, pkg.filename())
 
-		os.mkdir_all(repo_pkg_path)?
+		os.mkdir_all(repo_pkg_path)!
 
 		// We create hard links so that "any" arch packages aren't stored
 		// multiple times
-		os.link(pkg_path, dest_path)?
+		os.link(pkg_path, dest_path)!
 	}
 
 	// After linking, we can remove the original file
-	os.rm(pkg_path)?
+	os.rm(pkg_path)!
 
 	return RepoAddResult{
 		name: pkg.info.name
@@ -85,11 +85,11 @@ pub fn (r &RepoGroupManager) add_pkg_from_path(repo string, pkg_path string) ?Re
 // r.default_arch. If this arch-repo doesn't exist yet, it is created. If the
 // architecture isn't 'any', the package is only added to the specific
 // architecture.
-fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]string {
+fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ![]string {
 	// A package not of arch 'any' can be handled easily by adding it to the
 	// respective repo
 	if pkg.info.arch != 'any' {
-		r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)?
+		r.add_pkg_in_arch_repo(repo, pkg.info.arch, pkg)!
 
 		return [pkg.info.arch]
 	}
@@ -104,7 +104,7 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 	// If this is the first package that's added to the repo, the directory
 	// won't exist yet
 	if os.exists(repo_dir) {
-		arch_repos = os.ls(repo_dir)?
+		arch_repos = os.ls(repo_dir)!
 	}
 
 	// The default_arch should always be updated when a package with arch 'any'
@@ -118,7 +118,7 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 	// not know which arch-repositories did succeed in adding the package, if
 	// any.
 	for arch in arch_repos {
-		r.add_pkg_in_arch_repo(repo, arch, pkg)?
+		r.add_pkg_in_arch_repo(repo, arch, pkg)!
 	}
 
 	return arch_repos
@@ -128,24 +128,24 @@ fn (r &RepoGroupManager) add_pkg_in_repo(repo string, pkg &package.Pkg) ?[]strin
 // arch-repo. It records the package's data in the arch-repo's desc & files
 // files, and afterwards updates the db & files archives to reflect these
 // changes.
-fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &package.Pkg) ? {
+fn (r &RepoGroupManager) add_pkg_in_arch_repo(repo string, arch string, pkg &package.Pkg) ! {
 	pkg_dir := os.join_path(r.repos_dir, repo, arch, '$pkg.info.name-$pkg.info.version')
 
 	// Remove the previous version of the package, if present
-	r.remove_pkg_from_arch_repo(repo, arch, pkg.info.name, false)?
+	r.remove_pkg_from_arch_repo(repo, arch, pkg.info.name, false)!
 
 	os.mkdir_all(pkg_dir) or { return error('Failed to create package directory.') }
 
-	os.write_file(os.join_path_single(pkg_dir, 'desc'), pkg.to_desc()?) or {
-		os.rmdir_all(pkg_dir)?
+	os.write_file(os.join_path_single(pkg_dir, 'desc'), pkg.to_desc()!) or {
+		os.rmdir_all(pkg_dir)!
 
 		return error('Failed to write desc file.')
 	}
 	os.write_file(os.join_path_single(pkg_dir, 'files'), pkg.to_files()) or {
-		os.rmdir_all(pkg_dir)?
+		os.rmdir_all(pkg_dir)!
 
 		return error('Failed to write files file.')
 	}
 
-	r.sync(repo, arch)?
+	r.sync(repo, arch)!
 }

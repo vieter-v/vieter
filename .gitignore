@@ -26,6 +26,7 @@ gdb.txt
 
 # Generated docs
 _docs/
+docs/resources/_gen/
 /man/
 
 # VLS logs

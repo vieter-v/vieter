@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter-v/vieter/src/branch/dev)
 
+## [0.5.0-rc.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.5.0-rc.1)
+
+### Added
+
+* Allow specifying subdirectory inside Git repository
+* Added option to deploy using agent-server architecture instead of cron daemon
+* Allow scheduling builds on the server from the CLI tool instead of building
+  them locally
+* Allow force-building packages, meaning the build won't check if the
+  repository is already up to date
+
+### Changed
+
+* Migrated codebase to V 0.3.2
+* Cron expression parser now uses bitfields instead of bool arrays
+
+### Fixed
+
+* Arch value for target is now properly set if not provided
+* Allow NULL values for branch in database
+* Endpoint for adding targets now returns the correct id
+* CLI now correctly errors and doesn't error when sending requests
+* Fixed possible infinite loop when removing old build images
+* Check whether build image still exists before starting build
+* Don't run makepkg `prepare()` function twice
+* Don't buffer stdout in Docker containers
+
 ## [0.4.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.4.0)
 
 ### Added

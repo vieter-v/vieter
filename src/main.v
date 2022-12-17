@@ -9,12 +9,18 @@ import console.schedule
 import console.man
 import console.aur
 import cron
+import agent
 
 fn main() {
+	// Stop buffering output so logs always show up immediately
+	unsafe {
+		C.setbuf(C.stdout, 0)
+	}
+
 	mut app := cli.Command{
 		name: 'vieter'
 		description: 'Vieter is a lightweight implementation of an Arch repository server.'
-		version: '0.4.0'
+		version: '0.5.0-rc.1'
 		flags: [
 			cli.Flag{
 				flag: cli.FlagType.string
@@ -40,6 +46,7 @@ fn main() {
 			schedule.cmd(),
 			man.cmd(),
 			aur.cmd(),
+			agent.cmd(),
 		]
 	}
 	app.setup()
