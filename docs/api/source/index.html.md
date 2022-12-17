@@ -11,6 +11,7 @@ includes:
   - repository
   - targets
   - logs
+  - jobs
 
 search: true
 
