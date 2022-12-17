@@ -139,6 +139,18 @@ pub fn cmd() cli.Command {
 				}
 			},
 			cli.Command{
+				name: 'remove'
+				required_args: 1
+				usage: 'id'
+				description: 'Remove a build log that matches the given id.'
+				execute: fn (cmd cli.Command) ! {
+					config_file := cmd.flags.get_string('config-file')!
+					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+
+					remove(conf, cmd.args[0])!
+				}
+			},
+			cli.Command{
 				name: 'info'
 				required_args: 1
 				usage: 'id'
@@ -203,4 +215,10 @@ fn content(conf Config, id int) ! {
 	content := c.get_build_log_content(id)!
 
 	println(content)
+}
+
+// remove removes a build log from the server's list.
+fn remove(conf Config, id string) ! {
+	c := client.new(conf.address, conf.api_key)
+	c.remove_build_log(id.int())!
 }

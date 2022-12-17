@@ -124,3 +124,22 @@ fn (mut app App) v1_post_log() web.Result {
 
 	return app.json(.ok, new_data_response(log_id))
 }
+
+// v1_delete_log allows removing a build log from the system.
+['/api/v1/logs/:id'; auth; delete]
+fn (mut app App) v1_delete_log(id int) web.Result {
+	log := app.db.get_build_log(id) or { return app.status(.not_found) }
+	file_name := log.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
+	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.target_id.str(), log.arch,
+		file_name)
+
+	os.rm(full_path) or {
+		app.lerror('Failed to remove log file $full_path: $err.msg()')
+
+		return app.status(.internal_server_error)
+	}
+
+	app.db.delete_build_log(id)
+
+	return app.status(.ok)
+}
