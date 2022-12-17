@@ -47,6 +47,11 @@ configuration variable required for each command.
     * Git repositories added without an `arch` value use this value instead.
 * `port`: HTTP port to run on
     * Default: `8000`
+* `max_log_age`: maximum age of logs (in days). Logs older than this will get
+  cleaned by the log removal daemon every 24 hours. If set to a negative value,
+  no logs are ever removed. The age of logs is determined by the time the build
+  was started.
+    * Default: `-1`
 
 ### `vieter cron`
 

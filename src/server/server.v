@@ -108,5 +108,9 @@ pub fn server(conf Config) ! {
 		util.exit_with_message(1, 'Failed to inialize job queue: $err.msg()')
 	}
 
+	if conf.max_log_age > 0 {
+		go app.log_removal_daemon()
+	}
+
 	web.run(app, conf.port)
 }

@@ -13,6 +13,7 @@ pub:
 	global_schedule string = '0 3'
 	port            int    = 8000
 	base_image      string = 'archlinux:base-devel'
+	max_log_age     int    = -1
 }
 
 // cmd returns the cli submodule that handles starting the server

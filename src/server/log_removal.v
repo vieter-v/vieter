@@ -1,0 +1,56 @@
+module server
+
+import time
+import models { BuildLog }
+import os
+
+const log_removal_frequency = 24 * time.hour
+
+// log_removal_daemon removes old build logs every `log_removal_frequency`.
+fn (mut app App) log_removal_daemon() {
+	mut start_time := time.Time{}
+
+	for {
+		start_time = time.now()
+
+		mut too_old_timestamp := time.now().add_days(-app.conf.max_log_age)
+
+		app.linfo('Cleaning logs before $too_old_timestamp')
+
+		mut offset := u64(0)
+		mut logs := []BuildLog{}
+		mut counter := 0
+		mut failed := 0
+
+		// Remove old logs
+		for {
+			logs = app.db.get_build_logs(before: too_old_timestamp, offset: offset, limit: 50)
+
+			for log in logs {
+				file_name := log.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
+				full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.target_id.str(),
+					log.arch, file_name)
+				os.rm(full_path) or {
+					app.lerror('Failed to remove log file $full_path: $err.msg()')
+					failed += 1
+
+					continue
+				}
+				app.db.delete_build_log(log.id)
+
+				counter += 1
+			}
+
+			if logs.len < 50 {
+				break
+			}
+
+			offset += 50
+		}
+
+		app.linfo('Cleaned $counter logs ($failed failed)')
+
+		// Sleep until the next cycle
+		time.sleep(start_time.add_days(1) - time.now())
+	}
+}

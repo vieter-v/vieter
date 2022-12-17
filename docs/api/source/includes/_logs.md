@@ -149,3 +149,17 @@ target | id of target this build is for
 ### Request body
 
 Plaintext contents of the build log.
+
+## Remove a build log
+
+Remove a build log from the server.
+
+### HTTP Request
+
+`DELETE /api/v1/logs/:id`
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+id | id of log to remove
