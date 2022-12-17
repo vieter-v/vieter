@@ -20,7 +20,7 @@ fn main() {
 	mut app := cli.Command{
 		name: 'vieter'
 		description: 'Vieter is a lightweight implementation of an Arch repository server.'
-		version: '0.4.0'
+		version: '0.5.0-rc.1'
 		flags: [
 			cli.Flag{
 				flag: cli.FlagType.string

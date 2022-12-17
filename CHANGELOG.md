@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter-v/vieter/src/branch/dev)
 
+## [0.5.0-rc.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.5.0-rc.1)
+
 ### Added
 
 * Allow specifying subdirectory inside Git repository
