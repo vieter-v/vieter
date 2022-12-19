@@ -5,15 +5,16 @@ import conf as vconf
 
 struct Config {
 pub:
-	log_level       string = 'WARN'
-	pkg_dir         string
-	data_dir        string
-	api_key         string
-	default_arch    string
-	global_schedule string = '0 3'
-	port            int    = 8000
-	base_image      string = 'archlinux:base-devel'
-	max_log_age     int    = -1
+	port                 int    = 8000
+	log_level            string = 'WARN'
+	pkg_dir              string
+	data_dir             string
+	api_key              string
+	default_arch         string
+	global_schedule      string = '0 3'
+	base_image           string = 'archlinux:base-devel'
+	max_log_age          int    = -1
+	log_removal_schedule string = '0 0'
 }
 
 // cmd returns the cli submodule that handles starting the server

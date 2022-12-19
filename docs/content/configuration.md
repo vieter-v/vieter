@@ -32,11 +32,11 @@ configuration variable required for each command.
 
 ### `vieter server`
 
+* `port`: HTTP port to run on
+    * Default: `8000`
 * `log_level`: log verbosity level. Value should be one of `FATAL`, `ERROR`,
   `WARN`, `INFO` or `DEBUG`.
     * Default: `WARN`
-* `log_file`: log file to write logs to.
-    * Default: `vieter.log` (in the current directory)
 * `pkg_dir`:  where Vieter should store the actual package archives.
 * `data_dir`: where Vieter stores the repositories, log file & database.
 * `api_key`: the API key to use when authenticating requests.
@@ -44,14 +44,27 @@ configuration variable required for each command.
     * Packages with architecture `any` are always added to this architecture.
       This prevents the server from being confused when an `any` package is
       published as the very first package for a repository.
-    * Git repositories added without an `arch` value use this value instead.
-* `port`: HTTP port to run on
-    * Default: `8000`
+    * Targets added without an `arch` value use this value instead.
+* `global_schedule`: build schedule for any target that does not have a
+  schedule defined. For information about this syntax, see
+  [here](/usage/builds/schedule).
+    * Default: `0 3` (3AM every night)
+* `base_image`: Docker image to use when building a package. Any Pacman-based
+  distro image should work, as long as `/etc/pacman.conf` is used &
+  `base-devel` exists in the repositories. Make sure that the image supports
+  the architecture of your cron daemon.
+    * Default: `archlinux:base-devel` (only works on `x86_64`). If you require
+      `aarch64` support, consider using
+      [`menci/archlinuxarm:base-devel`](https://hub.docker.com/r/menci/archlinuxarm)
+      ([GitHub](https://github.com/Menci/docker-archlinuxarm)). This is the
+      image used for the Vieter CI builds.
 * `max_log_age`: maximum age of logs (in days). Logs older than this will get
-  cleaned by the log removal daemon every 24 hours. If set to a negative value,
-  no logs are ever removed. The age of logs is determined by the time the build
-  was started.
+  cleaned by the log removal daemon . If set to a negative value, no logs are
+  ever removed. The age of logs is determined by the time the build was
+  started.
     * Default: `-1`
+* `log_removal_schedule`: cron schedule defining when to clean old logs.
+    * Default: `0 0` (every day at midnight)
 
 ### `vieter cron`
 

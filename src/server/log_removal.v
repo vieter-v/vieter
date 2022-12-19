@@ -3,11 +3,12 @@ module server
 import time
 import models { BuildLog }
 import os
+import cron.expression { CronExpression }
 
-const log_removal_frequency = 24 * time.hour
+const fallback_log_removal_frequency = 24 * time.hour
 
 // log_removal_daemon removes old build logs every `log_removal_frequency`.
-fn (mut app App) log_removal_daemon() {
+fn (mut app App) log_removal_daemon(schedule CronExpression) {
 	mut start_time := time.Time{}
 
 	for {
@@ -51,6 +52,12 @@ fn (mut app App) log_removal_daemon() {
 		app.linfo('Cleaned $counter logs ($failed failed)')
 
 		// Sleep until the next cycle
-		time.sleep(start_time.add_days(1) - time.now())
+		next_time := schedule.next_from_now() or {
+			app.lerror("Log removal daemon couldn't calculate next time: $err.msg(); fallback to $server.fallback_log_removal_frequency")
+
+			start_time.add(server.fallback_log_removal_frequency)
+		}
+
+		time.sleep(next_time - time.now())
 	}
 }

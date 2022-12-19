@@ -1,3 +1,7 @@
+---
+weight: 10
+---
+
 # Cron schedule syntax
 
 The Vieter cron daemon uses a subset of the cron expression syntax to schedule
