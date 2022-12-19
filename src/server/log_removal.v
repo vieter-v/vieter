@@ -18,14 +18,16 @@ fn (mut app App) log_removal_daemon(schedule CronExpression) {
 
 		app.linfo('Cleaning logs before $too_old_timestamp')
 
-		mut offset := u64(0)
 		mut logs := []BuildLog{}
 		mut counter := 0
-		mut failed := 0
+		mut failed := u64(0)
 
 		// Remove old logs
 		for {
-			logs = app.db.get_build_logs(before: too_old_timestamp, offset: offset, limit: 50)
+			// The offset is used to skip logs that failed to remove. Besides
+			// this, we don't need to move the offset, because all previously
+			// oldest logs will have been removed.
+			logs = app.db.get_build_logs(before: too_old_timestamp, offset: failed, limit: 50)
 
 			for log in logs {
 				log_file_path := os.join_path(app.conf.data_dir, logs_dir_name, log.path())
@@ -44,8 +46,6 @@ fn (mut app App) log_removal_daemon(schedule CronExpression) {
 			if logs.len < 50 {
 				break
 			}
-
-			offset += 50
 		}
 
 		app.linfo('Cleaned $counter logs ($failed failed)')
