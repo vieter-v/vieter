@@ -40,8 +40,8 @@ meaning manual requests can cause builds to be skipped.
 
 ```shell
 curl \
-  -H 'x-api-key: secret' \
-  'https://example.com/api/v1/jobs/poll?arch=x86_64&max=2'
+  -H 'X-Api-Key: secret' \
+  https://example.com/api/v1/jobs/poll?arch=x86_64&max=2
 ```
 
 > JSON output format

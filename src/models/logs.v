@@ -1,6 +1,7 @@
 module models
 
 import time
+import os
 
 pub struct BuildLog {
 pub mut:
@@ -26,6 +27,13 @@ pub fn (bl &BuildLog) str() string {
 	str := parts.join('\n')
 
 	return str
+}
+
+// path returns the path to the log file, relative to the logs directory
+pub fn (bl &BuildLog) path() string {
+	filename := bl.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
+
+	return os.join_path(bl.target_id.str(), bl.arch, filename)
 }
 
 [params]

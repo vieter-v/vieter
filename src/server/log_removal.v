@@ -28,11 +28,10 @@ fn (mut app App) log_removal_daemon(schedule CronExpression) {
 			logs = app.db.get_build_logs(before: too_old_timestamp, offset: offset, limit: 50)
 
 			for log in logs {
-				file_name := log.start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
-				full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.target_id.str(),
-					log.arch, file_name)
-				os.rm(full_path) or {
-					app.lerror('Failed to remove log file $full_path: $err.msg()')
+				log_file_path := os.join_path(app.conf.data_dir, logs_dir_name, log.path())
+
+				os.rm(log_file_path) or {
+					app.lerror('Failed to remove log file $log_file_path: $err.msg()')
 					failed += 1
 
 					continue
