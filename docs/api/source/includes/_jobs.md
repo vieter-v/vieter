@@ -33,9 +33,36 @@ force | Whether it's a forced build (true if present)
 <aside class="warning">
 
 This endpoint is used by the agents and should not be used manually. It's just
-here for completeness.
+here for completeness. Requests to this endpoint modify the build queue,
+meaning manual requests can cause builds to be skipped.
 
 </aside>
+
+```shell
+curl \
+  -H 'x-api-key: secret' \
+  'https://example.com/api/v1/jobs/poll?arch=x86_64&max=2'
+```
+
+> JSON output format
+
+```json
+{
+  "message": "",
+  "data": [
+    {
+      "target_id": 1,
+      "kind": "git",
+      "url": "https://aur.archlinux.org/discord-ptb.git",
+      "branch": "master",
+      "path": "",
+      "repo": "bur",
+      "base_image": "archlinux:base-devel",
+      "force": true
+    }
+  ]
+}
+```
 
 Poll the server for new builds.
 
