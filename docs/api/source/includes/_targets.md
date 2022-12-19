@@ -27,6 +27,7 @@ curl \
       "kind": "git",
       "url": "https://aur.archlinux.org/discord-ptb.git",
       "branch": "master",
+      "path" : "",
       "repo": "bur",
       "schedule": "",
       "arch": [
@@ -73,8 +74,9 @@ curl \
     "kind": "git",
     "url": "https://aur.archlinux.org/discord-ptb.git",
     "branch": "master",
+    "path": "",
     "repo": "bur",
-    "schedule": "0 3",
+    "schedule": "0 2",
     "arch": [
       {
         "id": 1,
@@ -124,6 +126,7 @@ Parameter | Description
 kind | Kind of target to add; one of 'git', 'url'.
 url | URL of the Git repository.
 branch | Branch of the Git repository.
+path | Subdirectory inside Git repository to use.
 repo | Vieter repository to publish built packages to.
 schedule | Cron build schedule (syntax explained [here](https://rustybever.be/docs/vieter/usage/builds/schedule/))
 arch | Comma-separated list of architectures to build package on.
@@ -149,11 +152,19 @@ Parameter | Description
 kind | Kind of target; one of 'git', 'url'.
 url | URL of the Git repository.
 branch | Branch of the Git repository.
+path | Subdirectory inside Git repository to use.
 repo | Vieter repository to publish built packages to.
 schedule | Cron build schedule
 arch | Comma-separated list of architectures to build package on.
 
 ## Remove a target
+
+```shell
+curl \
+  -XDELETE \
+  -H 'X-Api-Key: secret' \
+  https://example.com/api/v1/targets/1
+```
 
 Remove a target from the server.
 

@@ -41,3 +41,8 @@ pub fn (c &Client) add_build_log(target_id int, start_time time.Time, end_time t
 
 	return data
 }
+
+// remove_build_log removes the build log with the given id from the server.
+pub fn (c &Client) remove_build_log(id int) ! {
+	c.send_request<string>(.delete, '/api/v1/logs/$id', {})!
+}

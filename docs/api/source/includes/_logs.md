@@ -125,8 +125,8 @@ id | ID of requested log
 
 <aside class="warning">
 
-You should probably not use this endpoint, as it's used by the build system to
-publish its logs.
+This endpoint is used by the agents and should not be used manually unless you
+know what you're doing. It's just here for completeness.
 
 </aside>
 
@@ -149,3 +149,24 @@ target | id of target this build is for
 ### Request body
 
 Plaintext contents of the build log.
+
+## Remove a build log
+
+```shell
+curl \
+  -XDELETE \
+  -H 'X-Api-Key: secret' \
+  https://example.com/api/v1/logs/1
+```
+
+Remove a build log from the server.
+
+### HTTP Request
+
+`DELETE /api/v1/logs/:id`
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+id | id of log to remove

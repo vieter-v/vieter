@@ -55,6 +55,10 @@ pub fn server(conf Config) ! {
 		util.exit_with_message(1, 'Invalid global cron expression: $err.msg()')
 	}
 
+	log_removal_ce := expression.parse_expression(conf.log_removal_schedule) or {
+		util.exit_with_message(1, 'Invalid log removal cron expression: $err.msg()')
+	}
+
 	// Configure logger
 	log_level := log.level_from_tag(conf.log_level) or {
 		util.exit_with_message(1, 'Invalid log level. The allowed values are FATAL, ERROR, WARN, INFO & DEBUG.')
@@ -106,6 +110,10 @@ pub fn server(conf Config) ! {
 	}
 	app.init_job_queue() or {
 		util.exit_with_message(1, 'Failed to inialize job queue: $err.msg()')
+	}
+
+	if conf.max_log_age > 0 {
+		go app.log_removal_daemon(log_removal_ce)
 	}
 
 	web.run(app, conf.port)
