@@ -21,6 +21,7 @@ fn main() {
 		name: 'vieter'
 		description: 'Vieter is a lightweight implementation of an Arch repository server.'
 		version: '0.5.0-rc.1'
+		posix_mode: true
 		flags: [
 			cli.Flag{
 				flag: cli.FlagType.string

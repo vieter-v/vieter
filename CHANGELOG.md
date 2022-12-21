@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter-v/vieter/src/branch/dev)
 
+### Added
+
+* API route for removing logs & accompanying CLI command
+* Daemon for periodically removing old logs
+
+### Changed
+
+* Use `--long-option` instead of `-long-option` for CLI
+
 ## [0.5.0-rc.1](https://git.rustybever.be/vieter-v/vieter/src/tag/0.5.0-rc.1)
 
 ### Added
