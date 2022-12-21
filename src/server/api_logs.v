@@ -86,7 +86,7 @@ fn (mut app App) v1_post_log() web.Result {
 	}
 
 	// Store log in db
-	log := BuildLog{
+	mut log := BuildLog{
 		target_id: target_id
 		start_time: start_time
 		end_time: end_time
@@ -95,25 +95,20 @@ fn (mut app App) v1_post_log() web.Result {
 	}
 
 	// id of newly created log
-	log_id := app.db.add_build_log(log)
-
-	repo_logs_dir := os.join_path(app.conf.data_dir, logs_dir_name, target_id.str(), arch)
+	log.id = app.db.add_build_log(log)
+	log_file_path := os.join_path(app.conf.data_dir, logs_dir_name, log.path())
 
 	// Create the logs directory of it doesn't exist
-	if !os.exists(repo_logs_dir) {
-		os.mkdir_all(repo_logs_dir) or {
-			app.lerror("Couldn't create dir '$repo_logs_dir'.")
+	if !os.exists(os.dir(log_file_path)) {
+		os.mkdir_all(os.dir(log_file_path)) or {
+			app.lerror('Error while creating log file: $err.msg()')
 
 			return app.status(.internal_server_error)
 		}
 	}
 
-	// Stream log contents to correct file
-	file_name := start_time.custom_format('YYYY-MM-DD_HH-mm-ss')
-	full_path := os.join_path_single(repo_logs_dir, file_name)
-
 	if length := app.req.header.get(.content_length) {
-		util.reader_to_file(mut app.reader, length.int(), full_path) or {
+		util.reader_to_file(mut app.reader, length.int(), log_file_path) or {
 			app.lerror('An error occured while receiving logs: $err.msg()')
 
 			return app.status(.internal_server_error)
@@ -122,5 +117,22 @@ fn (mut app App) v1_post_log() web.Result {
 		return app.status(.length_required)
 	}
 
-	return app.json(.ok, new_data_response(log_id))
+	return app.json(.ok, new_data_response(log.id))
+}
+
+// v1_delete_log allows removing a build log from the system.
+['/api/v1/logs/:id'; auth; delete]
+fn (mut app App) v1_delete_log(id int) web.Result {
+	log := app.db.get_build_log(id) or { return app.status(.not_found) }
+	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.path())
+
+	os.rm(full_path) or {
+		app.lerror('Failed to remove log file $full_path: $err.msg()')
+
+		return app.status(.internal_server_error)
+	}
+
+	app.db.delete_build_log(id)
+
+	return app.status(.ok)
 }

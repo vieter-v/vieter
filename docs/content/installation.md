@@ -23,15 +23,15 @@ guarantees about stability, so beware!
 Thanks to the single-binary design of Vieter, this image can be used both for
 the repository server, the cron daemon and the agent.
 
-Below is an example compose file to set up both the repository server & the
-cron daemon:
+Below is a minimal compose file to set up both the repository server & a build
+agent:
 
 ```yaml
 version: '3'
 
 services:
   server:
-    image: 'chewingbever/vieter:dev'
+    image: 'chewingbever/vieter:0.5.0-rc.1'
     restart: 'always'
 
     environment:
@@ -41,18 +41,19 @@ services:
       - 'data:/data'
 
   cron:
-    image: 'chewingbever/vieter:dev'
+    image: 'chewingbever/vieter:0.5.0-rc.1'
     restart: 'always'
+    # Required to connect to the Docker daemon
     user: root
-    command: 'vieter cron'
+    command: 'vieter agent'
 
     environment:
       - 'VIETER_API_KEY=secret'
       # MUST be public URL of Vieter repository
       - 'VIETER_ADDRESS=https://example.com'
-      - 'VIETER_DEFAULT_ARCH=x86_64'
+      # Architecture for which the agent builds
+      - 'VIETER_ARCH=x86_64'
       - 'VIETER_MAX_CONCURRENT_BUILDS=2'
-      - 'VIETER_GLOBAL_SCHEDULE=0 3'
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
 
@@ -63,14 +64,17 @@ volumes:
 If you do not require the build system, the repository server can be used
 independently as well.
 
+Of course, Vieter allows a lot more configuration than this. This compose file
+is meant as a starting point for setting up your installation.
+
 {{< hint info >}}
 **Note**  
-Builds are executed on the cron daemon's system using the host's Docker daemon.
-A cron daemon on a specific architecture will only build packages for that
-specific architecture. Therefore, if you wish to build packages for both
-`x86_64` & `aarch64`, you'll have to deploy two cron daemons, one on each
-architecture. Afterwards, any Git repositories enabled for those two
-architectures will build on both.
+Builds are executed on the agent's system using the host's Docker daemon. An
+agent for a specific `arch` will only build packages for that specific
+architecture. Therefore, if you wish to build packages for both `x86_64` &
+`aarch64`, you'll have to deploy two agents, one on each architecture.
+Afterwards, any Git repositories enabled for those two architectures will build
+on both.
 {{< /hint >}}
 
 ## Binary
@@ -99,9 +103,9 @@ latest official release or `vieter-git` for the latest development release.
 ### AUR
 
 If you prefer building the packages locally (or on your own Vieter instance),
-there's the `[vieter](https://aur.archlinux.org/packages/vieter)` &
-`[vieter-git](https://aur.archlinux.org/packages/vieter-git)` packages on the
-AUR. These packages build using the `vlang-git` compiler package, so I can't
+there's the [`vieter`](https://aur.archlinux.org/packages/vieter) &
+[`vieter-git`](https://aur.archlinux.org/packages/vieter-git) packages on the
+AUR. These packages build using the `vlang` compiler package, so I can't
 guarantee that a compiler update won't temporarily break them.
 
 ## Building from source
