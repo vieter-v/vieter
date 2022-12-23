@@ -25,11 +25,13 @@ pub fn cmd() cli.Command {
 				flags: [
 					cli.Flag{
 						name: 'limit'
+						abbrev: 'l'
 						description: 'How many results to return.'
 						flag: cli.FlagType.int
 					},
 					cli.Flag{
 						name: 'offset'
+						abbrev: 'o'
 						description: 'Minimum index to return.'
 						flag: cli.FlagType.int
 					},

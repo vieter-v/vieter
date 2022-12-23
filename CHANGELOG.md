@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * API route for removing logs & accompanying CLI command
 * Daemon for periodically removing old logs
+* CLI flag to filter logs by specific exit codes
 
 ### Changed
 
