@@ -8,6 +8,7 @@ import console.logs
 import console.schedule
 import console.man
 import console.aur
+import console.repos
 import cron
 import agent
 
@@ -48,6 +49,7 @@ fn main() {
 			man.cmd(),
 			aur.cmd(),
 			agent.cmd(),
+			repos.cmd(),
 		]
 	}
 	app.setup()

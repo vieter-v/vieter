@@ -5,7 +5,7 @@ import net.http
 
 // Method attributes that should be ignored when parsing, as they're used
 // elsewhere.
-const attrs_to_ignore = ['auth']
+const attrs_to_ignore = ['auth', 'markused']
 
 // Parsing function attributes for methods and path.
 fn parse_attrs(name string, attrs []string) !([]http.Method, string) {

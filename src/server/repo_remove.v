@@ -3,7 +3,7 @@ module server
 import web
 
 // delete_package tries to remove the given package.
-['/:repo/:arch/:pkg'; auth; delete]
+['/:repo/:arch/:pkg'; auth; delete; markused]
 fn (mut app App) delete_package(repo string, arch string, pkg string) web.Result {
 	res := app.repo.remove_pkg_from_arch_repo(repo, arch, pkg, true) or {
 		app.lerror('Error while deleting package: $err.msg()')
@@ -23,7 +23,7 @@ fn (mut app App) delete_package(repo string, arch string, pkg string) web.Result
 }
 
 // delete_arch_repo tries to remove the given arch-repo.
-['/:repo/:arch'; auth; delete]
+['/:repo/:arch'; auth; delete; markused]
 fn (mut app App) delete_arch_repo(repo string, arch string) web.Result {
 	res := app.repo.remove_arch_repo(repo, arch) or {
 		app.lerror('Error while deleting arch-repo: $err.msg()')
@@ -43,7 +43,7 @@ fn (mut app App) delete_arch_repo(repo string, arch string) web.Result {
 }
 
 // delete_repo tries to remove the given repo.
-['/:repo'; auth; delete]
+['/:repo'; auth; delete; markused]
 fn (mut app App) delete_repo(repo string) web.Result {
 	res := app.repo.remove_repo(repo) or {
 		app.lerror('Error while deleting repo: $err.msg()')

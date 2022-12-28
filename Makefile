@@ -3,7 +3,7 @@ SRC_DIR := src
 SOURCES != find '$(SRC_DIR)' -iname '*.v'
 
 V_PATH ?= v
-V := $(V_PATH) -showcc -gc boehm -W -d use_openssl
+V := $(V_PATH) -showcc -gc boehm -W -d use_openssl -skip-unused
 
 all: vieter
 

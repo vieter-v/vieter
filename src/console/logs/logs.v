@@ -24,11 +24,13 @@ pub fn cmd() cli.Command {
 				flags: [
 					cli.Flag{
 						name: 'limit'
+						abbrev: 'l'
 						description: 'How many results to return.'
 						flag: cli.FlagType.int
 					},
 					cli.Flag{
 						name: 'offset'
+						abbrev: 'o'
 						description: 'Minimum index to return.'
 						flag: cli.FlagType.int
 					},
@@ -39,16 +41,18 @@ pub fn cmd() cli.Command {
 					},
 					cli.Flag{
 						name: 'today'
-						description: 'Only list logs started today.'
+						abbrev: 't'
+						description: 'Only list logs started today. This flag overwrites any other date-related flag.'
 						flag: cli.FlagType.bool
 					},
 					cli.Flag{
 						name: 'failed'
-						description: 'Only list logs with non-zero exit codes.'
+						description: 'Only list logs with non-zero exit codes. This flag overwrites the --code flag.'
 						flag: cli.FlagType.bool
 					},
 					cli.Flag{
 						name: 'day'
+						abbrev: 'd'
 						description: 'Only list logs started on this day. (format: YYYY-MM-DD)'
 						flag: cli.FlagType.string
 					},
@@ -61,6 +65,11 @@ pub fn cmd() cli.Command {
 						name: 'after'
 						description: 'Only list logs started after this timestamp. (format: YYYY-MM-DD HH:mm:ss)'
 						flag: cli.FlagType.string
+					},
+					cli.Flag{
+						name: 'code'
+						description: 'Only return logs with the given exit code. Prepend with `!` to exclude instead of include. Can be specified multiple times.'
+						flag: cli.FlagType.string_array
 					},
 				]
 				execute: fn (cmd cli.Command) ! {
@@ -131,6 +140,8 @@ pub fn cmd() cli.Command {
 						filter.exit_codes = [
 							'!0',
 						]
+					} else {
+						filter.exit_codes = cmd.flags.get_strings('code')!
 					}
 
 					raw := cmd.flags.get_bool('raw')!

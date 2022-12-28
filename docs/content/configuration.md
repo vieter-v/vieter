@@ -59,10 +59,9 @@ configuration variable required for each command.
       ([GitHub](https://github.com/Menci/docker-archlinuxarm)). This is the
       image used for the Vieter CI builds.
 * `max_log_age`: maximum age of logs (in days). Logs older than this will get
-  cleaned by the log removal daemon. If set to a negative value, no logs are
-  ever removed. The age of logs is determined by the time the build was
-  started.
-    * Default: `-1`
+  cleaned by the log removal daemon. If set to zero, no logs are ever removed.
+  The age of logs is determined by the time the build was started.
+    * Default: `0`
 * `log_removal_schedule`: cron schedule defining when to clean old logs.
     * Default: `0 0` (every day at midnight)
 
