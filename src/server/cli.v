@@ -13,7 +13,7 @@ pub:
 	default_arch         string
 	global_schedule      string = '0 3'
 	base_image           string = 'archlinux:base-devel'
-	max_log_age          int [empty_default]
+	max_log_age          int    [empty_default]
 	log_removal_schedule string = '0 0'
 }
 
