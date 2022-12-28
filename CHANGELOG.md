@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://git.rustybever.be/vieter-v/vieter/src/branch/dev)
 
+* Metrics endpoint for Prometheus integration
+
 ## [0.5.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.5.0)
 
 ### Added

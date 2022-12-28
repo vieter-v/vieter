@@ -148,6 +148,7 @@ pub fn (ctx &Context) is_authenticated() bool {
 	return false
 }
 
+// body sends the given body as an HTTP response.
 pub fn (mut ctx Context) body(status http.Status, content_type string, body string) Result {
 	ctx.status = status
 	ctx.content_type = content_type
@@ -334,11 +335,13 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		labels := [
 			['method', app.req.method.str()]!,
 			['path', app.req.url]!,
-			['status', app.status.int().str()]!
+			['status', app.status.int().str()]!,
 		]
 		app.collector.counter_increment(name: 'http_requests_total', labels: labels)
-		app.collector.histogram_record(time.ticks() - app.page_gen_start, name: 'http_requests_time_ms', labels: labels)
-		/* app.collector.histogram_ */
+		app.collector.histogram_record(time.ticks() - app.page_gen_start,
+			name: 'http_requests_time_ms'
+			labels: labels
+		)
 
 		unsafe {
 			free(app)
