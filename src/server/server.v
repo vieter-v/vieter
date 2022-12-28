@@ -8,6 +8,7 @@ import util
 import db
 import build { BuildJobQueue }
 import cron.expression
+import metrics
 
 const (
 	log_file_name = 'vieter.log'
@@ -107,6 +108,7 @@ pub fn server(conf Config) ! {
 		repo: repo
 		db: db
 		job_queue: build.new_job_queue(global_ce, conf.base_image)
+		collector: metrics.new_default_collector()
 	}
 	app.init_job_queue() or {
 		util.exit_with_message(1, 'Failed to inialize job queue: $err.msg()')
