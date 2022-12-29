@@ -8,6 +8,7 @@ import console.logs
 import console.schedule
 import console.man
 import console.aur
+import console.repos
 import cron
 import agent
 
@@ -20,7 +21,7 @@ fn main() {
 	mut app := cli.Command{
 		name: 'vieter'
 		description: 'Vieter is a lightweight implementation of an Arch repository server.'
-		version: '0.5.0-rc.2'
+		version: '0.5.0'
 		posix_mode: true
 		flags: [
 			cli.Flag{
@@ -48,6 +49,7 @@ fn main() {
 			man.cmd(),
 			aur.cmd(),
 			agent.cmd(),
+			repos.cmd(),
 		]
 	}
 	app.setup()

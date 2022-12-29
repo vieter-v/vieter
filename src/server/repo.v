@@ -10,7 +10,7 @@ import web.response { new_data_response, new_response }
 
 // healthcheck just returns a string, but can be used to quickly check if the
 // server is still responsive.
-['/health'; get]
+['/health'; get; markused]
 pub fn (mut app App) healthcheck() web.Result {
 	return app.json(.ok, new_response('Healthy.'))
 }
@@ -18,7 +18,7 @@ pub fn (mut app App) healthcheck() web.Result {
 // get_repo_file handles all Pacman-related routes. It returns both the
 // repository's archives, but also package archives or the contents of a
 // package's desc file.
-['/:repo/:arch/:filename'; get; head]
+['/:repo/:arch/:filename'; get; head; markused]
 fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Result {
 	mut full_path := ''
 
@@ -48,7 +48,7 @@ fn (mut app App) get_repo_file(repo string, arch string, filename string) web.Re
 }
 
 // put_package handles publishing a package to a repository.
-['/:repo/publish'; auth; post]
+['/:repo/publish'; auth; markused; post]
 fn (mut app App) put_package(repo string) web.Result {
 	// api is a reserved keyword for api routes & should never be allowed to be
 	// a repository.

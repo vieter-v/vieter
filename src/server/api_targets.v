@@ -6,7 +6,7 @@ import db
 import models { Target, TargetArch, TargetFilter }
 
 // v1_get_targets returns the current list of targets.
-['/api/v1/targets'; auth; get]
+['/api/v1/targets'; auth; get; markused]
 fn (mut app App) v1_get_targets() web.Result {
 	filter := models.from_params<TargetFilter>(app.query) or {
 		return app.json(.bad_request, new_response('Invalid query parameters.'))
@@ -17,7 +17,7 @@ fn (mut app App) v1_get_targets() web.Result {
 }
 
 // v1_get_single_target returns the information for a single target.
-['/api/v1/targets/:id'; auth; get]
+['/api/v1/targets/:id'; auth; get; markused]
 fn (mut app App) v1_get_single_target(id int) web.Result {
 	target := app.db.get_target(id) or { return app.status(.not_found) }
 
@@ -25,7 +25,7 @@ fn (mut app App) v1_get_single_target(id int) web.Result {
 }
 
 // v1_post_target creates a new target from the provided query string.
-['/api/v1/targets'; auth; post]
+['/api/v1/targets'; auth; markused; post]
 fn (mut app App) v1_post_target() web.Result {
 	mut params := app.query.clone()
 
@@ -55,7 +55,7 @@ fn (mut app App) v1_post_target() web.Result {
 }
 
 // v1_delete_target removes a given target from the server's list.
-['/api/v1/targets/:id'; auth; delete]
+['/api/v1/targets/:id'; auth; delete; markused]
 fn (mut app App) v1_delete_target(id int) web.Result {
 	app.db.delete_target(id)
 	app.job_queue.invalidate(id)
@@ -64,7 +64,7 @@ fn (mut app App) v1_delete_target(id int) web.Result {
 }
 
 // v1_patch_target updates a target's data with the given query params.
-['/api/v1/targets/:id'; auth; patch]
+['/api/v1/targets/:id'; auth; markused; patch]
 fn (mut app App) v1_patch_target(id int) web.Result {
 	app.db.update_target(id, app.query)
 
