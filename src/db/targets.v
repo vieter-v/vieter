@@ -1,56 +1,6 @@
 module db
 
 import models { Target, TargetArch, TargetFilter }
-import math
-
-// get_targets returns all targets in the database.
-pub fn (db &VieterDb) get_targets(filter TargetFilter) []Target {
-	window_size := 32
-
-	mut out := []Target{}
-	mut targets := []Target{cap: window_size}
-
-	mut offset := 0
-	mut filtered_offset := u64(0)
-
-	for out.len < filter.limit {
-		targets = sql db.conn {
-			select from Target order by id limit window_size offset offset
-		}
-		offset += targets.len
-
-		if targets.len == 0 {
-			break
-		}
-
-		if filter.repo != '' {
-			targets = targets.filter(it.repo == filter.repo)
-		}
-
-		if filter.query != '' {
-			targets = targets.filter(it.url.contains(filter.query) || it.path.contains(filter.query)
-				|| it.branch.contains(filter.query))
-		}
-
-		if filtered_offset > filter.offset {
-			end_index := math.min(filter.limit - u64(out.len), u64(targets.len))
-
-			out << targets[0..end_index]
-		}
-		// We start counting targets in the middle of the current window
-		else if filtered_offset + u64(targets.len) > filter.offset {
-			start_index := filter.offset - filtered_offset
-			end_index := start_index +
-				math.min(filter.limit - u64(out.len), u64(targets.len) - start_index)
-
-			out << targets[start_index..end_index]
-		}
-
-		filtered_offset += u64(targets.len)
-	}
-
-	return out
-}
 
 // get_target tries to return a specific target.
 pub fn (db &VieterDb) get_target(target_id int) ?Target {

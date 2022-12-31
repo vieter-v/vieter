@@ -31,17 +31,8 @@ pub mut:
 // init_job_queue populates a fresh job queue with all the targets currently
 // stored in the database.
 fn (mut app App) init_job_queue() ! {
-	// Initialize build queues
-	mut targets := app.db.get_targets(limit: 25)
-	mut i := u64(0)
-
-	for targets.len > 0 {
-		for target in targets {
-			app.job_queue.insert_all(target)!
-		}
-
-		i += 25
-		targets = app.db.get_targets(limit: 25, offset: i)
+	for target in app.db.targets(limit: 0) {
+		app.job_queue.insert_all(target)!
 	}
 }
 
