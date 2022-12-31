@@ -40,6 +40,12 @@ pub fn cmd() cli.Command {
 						description: 'Only return targets that publish to this repo.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'query'
+						abbrev: 'q'
+						description: 'Search string to filter targets by.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
@@ -60,6 +66,11 @@ pub fn cmd() cli.Command {
 					repo := cmd.flags.get_string('repo')!
 					if repo != '' {
 						filter.repo = repo
+					}
+
+					query := cmd.flags.get_string('query')!
+					if query != '' {
+						filter.query = query
 					}
 
 					raw := cmd.flags.get_bool('raw')!

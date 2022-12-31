@@ -73,4 +73,5 @@ pub mut:
 	limit  u64 = 25
 	offset u64
 	repo   string
+	query  string
 }

@@ -81,3 +81,6 @@ fn (mut app App) v1_patch_target(id int) web.Result {
 
 	return app.json(.ok, new_data_response(target))
 }
+
+['/api/v1/targets/search'; auth; get; markused]
+fn (mut app App) v1_search_targets()
