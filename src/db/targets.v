@@ -1,6 +1,6 @@
 module db
 
-import models { Target, TargetArch, TargetFilter }
+import models { Target, TargetArch }
 
 // get_target tries to return a specific target.
 pub fn (db &VieterDb) get_target(target_id int) ?Target {
