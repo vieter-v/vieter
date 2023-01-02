@@ -74,4 +74,5 @@ pub mut:
 	offset u64
 	repo   string
 	query  string
+	arch   string
 }

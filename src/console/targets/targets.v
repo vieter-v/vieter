@@ -46,6 +46,11 @@ pub fn cmd() cli.Command {
 						description: 'Search string to filter targets by.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'arch'
+						description: 'Only list targets that build for this arch.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
@@ -71,6 +76,11 @@ pub fn cmd() cli.Command {
 					query := cmd.flags.get_string('query')!
 					if query != '' {
 						filter.query = query
+					}
+
+					arch := cmd.flags.get_string('arch')!
+					if arch != '' {
+						filter.arch = arch
 					}
 
 					raw := cmd.flags.get_bool('raw')!

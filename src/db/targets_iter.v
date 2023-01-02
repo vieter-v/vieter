@@ -54,6 +54,10 @@ fn (mut ti TargetsIterator) advance_window() {
 			ti.window = ti.window.filter(it.repo == ti.filter.repo)
 		}
 
+		if ti.filter.arch != '' {
+			ti.window = ti.window.filter(it.arch.any(it.value == ti.filter.arch))
+		}
+
 		if ti.filter.query != '' {
 			ti.window = ti.window.filter(it.url.contains(ti.filter.query)
 				|| it.path.contains(ti.filter.query) || it.branch.contains(ti.filter.query))
