@@ -8,6 +8,7 @@ import util
 import db
 import build { BuildJobQueue }
 import cron.expression
+import metrics
 
 const (
 	log_file_name = 'vieter.log'
@@ -100,12 +101,19 @@ pub fn server(conf Config) ! {
 		util.exit_with_message(1, 'Failed to initialize database: $err.msg()')
 	}
 
+	collector := if conf.collect_metrics {
+		&metrics.MetricsCollector(metrics.new_default_collector())
+	} else {
+		&metrics.MetricsCollector(metrics.new_null_collector())
+	}
+
 	mut app := &App{
 		logger: logger
 		api_key: conf.api_key
 		conf: conf
 		repo: repo
 		db: db
+		collector: collector
 		job_queue: build.new_job_queue(global_ce, conf.base_image)
 	}
 	app.init_job_queue() or {

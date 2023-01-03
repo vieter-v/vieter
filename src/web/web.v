@@ -11,6 +11,7 @@ import net.urllib
 import time
 import json
 import log
+import metrics
 
 // The Context struct represents the Context which hold the HTTP request and response.
 // It has fields for the query, form, files.
@@ -27,6 +28,8 @@ pub mut:
 	conn &net.TcpConn = unsafe { nil }
 	// Gives access to a shared logger object
 	logger shared log.Log
+	// Used to collect metrics on the web server
+	collector &metrics.MetricsCollector
 	// time.ticks() from start of web connection handle.
 	// You can use it to determine how much time is spent on your request.
 	page_gen_start i64
@@ -143,6 +146,15 @@ pub fn (ctx &Context) is_authenticated() bool {
 	}
 
 	return false
+}
+
+// body sends the given body as an HTTP response.
+pub fn (mut ctx Context) body(status http.Status, content_type string, body string) Result {
+	ctx.status = status
+	ctx.content_type = content_type
+	ctx.send_response(body)
+
+	return Result{}
 }
 
 // json<T> HTTP_OK with json_s as payload with content-type `application/json`
@@ -319,6 +331,18 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 			app.logger.flush()
 		}
 
+		// Record how long request took to process
+		labels := [
+			['method', app.req.method.str()]!,
+			['path', app.req.url]!,
+			['status', app.status.int().str()]!,
+		]
+		app.collector.counter_increment(name: 'http_requests_total', labels: labels)
+		app.collector.histogram_record(time.ticks() - app.page_gen_start,
+			name: 'http_requests_time_ms'
+			labels: labels
+		)
+
 		unsafe {
 			free(app)
 		}
@@ -384,6 +408,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		static_mime_types: app.static_mime_types
 		reader: reader
 		logger: app.logger
+		collector: app.collector
 		api_key: app.api_key
 	}
 
