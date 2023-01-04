@@ -55,6 +55,8 @@ Parameter | Description
 limit | Maximum amount of results to return.
 offset | Offset of results.
 repo | Limit results to targets that publish to the given repo.
+query | Only return targets that have this substring in their URL, path or branch.
+arch | Only return targets that publish to this arch.
 
 ## Get specific target
 

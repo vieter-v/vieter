@@ -63,6 +63,7 @@ fn (mut ti TargetsIterator) advance_window() {
 				|| it.path.contains(ti.filter.query) || it.branch.contains(ti.filter.query))
 		}
 
+		// We break out of the loop once we found a non-empty window
 		if ti.window.len > 0 {
 			break
 		}
@@ -75,7 +76,8 @@ pub fn (mut ti TargetsIterator) next() ?Target {
 		return none
 	}
 
-	// The first call to `next` will cause the sliding window to move to where the requested offset starts
+	// The first call to `next` will cause the sliding window to move to where
+	// the requested offset starts
 	if !ti.started {
 		ti.advance_window()
 
