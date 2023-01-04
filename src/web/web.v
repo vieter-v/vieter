@@ -335,11 +335,15 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		labels := [
 			['method', app.req.method.str()]!,
 			['path', app.req.url]!,
+			// Not all methods properly set this value yet I think
 			['status', app.status.int().str()]!,
 		]
 		app.collector.counter_increment(name: 'http_requests_total', labels: labels)
-		app.collector.histogram_record(time.ticks() - app.page_gen_start,
-			name: 'http_requests_time_ms'
+		// Prometheus prefers metrics containing base units, as defined here
+		// https://prometheus.io/docs/practices/naming/
+		app.collector.histogram_record(f64(time.ticks() - app.page_gen_start) / 1000,
+			
+			name: 'http_requests_duration_seconds'
 			labels: labels
 		)
 

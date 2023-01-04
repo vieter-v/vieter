@@ -10,8 +10,9 @@ fn (mut app App) v1_metrics() web.Result {
 		return app.status(.not_found)
 	}
 
-	mut exporter := metrics.new_prometheus_exporter([0.01, 0.05, 0.1, 0.5, 1, 100])
-	exporter.load(app.collector)
+	mut exporter := metrics.new_prometheus_exporter([0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5,
+		10])
+	exporter.load('vieter_', app.collector)
 
 	// TODO stream to connection instead
 	body := exporter.export_to_string() or { return app.status(.internal_server_error) }
