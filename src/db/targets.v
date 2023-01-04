@@ -1,25 +1,6 @@
 module db
 
-import models { Target, TargetArch, TargetFilter }
-
-// get_targets returns all targets in the database.
-pub fn (db &VieterDb) get_targets(filter TargetFilter) []Target {
-	// This seems to currently be blocked by a bug in the ORM, I'll have to ask
-	// around.
-	if filter.repo != '' {
-		res := sql db.conn {
-			select from Target where repo == filter.repo order by id limit filter.limit offset filter.offset
-		}
-
-		return res
-	}
-
-	res := sql db.conn {
-		select from Target order by id limit filter.limit offset filter.offset
-	}
-
-	return res
-}
+import models { Target, TargetArch }
 
 // get_target tries to return a specific target.
 pub fn (db &VieterDb) get_target(target_id int) ?Target {

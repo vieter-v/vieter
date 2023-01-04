@@ -11,9 +11,9 @@ fn (mut app App) v1_get_targets() web.Result {
 	filter := models.from_params<TargetFilter>(app.query) or {
 		return app.json(.bad_request, new_response('Invalid query parameters.'))
 	}
-	targets := app.db.get_targets(filter)
+	mut iter := app.db.targets(filter)
 
-	return app.json(.ok, new_data_response(targets))
+	return app.json(.ok, new_data_response(iter.collect()))
 }
 
 // v1_get_single_target returns the information for a single target.
