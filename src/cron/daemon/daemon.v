@@ -269,6 +269,6 @@ fn (mut d Daemon) clean_old_base_images() {
 		// wasn't deleted. Therefore, we move the index over. If the function
 		// returns true, the array's length has decreased by one so we don't
 		// move the index.
-		dd.remove_image(d.builder_images[i]) or { i += 1 }
+		dd.image_remove(d.builder_images[i]) or { i += 1 }
 	}
 }

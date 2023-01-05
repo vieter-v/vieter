@@ -57,7 +57,7 @@ pub fn create_build_image(base_image string) !string {
 	image_tag := if image_parts.len > 1 { image_parts[1] } else { 'latest' }
 
 	// We pull the provided image
-	dd.pull_image(image_name, image_tag)!
+	dd.image_pull(image_name, image_tag)!
 
 	id := dd.container_create(c)!.id
 	// id := docker.create_container(c)!
@@ -79,7 +79,7 @@ pub fn create_build_image(base_image string) !string {
 	// TODO also add the base image's name into the image name to prevent
 	// conflicts.
 	tag := time.sys_mono_now().str()
-	image := dd.create_image_from_container(id, 'vieter-build', tag)!
+	image := dd.image_from_container(id, 'vieter-build', tag)!
 	dd.container_remove(id)!
 
 	return image.id

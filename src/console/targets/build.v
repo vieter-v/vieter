@@ -26,7 +26,7 @@ fn build(conf Config, target_id int, force bool) ! {
 		dd.close() or {}
 	}
 
-	dd.remove_image(image_id)!
+	dd.image_remove(image_id)!
 
 	println('Uploading logs to Vieter...')
 	c.add_build_log(target.id, res.start_time, res.end_time, build_arch, res.exit_code,
