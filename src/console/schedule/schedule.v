@@ -1,7 +1,7 @@
 module schedule
 
 import cli
-import cron.expression { parse_expression }
+import cron
 import time
 
 // cmd returns the cli submodule for previewing a cron schedule.
@@ -19,10 +19,10 @@ pub fn cmd() cli.Command {
 			},
 		]
 		execute: fn (cmd cli.Command) ! {
-			ce := parse_expression(cmd.args.join(' '))!
+			ce := cron.parse_expression(cmd.args.join(' '))!
 			count := cmd.flags.get_int('count')!
 
-			for t in ce.next_n(time.now(), count)! {
+			for t in ce.next_n(time.now(), count) {
 				println(t)
 			}
 		}

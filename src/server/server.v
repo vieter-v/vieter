@@ -7,7 +7,7 @@ import repo
 import util
 import db
 import build { BuildJobQueue }
-import cron.expression
+import cron
 import metrics
 
 const (
@@ -43,11 +43,11 @@ pub fn server(conf Config) ! {
 		util.exit_with_message(1, "'any' is not allowed as the value for default_arch.")
 	}
 
-	global_ce := expression.parse_expression(conf.global_schedule) or {
+	global_ce := cron.parse_expression(conf.global_schedule) or {
 		util.exit_with_message(1, 'Invalid global cron expression: $err.msg()')
 	}
 
-	log_removal_ce := expression.parse_expression(conf.log_removal_schedule) or {
+	log_removal_ce := cron.parse_expression(conf.log_removal_schedule) or {
 		util.exit_with_message(1, 'Invalid log removal cron expression: $err.msg()')
 	}
 

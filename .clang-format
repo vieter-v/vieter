@@ -1,0 +1,4 @@
+# To stay consistent with the V formatting style, we use tabs
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4

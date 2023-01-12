@@ -1,6 +1,6 @@
 # =====CONFIG=====
 SRC_DIR := src
-SOURCES != find '$(SRC_DIR)' -iname '*.v'
+SRCS != find '$(SRC_DIR)' -iname '*.v'
 
 V_PATH ?= v
 V := $(V_PATH) -showcc -gc boehm -W -d use_openssl -skip-unused
@@ -9,8 +9,12 @@ all: vieter
 
 
 # =====COMPILATION=====
+.PHONY: libvieter
+libvieter:
+	CFLAGS='-O3' make -C '$(SRC_DIR)/libvieter'
+
 # Regular binary
-vieter: $(SOURCES)
+vieter: $(SOURCES) libvieter
 	$(V) -g -o vieter $(SRC_DIR)
 
 # Debug build using gcc
@@ -18,7 +22,7 @@ vieter: $(SOURCES)
 # multi-threaded and causes issues when running vieter inside gdb.
 .PHONY: debug
 debug: dvieter
-dvieter: $(SOURCES)
+dvieter: $(SOURCES) libvieter
 	$(V_PATH) -showcc -keepc -cg -o dvieter $(SRC_DIR)
 
 # Run the debug build inside gdb
@@ -29,12 +33,12 @@ gdb: dvieter
 # Optimised production build
 .PHONY: prod
 prod: pvieter
-pvieter: $(SOURCES)
+pvieter: $(SOURCES) libvieter
 	$(V) -o pvieter -prod $(SRC_DIR)
 
 # Only generate C code
 .PHONY: c
-c: $(SOURCES)
+c: $(SOURCES) libvieter
 	$(V) -o vieter.c $(SRC_DIR)
 
 
@@ -67,6 +71,7 @@ man: vieter
 
 
 # =====OTHER=====
+# Linting
 .PHONY: lint
 lint:
 	$(V) fmt -verify $(SRC_DIR)
@@ -74,18 +79,24 @@ lint:
 	$(V_PATH) missdoc -p $(SRC_DIR)
 	@ [ $$($(V_PATH) missdoc -p $(SRC_DIR) | wc -l) = 0 ]
 
-# Format the V codebase
+
+# Formatting
 .PHONY: fmt
 fmt:
 	$(V) fmt -w $(SRC_DIR)
 
+
+# Testing
 .PHONY: test
 test:
-	$(V) test $(SRC_DIR)
+	$(V) -g test $(SRC_DIR)
 
+
+# Cleaning
 .PHONY: clean
 clean:
 	rm -rf 'data' 'vieter' 'dvieter' 'pvieter' 'vieter.c' 'pkg' 'src/vieter' *.pkg.tar.zst 'suvieter' 'afvieter' '$(SRC_DIR)/_docs' 'docs/public'
+	make -C '$(SRC_DIR)/libvieter' clean
 
 
 # =====EXPERIMENTAL=====
