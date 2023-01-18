@@ -88,7 +88,7 @@ fmt:
 
 # Testing
 .PHONY: test
-test:
+test: libvieter
 	$(V) -g test $(SRC_DIR)
 
 
