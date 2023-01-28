@@ -58,7 +58,7 @@ fn (ce1 Expression) == (ce2 Expression) bool {
 	return true
 }
 
-[typeef]
+[typedef]
 struct C.vieter_cron_simple_time {
 	year   int
 	month  int
