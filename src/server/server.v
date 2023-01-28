@@ -92,11 +92,14 @@ pub fn server(conf Config) ! {
 		util.exit_with_message(1, 'Failed to initialize database: $err.msg()')
 	}
 
-	collector := if conf.collect_metrics {
+	mut collector := if conf.collect_metrics {
 		&metrics.MetricsCollector(metrics.new_default_collector())
 	} else {
 		&metrics.MetricsCollector(metrics.new_null_collector())
 	}
+	
+	collector.histogram_buckets_set('http_requests_duration_seconds', [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5,
+		10] )
 
 	mut app := &App{
 		logger: logger
