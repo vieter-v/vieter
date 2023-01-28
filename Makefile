@@ -11,7 +11,7 @@ all: vieter
 # =====COMPILATION=====
 .PHONY: libvieter
 libvieter:
-	CFLAGS='-O3' make -C '$(SRC_DIR)/libvieter'
+	make -C '$(SRC_DIR)/libvieter' CFLAGS='-O3' 
 
 # Regular binary
 vieter: $(SOURCES) libvieter
