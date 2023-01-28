@@ -35,7 +35,7 @@ prepare() {
 
     export VMODULES="${srcdir}/.vmodules"
 
-    cd "${pkgname}/src" && v install
+    cd src && v install
 }
 
 build() {
