@@ -1,3 +1,6 @@
 [submodule "docs/themes/hugo-book"]
 	path = docs/themes/hugo-book
 	url = https://github.com/alex-shpak/hugo-book
+[submodule "src/libvieter"]
+	path = src/libvieter
+	url = https://git.rustybever.be/vieter-v/libvieter

@@ -9,7 +9,6 @@ import console.schedule
 import console.man
 import console.aur
 import console.repos
-import cron
 import agent
 
 fn main() {
@@ -43,7 +42,6 @@ fn main() {
 		commands: [
 			server.cmd(),
 			targets.cmd(),
-			cron.cmd(),
 			logs.cmd(),
 			schedule.cmd(),
 			man.cmd(),

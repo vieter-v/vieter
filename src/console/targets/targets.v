@@ -2,7 +2,7 @@ module targets
 
 import cli
 import conf as vconf
-import cron.expression { parse_expression }
+import cron
 import client { NewTarget }
 import console
 import models { TargetFilter }
@@ -295,7 +295,7 @@ fn patch(conf Config, id string, params map[string]string) ! {
 	// We check the cron expression first because it's useless to send an
 	// invalid one to the server.
 	if 'schedule' in params && params['schedule'] != '' {
-		parse_expression(params['schedule']) or {
+		cron.parse_expression(params['schedule']) or {
 			return error('Invalid cron expression: $err.msg()')
 		}
 	}

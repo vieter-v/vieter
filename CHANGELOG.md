@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Search in list of targets using API & CLI
 * Allow filtering targets by arch value
 
+### Changed
+
+* Rewrote cron expression logic in C
+
+### Removed
+
+* Deprecated cron daemon
+
 ## [0.5.0](https://git.rustybever.be/vieter-v/vieter/src/tag/0.5.0)
 
 ### Added
