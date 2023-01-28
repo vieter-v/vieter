@@ -15,7 +15,7 @@ source=(
     "${pkgname}::git+https://git.rustybever.be/vieter-v/vieter#branch=dev"
     "libvieter::git+https://git.rustybever.be/vieter-v/libvieter"
 )
-md5sums=('SKIP')
+md5sums=('SKIP' 'SKIP')
 provides=('vieter')
 conflicts=('vieter')
 
