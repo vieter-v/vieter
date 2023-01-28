@@ -11,27 +11,37 @@ makedepends=('git' 'vlang')
 arch=('x86_64' 'aarch64')
 url='https://git.rustybever.be/vieter-v/vieter'
 license=('AGPL3')
-source=("$pkgname::git+https://git.rustybever.be/vieter-v/vieter#branch=dev")
+source=(
+    "${pkgname}::git+https://git.rustybever.be/vieter-v/vieter#branch=dev"
+    "libvieter::git+https://git.rustybever.be/vieter-v/libvieter"
+)
 md5sums=('SKIP')
 provides=('vieter')
 conflicts=('vieter')
 
 pkgver() {
-    cd "$pkgname"
+    cd "${pkgname}"
 
     git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 prepare() {
-    export VMODULES="$srcdir/.vmodules"
+    cd "${pkgname}"
 
-    cd "$pkgname/src" && v install
+    # Add the libvieter submodule
+    git submodule init
+    git config submodules.src/libvieter.url "${srcdir}/libvieter"
+    git -c protocol.file.allow=always submodule update
+
+    export VMODULES="${srcdir}/.vmodules"
+
+    cd "${pkgname}/src" && v install
 }
 
 build() {
-    export VMODULES="$srcdir/.vmodules"
+    export VMODULES="${srcdir}/.vmodules"
 
-    cd "$pkgname"
+    cd "${pkgname}"
 
     make prod
 
@@ -42,9 +52,9 @@ build() {
 }
 
 package() {
-    install -dm755 "$pkgdir/usr/bin"
-    install -Dm755 "$pkgname/pvieter" "$pkgdir/usr/bin/vieter"
+    install -dm755 "${pkgdir}/usr/bin"
+    install -Dm755 "${pkgname}/pvieter" "${pkgdir}/usr/bin/vieter"
 
-    install -dm755 "$pkgdir/usr/share/man/man1"
-    install -Dm644 "$pkgname/man"/*.1 "$pkgdir/usr/share/man/man1"
+    install -dm755 "${pkgdir}/usr/share/man/man1"
+    install -Dm644 "${pkgname}/man"/*.1 "${pkgdir}/usr/share/man/man1"
 }

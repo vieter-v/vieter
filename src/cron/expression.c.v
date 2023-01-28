@@ -5,6 +5,7 @@ module cron
 #flag -lvieter
 #include "vieter_cron.h"
 
+[typedef]
 pub struct C.vieter_cron_expression {
 	minutes      &u8
 	hours        &u8
@@ -57,6 +58,7 @@ fn (ce1 Expression) == (ce2 Expression) bool {
 	return true
 }
 
+[typeef]
 struct C.vieter_cron_simple_time {
 	year   int
 	month  int
