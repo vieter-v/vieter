@@ -51,7 +51,7 @@ pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ! {
 // match_array_in_array<T> returns how many elements of a2 overlap with a1. For
 // example, if a1 = "abcd" & a2 = "cd", the result will be 2. If the match is
 // not at the end of a1, the result is 0.
-pub fn match_array_in_array<T>(a1 []T, a2 []T) int {
+pub fn match_array_in_array[T](a1 []T, a2 []T) int {
 	mut i := 0
 	mut match_len := 0
 

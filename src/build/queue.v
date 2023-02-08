@@ -36,7 +36,7 @@ pub struct BuildJobQueue {
 mut:
 	mutex shared util.Dummy
 	// For each architecture, a priority queue is tracked
-	queues map[string]MinHeap<BuildJob>
+	queues map[string]MinHeap[BuildJob]
 	// When a target is removed from the server or edited, its previous build
 	// configs will be invalid. This map allows for those to be simply skipped
 	// by ignoring any build configs created before this timestamp.
@@ -74,7 +74,7 @@ pub struct InsertConfig {
 pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 	lock q.mutex {
 		if input.arch !in q.queues {
-			q.queues[input.arch] = MinHeap<BuildJob>{}
+			q.queues[input.arch] = MinHeap[BuildJob]{}
 		}
 
 		mut job := BuildJob{
@@ -86,7 +86,7 @@ pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 		if !input.now {
 			ce := if input.target.schedule != '' {
 				cron.parse_expression(input.target.schedule) or {
-					return error("Error while parsing cron expression '$input.target.schedule' (id $input.target.id): $err.msg()")
+					return error("Error while parsing cron expression '${input.target.schedule}' (id ${input.target.id}): ${err.msg()}")
 				}
 			} else {
 				q.default_schedule

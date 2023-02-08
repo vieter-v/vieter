@@ -51,7 +51,7 @@ pub fn (mut d AgentDaemon) run() {
 
 	for {
 		if sleep_time > 0 {
-			d.ldebug('Sleeping for $sleep_time')
+			d.ldebug('Sleeping for ${sleep_time}')
 			time.sleep(sleep_time)
 		}
 
@@ -80,14 +80,14 @@ pub fn (mut d AgentDaemon) run() {
 			d.ldebug('Polling for new jobs')
 
 			new_configs := d.client.poll_jobs(d.conf.arch, finished + empty) or {
-				d.lerror('Failed to poll jobs: $err.msg()')
+				d.lerror('Failed to poll jobs: ${err.msg()}')
 
 				// TODO pick a better delay here
 				sleep_time = 5 * time.second
 				continue
 			}
 
-			d.ldebug('Received $new_configs.len jobs')
+			d.ldebug('Received ${new_configs.len} jobs')
 
 			last_poll_time = time.now()
 
@@ -95,7 +95,7 @@ pub fn (mut d AgentDaemon) run() {
 				// Make sure a recent build base image is available for
 				// building the config
 				if !d.images.up_to_date(config.base_image) {
-					d.linfo('Building builder image from base image $config.base_image')
+					d.linfo('Building builder image from base image ${config.base_image}')
 
 					// TODO handle this better than to just skip the config
 					d.images.refresh_image(config.base_image) or {
@@ -154,7 +154,7 @@ fn (mut d AgentDaemon) start_build(config BuildConfig) bool {
 			stdatomic.store_u64(&d.atomics[i], agent.build_running)
 			d.builds[i] = config
 
-			go d.run_build(i, config)
+			spawn d.run_build(i, config)
 
 			return true
 		}
@@ -165,7 +165,7 @@ fn (mut d AgentDaemon) start_build(config BuildConfig) bool {
 
 // run_build actually starts the build process for a given target.
 fn (mut d AgentDaemon) run_build(build_index int, config BuildConfig) {
-	d.linfo('started build: $config')
+	d.linfo('started build: ${config}')
 
 	// 0 means success, 1 means failure
 	mut status := 0
@@ -176,21 +176,21 @@ fn (mut d AgentDaemon) run_build(build_index int, config BuildConfig) {
 	}
 
 	res := build.build_config(d.client.address, d.client.api_key, new_config) or {
-		d.ldebug('build_config error: $err.msg()')
+		d.ldebug('build_config error: ${err.msg()}')
 		status = 1
 
 		build.BuildResult{}
 	}
 
 	if status == 0 {
-		d.linfo('Uploading build logs for $config')
+		d.linfo('Uploading build logs for ${config}')
 
 		// TODO use the arch value here
 		build_arch := os.uname().machine
 		d.client.add_build_log(config.target_id, res.start_time, res.end_time, build_arch,
-			res.exit_code, res.logs) or { d.lerror('Failed to upload logs for $config') }
+			res.exit_code, res.logs) or { d.lerror('Failed to upload logs for ${config}') }
 	} else {
-		d.lwarn('an error occurred during build: $config')
+		d.lwarn('an error occurred during build: ${config}')
 	}
 
 	stdatomic.store_u64(&d.atomics[build_index], agent.build_done)

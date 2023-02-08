@@ -45,7 +45,7 @@ pub fn create_build_image(base_image string) !string {
 
 	c := docker.NewContainer{
 		image: base_image
-		env: ['BUILD_SCRIPT=$cmds_str']
+		env: ['BUILD_SCRIPT=${cmds_str}']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
 	}
@@ -118,10 +118,10 @@ pub fn build_config(address string, api_key string, config BuildConfig) !BuildRe
 	base64_script := base64.encode_str(build_script)
 
 	c := docker.NewContainer{
-		image: '$config.base_image'
+		image: '${config.base_image}'
 		env: [
-			'BUILD_SCRIPT=$base64_script',
-			'API_KEY=$api_key',
+			'BUILD_SCRIPT=${base64_script}',
+			'API_KEY=${api_key}',
 			// `archlinux:base-devel` does not correctly set the path variable,
 			// causing certain builds to fail. This fixes it.
 			'PATH=${build.path_dirs.join(':')}',

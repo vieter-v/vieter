@@ -103,7 +103,7 @@ fn parse_pkg_info_string(pkg_info_str &string) !PkgInfo {
 // NOTE: this command only supports zstd-, xz- & gzip-compressed tarballs.
 pub fn read_pkg_archive(pkg_path string) !Pkg {
 	if !os.is_file(pkg_path) {
-		return error("'$pkg_path' doesn't exist or isn't a file.")
+		return error("'${pkg_path}' doesn't exist or isn't a file.")
 	}
 
 	a := C.archive_read_new()

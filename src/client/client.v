@@ -22,7 +22,7 @@ pub fn new(address string, api_key string) Client {
 // send_request_raw sends an HTTP request, returning the http.Response object.
 // It encodes the params so that they're safe to pass as HTTP query parameters.
 fn (c &Client) send_request_raw(method Method, url string, params map[string]string, body string) !http.Response {
-	mut full_url := '$c.address$url'
+	mut full_url := '${c.address}${url}'
 
 	if params.len > 0 {
 		mut params_escaped := map[string]string{}
@@ -33,9 +33,9 @@ fn (c &Client) send_request_raw(method Method, url string, params map[string]str
 			params_escaped[k] = urllib.query_escape(v)
 		}
 
-		params_str := params_escaped.keys().map('$it=${params_escaped[it]}').join('&')
+		params_str := params_escaped.keys().map('${it}=${params_escaped[it]}').join('&')
 
-		full_url = '$full_url?$params_str'
+		full_url = '${full_url}?${params_str}'
 	}
 
 	// Looking at the source code, this function doesn't actually fail, so I'm
@@ -49,13 +49,13 @@ fn (c &Client) send_request_raw(method Method, url string, params map[string]str
 }
 
 // send_request<T> just calls send_request_with_body<T> with an empty body.
-fn (c &Client) send_request<T>(method Method, url string, params map[string]string) !Response<T> {
-	return c.send_request_with_body<T>(method, url, params, '')
+fn (c &Client) send_request[T](method Method, url string, params map[string]string) !Response[T] {
+	return c.send_request_with_body[T](method, url, params, '')
 }
 
 // send_request_with_body<T> calls send_request_raw_response & parses its
 // output as a Response<T> object.
-fn (c &Client) send_request_with_body<T>(method Method, url string, params map[string]string, body string) !Response<T> {
+fn (c &Client) send_request_with_body[T](method Method, url string, params map[string]string, body string) !Response[T] {
 	res := c.send_request_raw(method, url, params, body)!
 	status := res.status()
 
@@ -64,12 +64,12 @@ fn (c &Client) send_request_with_body<T>(method Method, url string, params map[s
 	if status.is_error() {
 		// A non-successful status call will have an empty body
 		if res.body == '' {
-			return error('Error $res.status_code ($status.str()): (empty response)')
+			return error('Error ${res.status_code} (${status.str()}): (empty response)')
 		}
 
-		data := json.decode(Response<string>, res.body)!
+		data := json.decode(Response[string], res.body)!
 
-		return error('Status $res.status_code ($status.str()): $data.message')
+		return error('Status ${res.status_code} (${status.str()}): ${data.message}')
 	}
 
 	// Just return an empty successful response
@@ -77,7 +77,7 @@ fn (c &Client) send_request_with_body<T>(method Method, url string, params map[s
 		return new_data_response(T{})
 	}
 
-	data := json.decode(Response<T>, res.body)!
+	data := json.decode(Response[T], res.body)!
 
 	return data
 }

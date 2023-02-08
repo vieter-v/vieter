@@ -10,7 +10,7 @@ const attrs_to_ignore = ['auth', 'markused']
 // Parsing function attributes for methods and path.
 fn parse_attrs(name string, attrs []string) !([]http.Method, string) {
 	if attrs.len == 0 {
-		return [http.Method.get], '/$name'
+		return [http.Method.get], '/${name}'
 	}
 
 	mut x := attrs.clone()
@@ -45,7 +45,7 @@ fn parse_attrs(name string, attrs []string) !([]http.Method, string) {
 		methods = [http.Method.get]
 	}
 	if path == '' {
-		path = '/$name'
+		path = '/${name}'
 	}
 	// Make path lowercase for case-insensitive comparisons
 	return methods, path.to_lower()

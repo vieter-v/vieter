@@ -25,7 +25,7 @@ fn test_not_allowed() {
 	for exp in illegal_expressions {
 		res = false
 		parse_expression(exp) or { res = true }
-		assert res, "'$exp' should produce an error"
+		assert res, "'${exp}' should produce an error"
 	}
 }
 

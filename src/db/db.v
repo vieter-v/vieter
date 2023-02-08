@@ -55,7 +55,7 @@ pub fn init(db_path string) !VieterDb {
 		version_num := i + 1
 
 		// vfmt does not like these dots
-		println('Applying migration $version_num' + '...')
+		println('Applying migration ${version_num}' + '...')
 
 		// The sqlite library seems to not like it when multiple statements are
 		// passed in a single exec. Therefore, we split them & run them all
@@ -64,7 +64,7 @@ pub fn init(db_path string) !VieterDb {
 			res := conn.exec_none(part)
 
 			if res != sqlite.sqlite_done {
-				return error('An error occurred while applying migration $version_num: SQLite error code $res')
+				return error('An error occurred while applying migration ${version_num}: SQLite error code ${res}')
 			}
 		}
 
@@ -82,7 +82,7 @@ pub fn init(db_path string) !VieterDb {
 
 // row_into<T> converts an sqlite.Row into a given type T by parsing each field
 // from a string according to its type.
-pub fn row_into<T>(row sqlite.Row) T {
+pub fn row_into[T](row sqlite.Row) T {
 	mut i := 0
 	mut out := T{}
 

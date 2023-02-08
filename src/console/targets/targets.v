@@ -54,7 +54,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					mut filter := TargetFilter{}
 
@@ -113,7 +113,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					t := NewTarget{
 						kind: cmd.flags.get_string('kind')!
@@ -135,7 +135,7 @@ pub fn cmd() cli.Command {
 				description: 'Remove a target that matches the given id.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					remove(conf, cmd.args[0])!
 				}
@@ -147,7 +147,7 @@ pub fn cmd() cli.Command {
 				description: 'Show detailed information for the target matching the id.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					info(conf, cmd.args[0])!
 				}
@@ -196,7 +196,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					found := cmd.flags.get_all_found()
 
@@ -235,7 +235,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					remote := cmd.flags.get_bool('remote')!
 					force := cmd.flags.get_bool('force')!
@@ -280,7 +280,7 @@ fn add(conf Config, t &NewTarget, raw bool) ! {
 	if raw {
 		println(target_id)
 	} else {
-		println('Target added with id $target_id')
+		println('Target added with id ${target_id}')
 	}
 }
 
@@ -296,7 +296,7 @@ fn patch(conf Config, id string, params map[string]string) ! {
 	// invalid one to the server.
 	if 'schedule' in params && params['schedule'] != '' {
 		cron.parse_expression(params['schedule']) or {
-			return error('Invalid cron expression: $err.msg()')
+			return error('Invalid cron expression: ${err.msg()}')
 		}
 	}
 

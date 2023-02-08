@@ -4,17 +4,17 @@ import time
 
 // from_params<T> creates a new instance of T from the given map by parsing all
 // of its fields from the map.
-pub fn from_params<T>(params map[string]string) ?T {
+pub fn from_params[T](params map[string]string) ?T {
 	mut o := T{}
 
-	patch_from_params<T>(mut o, params)?
+	patch_from_params[T](mut o, params)?
 
 	return o
 }
 
 // patch_from_params<T> updates the given T object with the params defined in
 // the map.
-pub fn patch_from_params<T>(mut o T, params map[string]string) ? {
+pub fn patch_from_params[T](mut o T, params map[string]string) ? {
 	$for field in T.fields {
 		if field.name in params && params[field.name] != '' {
 			$if field.typ is string {
@@ -37,7 +37,7 @@ pub fn patch_from_params<T>(mut o T, params map[string]string) ? {
 }
 
 // params_from<T> converts a given T struct into a map of strings.
-pub fn params_from<T>(o &T) map[string]string {
+pub fn params_from[T](o &T) map[string]string {
 	mut out := map[string]string{}
 
 	$for field in T.fields {

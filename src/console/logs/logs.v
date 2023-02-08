@@ -74,7 +74,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					mut filter := BuildLogFilter{}
 
@@ -156,7 +156,7 @@ pub fn cmd() cli.Command {
 				description: 'Remove a build log that matches the given id.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					remove(conf, cmd.args[0])!
 				}
@@ -168,7 +168,7 @@ pub fn cmd() cli.Command {
 				description: 'Show all info for a specific build log.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					id := cmd.args[0].int()
 					info(conf, id)!
@@ -181,7 +181,7 @@ pub fn cmd() cli.Command {
 				description: 'Output the content of a build log to stdout.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					id := cmd.args[0].int()
 					content(conf, id)!

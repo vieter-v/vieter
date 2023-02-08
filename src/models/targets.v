@@ -38,13 +38,13 @@ pub mut:
 // str returns a string representation.
 pub fn (t &Target) str() string {
 	mut parts := [
-		'id: $t.id',
-		'kind: $t.kind',
-		'url: $t.url',
-		'branch: $t.branch',
-		'path: $t.path',
-		'repo: $t.repo',
-		'schedule: $t.schedule',
+		'id: ${t.id}',
+		'kind: ${t.kind}',
+		'url: ${t.url}',
+		'branch: ${t.branch}',
+		'path: ${t.path}',
+		'repo: ${t.repo}',
+		'schedule: ${t.schedule}',
 		'arch: ${t.arch.map(it.value).join(', ')}',
 	]
 	str := parts.join('\n')
