@@ -1,5 +1,5 @@
 variables:
-  - &vlang_image 'git.rustybever.be/chewing_bever/vlang:0.3.2-alpine3.17'
+  - &vlang_image 'git.rustybever.be/chewing_bever/vlang:0.3.3-alpine3.17'
 
 # These checks already get performed on the feature branches
 branches:
