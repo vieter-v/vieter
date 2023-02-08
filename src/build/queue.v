@@ -143,7 +143,7 @@ pub fn (mut q BuildJobQueue) peek(arch string) ?BuildJob {
 		}
 
 		q.pop_invalid(arch)
-		job := q.queues[arch].peek()?
+		job := q.queues[arch].peek() or { return none }
 
 		if job.timestamp < time.now() {
 			return job
@@ -162,10 +162,10 @@ pub fn (mut q BuildJobQueue) pop(arch string) ?BuildJob {
 		}
 
 		q.pop_invalid(arch)
-		mut job := q.queues[arch].peek()?
+		mut job := q.queues[arch].peek() or { return none }
 
 		if job.timestamp < time.now() {
-			job = q.queues[arch].pop()?
+			job = q.queues[arch].pop() or { return none }
 
 			if !job.single {
 				q.reschedule(job, arch)

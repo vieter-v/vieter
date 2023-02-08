@@ -2,7 +2,6 @@ module server
 
 import web
 import web.response { new_data_response, new_response }
-import db
 import models { Target, TargetArch, TargetFilter }
 
 // v1_get_targets returns the current list of targets.

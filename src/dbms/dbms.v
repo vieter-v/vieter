@@ -1,6 +1,6 @@
-module db
+module dbms
 
-import sqlite
+import db.sqlite
 import time
 
 pub struct VieterDb {
@@ -49,8 +49,8 @@ pub fn init(db_path string) !VieterDb {
 	}
 
 	// Apply each migration in order
-	for i in cur_version.version .. db.migrations_up.len {
-		migration := db.migrations_up[i].to_string()
+	for i in cur_version.version .. dbms.migrations_up.len {
+		migration := dbms.migrations_up[i].to_string()
 
 		version_num := i + 1
 

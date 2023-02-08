@@ -5,7 +5,7 @@ import os
 import log
 import repo
 import util
-import db
+import dbms
 import build { BuildJobQueue }
 import cron
 import metrics
@@ -25,7 +25,7 @@ pub mut:
 	repo repo.RepoGroupManager [required; web_global]
 	// Keys are the various architectures for packages
 	job_queue BuildJobQueue [required; web_global]
-	db        db.VieterDb
+	db        dbms.VieterDb
 }
 
 // init_job_queue populates a fresh job queue with all the targets currently
@@ -88,7 +88,7 @@ pub fn server(conf Config) ! {
 	}
 
 	db_file := os.join_path_single(conf.data_dir, server.db_file_name)
-	db := db.init(db_file) or {
+	db := dbms.init(db_file) or {
 		util.exit_with_message(1, 'Failed to initialize database: ${err.msg()}')
 	}
 

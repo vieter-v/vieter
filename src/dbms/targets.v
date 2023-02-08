@@ -1,4 +1,4 @@
-module db
+module dbms
 
 import models { Target, TargetArch }
 
