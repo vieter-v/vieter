@@ -15,7 +15,7 @@ pub fn new_response(message string) Response[string] {
 	}
 }
 
-// new_data_response<T> constructs a new Response<T> object with the given data
+// new_data_response[T] constructs a new Response<T> object with the given data
 // & an empty message field.
 pub fn new_data_response[T](data T) Response[T] {
 	return Response[T]{
@@ -24,7 +24,7 @@ pub fn new_data_response[T](data T) Response[T] {
 	}
 }
 
-// new_full_response<T> constructs a new Response<T> object with the given
+// new_full_response[T] constructs a new Response<T> object with the given
 // message & data.
 pub fn new_full_response[T](message string, data T) Response[T] {
 	return Response[T]{

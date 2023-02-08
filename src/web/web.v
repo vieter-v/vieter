@@ -157,7 +157,7 @@ pub fn (mut ctx Context) body(status http.Status, content_type string, body stri
 	return Result{}
 }
 
-// json<T> HTTP_OK with json_s as payload with content-type `application/json`
+// json[T] HTTP_OK with json_s as payload with content-type `application/json`
 pub fn (mut ctx Context) json[T](status http.Status, j T) Result {
 	ctx.status = status
 	ctx.content_type = 'application/json'
