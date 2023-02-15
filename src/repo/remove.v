@@ -5,7 +5,7 @@ import os
 // remove_pkg_from_arch_repo removes a package from an arch-repo's database. It
 // returns false if the package wasn't present in the database. It also
 // optionally re-syncs the repo archives.
-pub fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg_name string, sync bool) !bool {
+pub fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string, pkg_name string, perform_sync bool) !bool {
 	repo_dir := os.join_path(r.repos_dir, repo, arch)
 
 	// If the repository doesn't exist yet, the result is automatically false
@@ -39,7 +39,7 @@ pub fn (r &RepoGroupManager) remove_pkg_from_arch_repo(repo string, arch string,
 			}
 
 			// Sync the db archives if requested
-			if sync {
+			if perform_sync {
 				r.sync(repo, arch)!
 			}
 

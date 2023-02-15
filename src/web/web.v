@@ -44,7 +44,7 @@ pub mut:
 	// Files from multipart-form.
 	files map[string][]http.FileData
 	// Allows reading the request body
-	reader io.BufferedReader
+	reader &io.BufferedReader = unsafe { nil }
 	// RESPONSE
 	status       http.Status = http.Status.ok
 	content_type string      = 'text/plain'

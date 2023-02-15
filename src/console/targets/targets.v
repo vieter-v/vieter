@@ -251,7 +251,7 @@ pub fn cmd() cli.Command {
 						c := client.new(conf_.address, conf_.api_key)
 						c.queue_job(target_id, arch, force)!
 					} else {
-						build(conf_, target_id, force)!
+						build_target(conf_, target_id, force)!
 					}
 				}
 			},

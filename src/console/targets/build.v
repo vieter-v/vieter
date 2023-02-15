@@ -6,7 +6,7 @@ import os
 import build
 
 // build locally builds the target with the given id.
-fn build(conf Config, target_id int, force bool) ! {
+fn build_target(conf Config, target_id int, force bool) ! {
 	c := client.new(conf.address, conf.api_key)
 	target := c.get_target(target_id)!
 
