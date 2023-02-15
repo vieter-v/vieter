@@ -36,12 +36,12 @@ pub fn cmd() cli.Command {
 				required_args: 2
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					c := aur.new()
 					pkgs := c.info(cmd.args[1..])!
 
-					vc := client.new(conf.address, conf.api_key)
+					vc := client.new(conf_.address, conf_.api_key)
 
 					for pkg in pkgs {
 						vc.add_target(

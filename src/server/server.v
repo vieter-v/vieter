@@ -82,7 +82,7 @@ pub fn server(conf Config) ! {
 
 	repo_dir := os.join_path_single(conf.data_dir, server.repo_dir_name)
 	// This also creates the directories if needed
-	repo := repo.new(repo_dir, conf.pkg_dir, conf.default_arch) or {
+	repo_ := repo.new(repo_dir, conf.pkg_dir, conf.default_arch) or {
 		logger.error(err.msg())
 		exit(1)
 	}
@@ -105,7 +105,7 @@ pub fn server(conf Config) ! {
 		logger: logger
 		api_key: conf.api_key
 		conf: conf
-		repo: repo
+		repo: repo_
 		db: db
 		collector: collector
 		job_queue: build.new_job_queue(global_ce, conf.base_image)
