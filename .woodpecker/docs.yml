@@ -1,5 +1,5 @@
 variables:
-  - &vlang_image 'git.rustybever.be/chewing_bever/vlang:0.3.3-alpine3.17'
+  - &vlang_image 'git.rustybever.be/vieter/vlang:5d4c9dc9fc11bf8648541c934adb64f27cb94e37-alpine3.17'
 
 platform: 'linux/amd64'
 branches:
