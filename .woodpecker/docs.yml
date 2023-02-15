@@ -21,8 +21,9 @@ pipeline:
       - make api-docs
 
   slate-docs:
-    image: 'slatedocs/slate'
+    image: 'slatedocs/slate:v2.13.0'
     group: 'generate'
+    # Slate requires a specific directory to run in
     commands:
       - cd docs/api
       - bundle exec middleman build --clean
