@@ -332,9 +332,10 @@ fn handle_conn[T](mut conn net.TcpConn, mut app T, routes map[string]Route) {
 		}
 
 		// Record how long request took to process
+		path := urllib.parse(app.req.url) or { urllib.URL{} }.path
 		labels := [
 			['method', app.req.method.str()]!,
-			['path', app.req.url]!,
+			['path', path]!,
 			// Not all methods properly set this value yet I think
 			['status', app.status.int().str()]!,
 		]
