@@ -48,9 +48,9 @@ update`.
 
 ### Compiler
 
-I used to maintain a mirror that tracked the latest master, but nowadays, I
-maintain a Docker image containing the specific compiler version that Vieter
-builds with. Currently, this is V 0.3.2.
+V is developed using a specific compiler commit that is usually updated
+whenever a new version is released. Information on this can be found in the
+[tools](https://git.rustybever.be/vieter-v/tools) repository.
 
 ## Contributing
 

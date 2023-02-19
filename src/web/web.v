@@ -44,7 +44,7 @@ pub mut:
 	// Files from multipart-form.
 	files map[string][]http.FileData
 	// Allows reading the request body
-	reader io.BufferedReader
+	reader &io.BufferedReader = unsafe { nil }
 	// RESPONSE
 	status       http.Status = http.Status.ok
 	content_type string      = 'text/plain'
@@ -157,8 +157,8 @@ pub fn (mut ctx Context) body(status http.Status, content_type string, body stri
 	return Result{}
 }
 
-// json<T> HTTP_OK with json_s as payload with content-type `application/json`
-pub fn (mut ctx Context) json<T>(status http.Status, j T) Result {
+// json[T] HTTP_OK with json_s as payload with content-type `application/json`
+pub fn (mut ctx Context) json[T](status http.Status, j T) Result {
 	ctx.status = status
 	ctx.content_type = 'application/json'
 
@@ -278,14 +278,14 @@ interface DbInterface {
 
 // run runs the app
 [manualfree]
-pub fn run<T>(global_app &T, port int) {
-	mut l := net.listen_tcp(.ip6, ':$port') or { panic('failed to listen $err.code() $err') }
+pub fn run[T](global_app &T, port int) {
+	mut l := net.listen_tcp(.ip6, ':${port}') or { panic('failed to listen ${err.code()} ${err}') }
 
 	// Parsing methods attributes
 	mut routes := map[string]Route{}
 	$for method in T.methods {
 		http_methods, route_path := parse_attrs(method.name, method.attrs) or {
-			eprintln('error parsing method attributes: $err')
+			eprintln('error parsing method attributes: ${err}')
 			return
 		}
 
@@ -294,7 +294,7 @@ pub fn run<T>(global_app &T, port int) {
 			path: route_path
 		}
 	}
-	println('[Vweb] Running app on http://localhost:$port')
+	println('[Vweb] Running app on http://localhost:${port}')
 	for {
 		// Create a new app object for each connection, copy global data like db connections
 		mut request_app := &T{}
@@ -311,16 +311,16 @@ pub fn run<T>(global_app &T, port int) {
 		request_app.Context = global_app.Context // copy the context ref that contains static files map etc
 		mut conn := l.accept() or {
 			// failures should not panic
-			eprintln('accept() failed with error: $err.msg()')
+			eprintln('accept() failed with error: ${err.msg()}')
 			continue
 		}
-		go handle_conn<T>(mut conn, mut request_app, routes)
+		spawn handle_conn[T](mut conn, mut request_app, routes)
 	}
 }
 
 // handle_conn handles a connection
 [manualfree]
-fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
+fn handle_conn[T](mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	conn.set_read_timeout(30 * time.second)
 	conn.set_write_timeout(30 * time.second)
 
@@ -362,8 +362,8 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	// Request parse
 	head := http.parse_request_head(mut reader) or {
 		// Prevents errors from being thrown when BufferedReader is empty
-		if '$err' != 'none' {
-			eprintln('error parsing request head: $err')
+		if '${err}' != 'none' {
+			eprintln('error parsing request head: ${err}')
 		}
 		return
 	}
@@ -371,7 +371,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	// The healthcheck spams the logs, which isn't very useful
 	if head.url != '/health' {
 		lock app.logger {
-			app.logger.debug('$head.method $head.url $head.version')
+			app.logger.debug('${head.method} ${head.url} ${head.version}')
 		}
 	}
 
@@ -385,7 +385,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 
 	// URL Parse
 	url := urllib.parse(head.url) or {
-		eprintln('error parsing path: $err')
+		eprintln('error parsing path: ${err}')
 		return
 	}
 
@@ -423,7 +423,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 	$for method in T.methods {
 		$if method.return_type is Result {
 			route := routes[method.name] or {
-				eprintln('parsed attributes for the `$method.name` are not found, skipping...')
+				eprintln('parsed attributes for the `${method.name}` are not found, skipping...')
 				Route{}
 			}
 
@@ -455,7 +455,7 @@ fn handle_conn<T>(mut conn net.TcpConn, mut app T, routes map[string]Route) {
 
 					method_args := params.clone()
 					if method_args.len != method.args.len {
-						eprintln('warning: uneven parameters count ($method.args.len) in `$method.name`, compared to the web route `$method.attrs` ($method_args.len)')
+						eprintln('warning: uneven parameters count (${method.args.len}) in `${method.name}`, compared to the web route `${method.attrs}` (${method_args.len})')
 					}
 					app.$method(method_args)
 					return

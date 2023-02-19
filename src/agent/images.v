@@ -71,7 +71,7 @@ pub fn (mut m ImageManager) up_to_date(base_image string) bool {
 fn (mut m ImageManager) refresh_image(base_image string) ! {
 	// TODO use better image tags for built images
 	new_image := build.create_build_image(base_image) or {
-		return error('Failed to build builder image from base image $base_image')
+		return error('Failed to build builder image from base image ${base_image}')
 	}
 
 	m.images[base_image] << new_image

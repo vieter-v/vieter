@@ -16,13 +16,13 @@ pub mut:
 // str returns a string representation.
 pub fn (bl &BuildLog) str() string {
 	mut parts := [
-		'id: $bl.id',
-		'target id: $bl.target_id',
-		'start time: $bl.start_time.local()',
-		'end time: $bl.end_time.local()',
+		'id: ${bl.id}',
+		'target id: ${bl.target_id}',
+		'start time: ${bl.start_time.local()}',
+		'end time: ${bl.end_time.local()}',
 		'duration: ${bl.end_time - bl.start_time}',
-		'arch: $bl.arch',
-		'exit code: $bl.exit_code',
+		'arch: ${bl.arch}',
+		'exit code: ${bl.exit_code}',
 	]
 	str := parts.join('\n')
 

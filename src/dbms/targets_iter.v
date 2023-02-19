@@ -1,7 +1,7 @@
-module db
+module dbms
 
 import models { Target, TargetFilter }
-import sqlite
+import db.sqlite
 
 // Iterator providing a filtered view into the list of targets currently stored
 // in the database. It replaces functionality usually performed in the database

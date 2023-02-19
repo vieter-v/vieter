@@ -5,7 +5,7 @@ import models { Target, TargetFilter }
 // get_targets returns a list of targets, given a filter object.
 pub fn (c &Client) get_targets(filter TargetFilter) ![]Target {
 	params := models.params_from(filter)
-	data := c.send_request<[]Target>(.get, '/api/v1/targets', params)!
+	data := c.send_request[[]Target](.get, '/api/v1/targets', params)!
 
 	return data.data
 }
@@ -33,7 +33,7 @@ pub fn (c &Client) get_all_targets() ![]Target {
 
 // get_target returns the target for a specific id.
 pub fn (c &Client) get_target(id int) !Target {
-	data := c.send_request<Target>(.get, '/api/v1/targets/$id', {})!
+	data := c.send_request[Target](.get, '/api/v1/targets/${id}', {})!
 
 	return data.data
 }
@@ -49,15 +49,15 @@ pub struct NewTarget {
 
 // add_target adds a new target to the server.
 pub fn (c &Client) add_target(t NewTarget) !int {
-	params := models.params_from<NewTarget>(t)
-	data := c.send_request<int>(.post, '/api/v1/targets', params)!
+	params := models.params_from[NewTarget](t)
+	data := c.send_request[int](.post, '/api/v1/targets', params)!
 
 	return data.data
 }
 
 // remove_target removes the target with the given id from the server.
 pub fn (c &Client) remove_target(id int) !string {
-	data := c.send_request<string>(.delete, '/api/v1/targets/$id', {})!
+	data := c.send_request[string](.delete, '/api/v1/targets/${id}', {})!
 
 	return data.data
 }
@@ -65,7 +65,7 @@ pub fn (c &Client) remove_target(id int) !string {
 // patch_target sends a PATCH request to the given target with the params as
 // payload.
 pub fn (c &Client) patch_target(id int, params map[string]string) !string {
-	data := c.send_request<string>(.patch, '/api/v1/targets/$id', params)!
+	data := c.send_request[string](.patch, '/api/v1/targets/${id}', params)!
 
 	return data.data
 }

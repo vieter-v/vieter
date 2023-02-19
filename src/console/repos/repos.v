@@ -28,7 +28,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					if cmd.args.len < 3 {
 						if !cmd.flags.get_bool('force')! {
@@ -36,14 +36,14 @@ pub fn cmd() cli.Command {
 						}
 					}
 
-					client := client.new(conf.address, conf.api_key)
+					client_ := client.new(conf_.address, conf_.api_key)
 
 					if cmd.args.len == 1 {
-						client.remove_repo(cmd.args[0])!
+						client_.remove_repo(cmd.args[0])!
 					} else if cmd.args.len == 2 {
-						client.remove_arch_repo(cmd.args[0], cmd.args[1])!
+						client_.remove_arch_repo(cmd.args[0], cmd.args[1])!
 					} else {
-						client.remove_package(cmd.args[0], cmd.args[1], cmd.args[2])!
+						client_.remove_package(cmd.args[0], cmd.args[1], cmd.args[2])!
 					}
 				}
 			},

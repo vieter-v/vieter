@@ -12,7 +12,7 @@ fn (mut app App) log_removal_daemon(schedule &cron.Expression) {
 	for {
 		mut too_old_timestamp := time.now().add_days(-app.conf.max_log_age)
 
-		app.linfo('Cleaning logs before $too_old_timestamp')
+		app.linfo('Cleaning logs before ${too_old_timestamp}')
 
 		mut logs := []BuildLog{}
 		mut counter := 0
@@ -29,7 +29,7 @@ fn (mut app App) log_removal_daemon(schedule &cron.Expression) {
 				log_file_path := os.join_path(app.conf.data_dir, logs_dir_name, log.path())
 
 				os.rm(log_file_path) or {
-					app.lerror('Failed to remove log file $log_file_path: $err.msg()')
+					app.lerror('Failed to remove log file ${log_file_path}: ${err.msg()}')
 					failed += 1
 
 					continue
@@ -44,7 +44,7 @@ fn (mut app App) log_removal_daemon(schedule &cron.Expression) {
 			}
 		}
 
-		app.linfo('Cleaned $counter logs ($failed failed)')
+		app.linfo('Cleaned ${counter} logs (${failed} failed)')
 
 		// Sleep until the next cycle
 		next_time := schedule.next_from_now()
