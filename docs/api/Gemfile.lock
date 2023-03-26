@@ -121,7 +121,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uglifier (3.2.0)
       execjs (>= 0.3.0, < 3)
-    webrick (1.7.0)
+    webrick (1.8.1)
     zeitwerk (2.5.1)
 
 PLATFORMS
@@ -142,4 +142,4 @@ RUBY VERSION
    ruby 2.7.2p137
 
 BUNDLED WITH
-   2.2.22
+   2.4.9
