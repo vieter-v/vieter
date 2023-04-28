@@ -46,6 +46,10 @@ pub fn reader_to_file(mut reader io.BufferedReader, length int, path string) ! {
 			to_write = to_write - bytes_written
 		}
 	}
+
+	if bytes_left > 0 {
+		return error('Not all bytes were received.')
+	}
 }
 
 // match_array_in_array[T] returns how many elements of a2 overlap with a1. For

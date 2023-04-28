@@ -68,7 +68,7 @@ fn (mut app App) put_package(repo_ string) web.Result {
 		mut sw := time.new_stopwatch(time.StopWatchOptions{ auto_start: true })
 
 		util.reader_to_file(mut app.reader, length.int(), pkg_path) or {
-			app.lwarn("Failed to upload '${pkg_path}'")
+			app.lwarn("Failed to upload '${pkg_path}': ${err.msg()}")
 
 			return app.status(.internal_server_error)
 		}
