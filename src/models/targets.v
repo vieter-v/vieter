@@ -54,7 +54,7 @@ pub fn (t &Target) str() string {
 
 // as_build_config converts a Target into a BuildConfig, given some extra
 // needed information.
-pub fn (t &Target) as_build_config(base_image string, force bool) BuildConfig {
+pub fn (t &Target) as_build_config(base_image string, force bool, timeout int) BuildConfig {
 	return BuildConfig{
 		target_id: t.id
 		kind: t.kind
@@ -64,6 +64,7 @@ pub fn (t &Target) as_build_config(base_image string, force bool) BuildConfig {
 		repo: t.repo
 		base_image: base_image
 		force: force
+		timeout: timeout
 	}
 }
 

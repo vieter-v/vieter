@@ -232,6 +232,12 @@ pub fn cmd() cli.Command {
 						description: 'Architecture to schedule build for. Required when using -remote.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'timeout'
+						description: 'After how many minutes to cancel the build. Only applies to local builds.'
+						flag: cli.FlagType.int
+						default_value: ['3600']
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
@@ -239,6 +245,7 @@ pub fn cmd() cli.Command {
 
 					remote := cmd.flags.get_bool('remote')!
 					force := cmd.flags.get_bool('force')!
+					timeout := cmd.flags.get_int('timeout')!
 					target_id := cmd.args[0].int()
 
 					if remote {
@@ -251,7 +258,7 @@ pub fn cmd() cli.Command {
 						c := client.new(conf_.address, conf_.api_key)
 						c.queue_job(target_id, arch, force)!
 					} else {
-						build_target(conf_, target_id, force)!
+						build_target(conf_, target_id, force, timeout)!
 					}
 				}
 			},

@@ -108,7 +108,7 @@ pub fn server(conf Config) ! {
 		repo: repo_
 		db: db
 		collector: collector
-		job_queue: build.new_job_queue(global_ce, conf.base_image)
+		job_queue: build.new_job_queue(global_ce, conf.base_image, conf.default_build_timeout)
 	}
 	app.init_job_queue() or {
 		util.exit_with_message(1, 'Failed to inialize job queue: ${err.msg()}')
