@@ -136,9 +136,17 @@ pub fn build_config(address string, api_key string, config BuildConfig) !BuildRe
 	dd.container_start(id)!
 
 	mut data := dd.container_inspect(id)!
+	start_time := time.now()
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for data.state.running {
+		if time.now() - start_time > config.timeout * time.second {
+			dd.container_kill(id)!
+			dd.container_remove(id)!
+
+			return error('Build killed due to timeout (${config.timeout}s)')
+		}
+
 		time.sleep(1 * time.second)
 
 		data = dd.container_inspect(id)!
