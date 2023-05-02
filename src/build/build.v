@@ -94,8 +94,8 @@ pub:
 }
 
 // build_target builds the given target. Internally it calls `build_config`.
-pub fn build_target(address string, api_key string, base_image_id string, target &Target, force bool) !BuildResult {
-	config := target.as_build_config(base_image_id, force)
+pub fn build_target(address string, api_key string, base_image_id string, target &Target, force bool, timeout int) !BuildResult {
+	config := target.as_build_config(base_image_id, force, timeout)
 
 	return build_config(address, api_key, config)
 }

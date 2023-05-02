@@ -33,6 +33,8 @@ pub struct BuildJobQueue {
 	default_schedule &cron.Expression
 	// Base image to use for targets without defined base image
 	default_base_image string
+	// After how many minutes a build should be forcefully cancelled
+	default_build_timeout int
 mut:
 	mutex shared util.Dummy
 	// For each architecture, a priority queue is tracked
@@ -44,10 +46,11 @@ mut:
 }
 
 // new_job_queue initializes a new job queue
-pub fn new_job_queue(default_schedule &cron.Expression, default_base_image string) BuildJobQueue {
+pub fn new_job_queue(default_schedule &cron.Expression, default_base_image string, default_build_timeout int) BuildJobQueue {
 	return BuildJobQueue{
 		default_schedule: unsafe { default_schedule }
 		default_base_image: default_base_image
+		default_build_timeout: default_build_timeout
 		invalidated: map[int]time.Time{}
 	}
 }
@@ -80,7 +83,7 @@ pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 		mut job := BuildJob{
 			created: time.now()
 			single: input.single
-			config: input.target.as_build_config(q.default_base_image, input.force)
+			config: input.target.as_build_config(q.default_base_image, input.force, q.default_build_timeout)
 		}
 
 		if !input.now {
