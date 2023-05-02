@@ -236,7 +236,7 @@ pub fn cmd() cli.Command {
 						name: 'timeout'
 						description: 'After how many minutes to cancel the build. Only applies to local builds.'
 						flag: cli.FlagType.int
-						default_value: ['60']
+						default_value: ['3600']
 					},
 				]
 				execute: fn (cmd cli.Command) ! {

@@ -16,7 +16,7 @@ pub:
 	max_log_age           int    [empty_default]
 	log_removal_schedule  string = '0 0'
 	collect_metrics       bool   [empty_default]
-	default_build_timeout int = 60
+	default_build_timeout int = 3600
 }
 
 // cmd returns the cli submodule that handles starting the server
