@@ -29,7 +29,7 @@ RUN if [ -n "${CI_COMMIT_SHA}" ]; then \
     fi
 
 
-FROM busybox:1.35.0
+FROM busybox:1.36.1
 
 ENV PATH=/bin \
     VIETER_DATA_DIR=/data \
