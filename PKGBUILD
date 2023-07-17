@@ -11,13 +11,23 @@ makedepends=('git' 'vieter-vlang')
 arch=('x86_64' 'aarch64')
 url='https://git.rustybever.be/vieter-v/vieter'
 license=('AGPL3')
-source=("$pkgname::git+https://git.rustybever.be/vieter-v/vieter#tag=${pkgver//_/-}")
-md5sums=('SKIP')
+source=(
+    "$pkgname::git+https://git.rustybever.be/vieter-v/vieter#tag=${pkgver//_/-}"
+    "libvieter::git+https://git.rustybever.be/vieter-v/libvieter"
+)
+md5sums=('SKIP' 'SKIP')
 
 prepare() {
-    export VMODULES="$srcdir/.vmodules"
+    cd "${pkgname}"
 
-    cd "$pkgname/src" && v install
+    # Add the libvieter submodule
+    git submodule init
+    git config submodules.src/libvieter.url "${srcdir}/libvieter"
+    git -c protocol.file.allow=always submodule update
+
+    export VMODULES="${srcdir}/.vmodules"
+
+    cd src && v install
 }
 
 build() {
