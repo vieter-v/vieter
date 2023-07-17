@@ -3,11 +3,11 @@
 
 pkgbase='vieter'
 pkgname='vieter'
-pkgver='0.5.0'
+pkgver='0.6.0'
 pkgrel=1
 pkgdesc="Lightweight Arch repository server & package build system"
 depends=('glibc' 'openssl' 'libarchive' 'sqlite')
-makedepends=('git' 'vlang')
+makedepends=('git' 'vieter-vlang')
 arch=('x86_64' 'aarch64')
 url='https://git.rustybever.be/vieter-v/vieter'
 license=('AGPL3')

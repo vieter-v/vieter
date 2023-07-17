@@ -3,14 +3,14 @@ module package
 // format_entry returns a string properly formatted to be added to a desc file.
 [inline]
 fn format_entry(key string, value string) string {
-	return '\n%$key%\n$value\n'
+	return '\n%${key}%\n${value}\n'
 }
 
 // full_name returns the properly formatted name for the package, including
 // version & architecture
 pub fn (pkg &Pkg) full_name() string {
 	p := pkg.info
-	return '$p.name-$p.version-$p.arch'
+	return '${p.name}-${p.version}-${p.arch}'
 }
 
 // filename returns the correct filename of the package file
@@ -20,10 +20,10 @@ pub fn (pkg &Pkg) filename() string {
 		1 { '.tar.gz' }
 		6 { '.tar.xz' }
 		14 { '.tar.zst' }
-		else { panic("Another compression code shouldn't be possible. Faulty code: $pkg.compression") }
+		else { panic("Another compression code shouldn't be possible. Faulty code: ${pkg.compression}") }
 	}
 
-	return '${pkg.full_name()}.pkg$ext'
+	return '${pkg.full_name()}.pkg${ext}'
 }
 
 // to_desc returns a desc file valid string representation
@@ -31,7 +31,7 @@ pub fn (pkg &Pkg) to_desc() !string {
 	p := pkg.info
 
 	// filename
-	mut desc := '%FILENAME%\n$pkg.filename()\n'
+	mut desc := '%FILENAME%\n${pkg.filename()}\n'
 
 	desc += format_entry('NAME', p.name)
 	desc += format_entry('BASE', p.base)
@@ -94,10 +94,10 @@ pub fn (pkg &Pkg) to_desc() !string {
 		desc += format_entry('CHECKDEPENDS', p.checkdepends.join_lines())
 	}
 
-	return '$desc\n'
+	return '${desc}\n'
 }
 
 // to_files returns a files file valid string representation
 pub fn (pkg &Pkg) to_files() string {
-	return '%FILES%\n$pkg.files.join_lines()\n'
+	return '%FILES%\n${pkg.files.join_lines()}\n'
 }

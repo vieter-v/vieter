@@ -1,7 +1,7 @@
 module build
 
 import models { BuildConfig, Target }
-import cron.expression { CronExpression, parse_expression }
+import cron
 import time
 import datatypes { MinHeap }
 import util
@@ -13,7 +13,7 @@ pub mut:
 	// Next timestamp from which point this job is allowed to be executed
 	timestamp time.Time
 	// Required for calculating next timestamp after having pop'ed a job
-	ce CronExpression
+	ce &cron.Expression = unsafe { nil }
 	// Actual build config sent to the agent
 	config BuildConfig
 	// Whether this is a one-time job
@@ -30,13 +30,15 @@ fn (r1 BuildJob) < (r2 BuildJob) bool {
 // for each architecture. Agents receive jobs from this queue.
 pub struct BuildJobQueue {
 	// Schedule to use for targets without explicitely defined cron expression
-	default_schedule CronExpression
+	default_schedule &cron.Expression
 	// Base image to use for targets without defined base image
 	default_base_image string
+	// After how many minutes a build should be forcefully cancelled
+	default_build_timeout int
 mut:
 	mutex shared util.Dummy
 	// For each architecture, a priority queue is tracked
-	queues map[string]MinHeap<BuildJob>
+	queues map[string]MinHeap[BuildJob]
 	// When a target is removed from the server or edited, its previous build
 	// configs will be invalid. This map allows for those to be simply skipped
 	// by ignoring any build configs created before this timestamp.
@@ -44,10 +46,11 @@ mut:
 }
 
 // new_job_queue initializes a new job queue
-pub fn new_job_queue(default_schedule CronExpression, default_base_image string) BuildJobQueue {
+pub fn new_job_queue(default_schedule &cron.Expression, default_base_image string, default_build_timeout int) BuildJobQueue {
 	return BuildJobQueue{
-		default_schedule: default_schedule
+		default_schedule: unsafe { default_schedule }
 		default_base_image: default_base_image
+		default_build_timeout: default_build_timeout
 		invalidated: map[int]time.Time{}
 	}
 }
@@ -74,25 +77,25 @@ pub struct InsertConfig {
 pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 	lock q.mutex {
 		if input.arch !in q.queues {
-			q.queues[input.arch] = MinHeap<BuildJob>{}
+			q.queues[input.arch] = MinHeap[BuildJob]{}
 		}
 
 		mut job := BuildJob{
 			created: time.now()
 			single: input.single
-			config: input.target.as_build_config(q.default_base_image, input.force)
+			config: input.target.as_build_config(q.default_base_image, input.force, q.default_build_timeout)
 		}
 
 		if !input.now {
 			ce := if input.target.schedule != '' {
-				parse_expression(input.target.schedule) or {
-					return error("Error while parsing cron expression '$input.target.schedule' (id $input.target.id): $err.msg()")
+				cron.parse_expression(input.target.schedule) or {
+					return error("Error while parsing cron expression '${input.target.schedule}' (id ${input.target.id}): ${err.msg()}")
 				}
 			} else {
 				q.default_schedule
 			}
 
-			job.timestamp = ce.next_from_now()!
+			job.timestamp = ce.next_from_now()
 			job.ce = ce
 		} else {
 			job.timestamp = time.now()
@@ -105,8 +108,8 @@ pub fn (mut q BuildJobQueue) insert(input InsertConfig) ! {
 // reschedule the given job by calculating the next timestamp and re-adding it
 // to its respective queue. This function is called by the pop functions
 // *after* having pop'ed the job.
-fn (mut q BuildJobQueue) reschedule(job BuildJob, arch string) ! {
-	new_timestamp := job.ce.next_from_now()!
+fn (mut q BuildJobQueue) reschedule(job BuildJob, arch string) {
+	new_timestamp := job.ce.next_from_now()
 
 	new_job := BuildJob{
 		...job
@@ -143,7 +146,7 @@ pub fn (mut q BuildJobQueue) peek(arch string) ?BuildJob {
 		}
 
 		q.pop_invalid(arch)
-		job := q.queues[arch].peek()?
+		job := q.queues[arch].peek() or { return none }
 
 		if job.timestamp < time.now() {
 			return job
@@ -162,16 +165,13 @@ pub fn (mut q BuildJobQueue) pop(arch string) ?BuildJob {
 		}
 
 		q.pop_invalid(arch)
-		mut job := q.queues[arch].peek()?
+		mut job := q.queues[arch].peek() or { return none }
 
 		if job.timestamp < time.now() {
-			job = q.queues[arch].pop()?
+			job = q.queues[arch].pop() or { return none }
 
 			if !job.single {
-				// TODO how do we handle this properly? Is it even possible for a
-				// cron expression to not return a next time if it's already been
-				// used before?
-				q.reschedule(job, arch) or {}
+				q.reschedule(job, arch)
 			}
 
 			return job
@@ -198,8 +198,7 @@ pub fn (mut q BuildJobQueue) pop_n(arch string, n int) []BuildJob {
 				job = q.queues[arch].pop() or { break }
 
 				if !job.single {
-					// TODO idem
-					q.reschedule(job, arch) or {}
+					q.reschedule(job, arch)
 				}
 
 				out << job

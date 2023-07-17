@@ -9,7 +9,6 @@ import console.schedule
 import console.man
 import console.aur
 import console.repos
-import cron
 import agent
 
 fn main() {
@@ -21,7 +20,7 @@ fn main() {
 	mut app := cli.Command{
 		name: 'vieter'
 		description: 'Vieter is a lightweight implementation of an Arch repository server.'
-		version: '0.5.0'
+		version: '0.6.0'
 		posix_mode: true
 		flags: [
 			cli.Flag{
@@ -43,7 +42,6 @@ fn main() {
 		commands: [
 			server.cmd(),
 			targets.cmd(),
-			cron.cmd(),
 			logs.cmd(),
 			schedule.cmd(),
 			man.cmd(),

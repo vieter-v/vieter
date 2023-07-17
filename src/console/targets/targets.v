@@ -2,7 +2,7 @@ module targets
 
 import cli
 import conf as vconf
-import cron.expression { parse_expression }
+import cron
 import client { NewTarget }
 import console
 import models { TargetFilter }
@@ -40,10 +40,21 @@ pub fn cmd() cli.Command {
 						description: 'Only return targets that publish to this repo.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'query'
+						abbrev: 'q'
+						description: 'Search string to filter targets by.'
+						flag: cli.FlagType.string
+					},
+					cli.Flag{
+						name: 'arch'
+						description: 'Only list targets that build for this arch.'
+						flag: cli.FlagType.string
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					mut filter := TargetFilter{}
 
@@ -62,9 +73,19 @@ pub fn cmd() cli.Command {
 						filter.repo = repo
 					}
 
+					query := cmd.flags.get_string('query')!
+					if query != '' {
+						filter.query = query
+					}
+
+					arch := cmd.flags.get_string('arch')!
+					if arch != '' {
+						filter.arch = arch
+					}
+
 					raw := cmd.flags.get_bool('raw')!
 
-					list(conf, filter, raw)!
+					list(conf_, filter, raw)!
 				}
 			},
 			cli.Command{
@@ -92,7 +113,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					t := NewTarget{
 						kind: cmd.flags.get_string('kind')!
@@ -104,7 +125,7 @@ pub fn cmd() cli.Command {
 
 					raw := cmd.flags.get_bool('raw')!
 
-					add(conf, t, raw)!
+					add(conf_, t, raw)!
 				}
 			},
 			cli.Command{
@@ -114,9 +135,9 @@ pub fn cmd() cli.Command {
 				description: 'Remove a target that matches the given id.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
-					remove(conf, cmd.args[0])!
+					remove(conf_, cmd.args[0])!
 				}
 			},
 			cli.Command{
@@ -126,9 +147,9 @@ pub fn cmd() cli.Command {
 				description: 'Show detailed information for the target matching the id.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
-					info(conf, cmd.args[0])!
+					info(conf_, cmd.args[0])!
 				}
 			},
 			cli.Command{
@@ -175,7 +196,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					found := cmd.flags.get_all_found()
 
@@ -187,7 +208,7 @@ pub fn cmd() cli.Command {
 						}
 					}
 
-					patch(conf, cmd.args[0], params)!
+					patch(conf_, cmd.args[0], params)!
 				}
 			},
 			cli.Command{
@@ -211,13 +232,20 @@ pub fn cmd() cli.Command {
 						description: 'Architecture to schedule build for. Required when using -remote.'
 						flag: cli.FlagType.string
 					},
+					cli.Flag{
+						name: 'timeout'
+						description: 'After how many minutes to cancel the build. Only applies to local builds.'
+						flag: cli.FlagType.int
+						default_value: ['3600']
+					},
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					remote := cmd.flags.get_bool('remote')!
 					force := cmd.flags.get_bool('force')!
+					timeout := cmd.flags.get_int('timeout')!
 					target_id := cmd.args[0].int()
 
 					if remote {
@@ -227,10 +255,10 @@ pub fn cmd() cli.Command {
 							return error('When scheduling the build remotely, you have to specify an architecture.')
 						}
 
-						c := client.new(conf.address, conf.api_key)
+						c := client.new(conf_.address, conf_.api_key)
 						c.queue_job(target_id, arch, force)!
 					} else {
-						build(conf, target_id, force)!
+						build_target(conf_, target_id, force, timeout)!
 					}
 				}
 			},
@@ -239,8 +267,8 @@ pub fn cmd() cli.Command {
 }
 
 // list prints out a list of all repositories.
-fn list(conf Config, filter TargetFilter, raw bool) ! {
-	c := client.new(conf.address, conf.api_key)
+fn list(conf_ Config, filter TargetFilter, raw bool) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	targets := c.get_targets(filter)!
 	data := targets.map([it.id.str(), it.kind, it.url, it.repo])
 
@@ -252,40 +280,40 @@ fn list(conf Config, filter TargetFilter, raw bool) ! {
 }
 
 // add adds a new target to the server's list.
-fn add(conf Config, t &NewTarget, raw bool) ! {
-	c := client.new(conf.address, conf.api_key)
+fn add(conf_ Config, t &NewTarget, raw bool) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	target_id := c.add_target(t)!
 
 	if raw {
 		println(target_id)
 	} else {
-		println('Target added with id $target_id')
+		println('Target added with id ${target_id}')
 	}
 }
 
 // remove removes a target from the server's list.
-fn remove(conf Config, id string) ! {
-	c := client.new(conf.address, conf.api_key)
+fn remove(conf_ Config, id string) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	c.remove_target(id.int())!
 }
 
 // patch patches a given target with the provided params.
-fn patch(conf Config, id string, params map[string]string) ! {
+fn patch(conf_ Config, id string, params map[string]string) ! {
 	// We check the cron expression first because it's useless to send an
 	// invalid one to the server.
 	if 'schedule' in params && params['schedule'] != '' {
-		parse_expression(params['schedule']) or {
-			return error('Invalid cron expression: $err.msg()')
+		cron.parse_expression(params['schedule']) or {
+			return error('Invalid cron expression: ${err.msg()}')
 		}
 	}
 
-	c := client.new(conf.address, conf.api_key)
+	c := client.new(conf_.address, conf_.api_key)
 	c.patch_target(id.int(), params)!
 }
 
 // info shows detailed information for a given target.
-fn info(conf Config, id string) ! {
-	c := client.new(conf.address, conf.api_key)
+fn info(conf_ Config, id string) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	target := c.get_target(id.int())!
 	println(target)
 }

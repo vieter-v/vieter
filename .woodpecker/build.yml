@@ -1,5 +1,5 @@
 variables:
-  - &vlang_image 'git.rustybever.be/chewing_bever/vlang:0.3.2'
+  - &vlang_image 'git.rustybever.be/vieter/vlang:5d4c9dc9fc11bf8648541c934adb64f27cb94e37-alpine3.17'
 
 matrix:
   PLATFORM:
@@ -57,7 +57,7 @@ pipeline:
 
       - export OBJ_PATH="/vieter/commits/$CI_COMMIT_SHA/vieter-$(echo '${PLATFORM}' | sed 's:/:-:g')"
       - export SIG_STRING="PUT\n\n$CONTENT_TYPE\n$DATE\n$OBJ_PATH"
-      - export SIGNATURE="$(echo -en $SIG_STRING | openssl sha1 -hmac $S3_PASSWORD -binary | base64)"
+      - export SIGNATURE="$(echo -en $SIG_STRING | openssl dgst -sha1 -hmac $S3_PASSWORD -binary | base64)"
       - >
         curl 
         --silent

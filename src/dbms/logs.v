@@ -1,4 +1,4 @@
-module db
+module dbms
 
 import models { BuildLog, BuildLogFilter }
 import time
@@ -8,20 +8,20 @@ pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 	mut where_parts := []string{}
 
 	if filter.target != 0 {
-		where_parts << 'target_id == $filter.target'
+		where_parts << 'target_id == ${filter.target}'
 	}
 
 	if filter.before != time.Time{} {
-		where_parts << 'start_time < $filter.before.unix_time()'
+		where_parts << 'start_time < ${filter.before.unix_time()}'
 	}
 
 	if filter.after != time.Time{} {
-		where_parts << 'start_time > $filter.after.unix_time()'
+		where_parts << 'start_time > ${filter.after.unix_time()}'
 	}
 
 	// NOTE: possible SQL injection
 	if filter.arch != '' {
-		where_parts << "arch == '$filter.arch'"
+		where_parts << "arch == '${filter.arch}'"
 	}
 
 	mut parts := []string{}
@@ -30,27 +30,27 @@ pub fn (db &VieterDb) get_build_logs(filter BuildLogFilter) []BuildLog {
 		if exp[0] == `!` {
 			code := exp[1..].int()
 
-			parts << 'exit_code != $code'
+			parts << 'exit_code != ${code}'
 		} else {
 			code := exp.int()
 
-			parts << 'exit_code == $code'
+			parts << 'exit_code == ${code}'
 		}
 	}
 
 	if parts.len > 0 {
-		where_parts << parts.map('($it)').join(' or ')
+		where_parts << parts.map('(${it})').join(' or ')
 	}
 
 	mut where_str := ''
 
 	if where_parts.len > 0 {
-		where_str = 'where ' + where_parts.map('($it)').join(' and ')
+		where_str = 'where ' + where_parts.map('(${it})').join(' and ')
 	}
 
-	query := 'select * from BuildLog $where_str limit $filter.limit offset $filter.offset'
+	query := 'select * from BuildLog ${where_str} limit ${filter.limit} offset ${filter.offset}'
 	rows, _ := db.conn.exec(query)
-	res := rows.map(row_into<BuildLog>(it))
+	res := rows.map(row_into[BuildLog](it))
 
 	return res
 }

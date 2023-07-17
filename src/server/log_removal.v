@@ -3,20 +3,16 @@ module server
 import time
 import models { BuildLog }
 import os
-import cron.expression { CronExpression }
+import cron
 
 const fallback_log_removal_frequency = 24 * time.hour
 
 // log_removal_daemon removes old build logs every `log_removal_frequency`.
-fn (mut app App) log_removal_daemon(schedule CronExpression) {
-	mut start_time := time.Time{}
-
+fn (mut app App) log_removal_daemon(schedule &cron.Expression) {
 	for {
-		start_time = time.now()
-
 		mut too_old_timestamp := time.now().add_days(-app.conf.max_log_age)
 
-		app.linfo('Cleaning logs before $too_old_timestamp')
+		app.linfo('Cleaning logs before ${too_old_timestamp}')
 
 		mut logs := []BuildLog{}
 		mut counter := 0
@@ -33,7 +29,7 @@ fn (mut app App) log_removal_daemon(schedule CronExpression) {
 				log_file_path := os.join_path(app.conf.data_dir, logs_dir_name, log.path())
 
 				os.rm(log_file_path) or {
-					app.lerror('Failed to remove log file $log_file_path: $err.msg()')
+					app.lerror('Failed to remove log file ${log_file_path}: ${err.msg()}')
 					failed += 1
 
 					continue
@@ -48,15 +44,10 @@ fn (mut app App) log_removal_daemon(schedule CronExpression) {
 			}
 		}
 
-		app.linfo('Cleaned $counter logs ($failed failed)')
+		app.linfo('Cleaned ${counter} logs (${failed} failed)')
 
 		// Sleep until the next cycle
-		next_time := schedule.next_from_now() or {
-			app.lerror("Log removal daemon couldn't calculate next time: $err.msg(); fallback to $server.fallback_log_removal_frequency")
-
-			start_time.add(server.fallback_log_removal_frequency)
-		}
-
+		next_time := schedule.next_from_now()
 		time.sleep(next_time - time.now())
 	}
 }

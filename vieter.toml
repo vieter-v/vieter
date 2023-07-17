@@ -12,4 +12,6 @@ address = "http://localhost:8000"
 api_update_frequency = 2
 image_rebuild_frequency = 1
 max_concurrent_builds = 3
-max_log_age = 64
+# max_log_age = 64
+log_removal_schedule = '* * *'
+collect_metrics = true

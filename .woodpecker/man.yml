@@ -1,5 +1,5 @@
 variables:
-  - &vlang_image 'git.rustybever.be/chewing_bever/vlang:0.3.2'
+  - &vlang_image 'git.rustybever.be/vieter/vlang:5d4c9dc9fc11bf8648541c934adb64f27cb94e37-alpine3.17'
 
 platform: 'linux/amd64'
 branches:
@@ -8,15 +8,21 @@ branches:
 depends_on:
   - build
 
-skip_clone: true
-
 pipeline:
-  generate:
+  install-modules:
     image: *vlang_image
     pull: true
     commands:
-      - curl -o vieter -L "https://s3.rustybever.be/vieter/commits/$CI_COMMIT_SHA/vieter-linux-amd64"
-      - chmod +x vieter
+      - export VMODULES=$PWD/.vmodules
+      - 'cd src && v install'
+
+  generate:
+    image: *vlang_image
+    commands:
+      # - curl -o vieter -L "https://s3.rustybever.be/vieter/commits/$CI_COMMIT_SHA/vieter-linux-amd64"
+      # - chmod +x vieter
+      - export VMODULES=$PWD/.vmodules
+      - make
       - ./vieter man man
       - cd man
 

@@ -38,13 +38,13 @@ pub mut:
 // str returns a string representation.
 pub fn (t &Target) str() string {
 	mut parts := [
-		'id: $t.id',
-		'kind: $t.kind',
-		'url: $t.url',
-		'branch: $t.branch',
-		'path: $t.path',
-		'repo: $t.repo',
-		'schedule: $t.schedule',
+		'id: ${t.id}',
+		'kind: ${t.kind}',
+		'url: ${t.url}',
+		'branch: ${t.branch}',
+		'path: ${t.path}',
+		'repo: ${t.repo}',
+		'schedule: ${t.schedule}',
 		'arch: ${t.arch.map(it.value).join(', ')}',
 	]
 	str := parts.join('\n')
@@ -54,7 +54,7 @@ pub fn (t &Target) str() string {
 
 // as_build_config converts a Target into a BuildConfig, given some extra
 // needed information.
-pub fn (t &Target) as_build_config(base_image string, force bool) BuildConfig {
+pub fn (t &Target) as_build_config(base_image string, force bool, timeout int) BuildConfig {
 	return BuildConfig{
 		target_id: t.id
 		kind: t.kind
@@ -64,6 +64,7 @@ pub fn (t &Target) as_build_config(base_image string, force bool) BuildConfig {
 		repo: t.repo
 		base_image: base_image
 		force: force
+		timeout: timeout
 	}
 }
 
@@ -73,4 +74,6 @@ pub mut:
 	limit  u64 = 25
 	offset u64
 	repo   string
+	query  string
+	arch   string
 }

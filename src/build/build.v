@@ -45,7 +45,7 @@ pub fn create_build_image(base_image string) !string {
 
 	c := docker.NewContainer{
 		image: base_image
-		env: ['BUILD_SCRIPT=$cmds_str']
+		env: ['BUILD_SCRIPT=${cmds_str}']
 		entrypoint: ['/bin/sh', '-c']
 		cmd: ['echo \$BUILD_SCRIPT | base64 -d | /bin/sh -e']
 	}
@@ -57,7 +57,7 @@ pub fn create_build_image(base_image string) !string {
 	image_tag := if image_parts.len > 1 { image_parts[1] } else { 'latest' }
 
 	// We pull the provided image
-	dd.pull_image(image_name, image_tag)!
+	dd.image_pull(image_name, image_tag)!
 
 	id := dd.container_create(c)!.id
 	// id := docker.create_container(c)!
@@ -79,7 +79,7 @@ pub fn create_build_image(base_image string) !string {
 	// TODO also add the base image's name into the image name to prevent
 	// conflicts.
 	tag := time.sys_mono_now().str()
-	image := dd.create_image_from_container(id, 'vieter-build', tag)!
+	image := dd.image_from_container(id, 'vieter-build', tag)!
 	dd.container_remove(id)!
 
 	return image.id
@@ -94,8 +94,8 @@ pub:
 }
 
 // build_target builds the given target. Internally it calls `build_config`.
-pub fn build_target(address string, api_key string, base_image_id string, target &Target, force bool) !BuildResult {
-	config := target.as_build_config(base_image_id, force)
+pub fn build_target(address string, api_key string, base_image_id string, target &Target, force bool, timeout int) !BuildResult {
+	config := target.as_build_config(base_image_id, force, timeout)
 
 	return build_config(address, api_key, config)
 }
@@ -118,10 +118,10 @@ pub fn build_config(address string, api_key string, config BuildConfig) !BuildRe
 	base64_script := base64.encode_str(build_script)
 
 	c := docker.NewContainer{
-		image: '$config.base_image'
+		image: '${config.base_image}'
 		env: [
-			'BUILD_SCRIPT=$base64_script',
-			'API_KEY=$api_key',
+			'BUILD_SCRIPT=${base64_script}',
+			'API_KEY=${api_key}',
 			// `archlinux:base-devel` does not correctly set the path variable,
 			// causing certain builds to fail. This fixes it.
 			'PATH=${build.path_dirs.join(':')}',
@@ -136,9 +136,17 @@ pub fn build_config(address string, api_key string, config BuildConfig) !BuildRe
 	dd.container_start(id)!
 
 	mut data := dd.container_inspect(id)!
+	start_time := time.now()
 
 	// This loop waits until the container has stopped, so we can remove it after
 	for data.state.running {
+		if time.now() - start_time > config.timeout * time.second {
+			dd.container_kill(id)!
+			dd.container_remove(id)!
+
+			return error('Build killed due to timeout (${config.timeout}s)')
+		}
+
 		time.sleep(1 * time.second)
 
 		data = dd.container_inspect(id)!

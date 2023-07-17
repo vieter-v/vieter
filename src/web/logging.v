@@ -1,35 +1,36 @@
 module web
 
-import log
-
-// log reate a log message with the given level
-pub fn (mut ctx Context) log(msg string, level log.Level) {
-	lock ctx.logger {
-		ctx.logger.send_output(msg, level)
-	}
-}
-
 // lfatal create a log message with the fatal level
 pub fn (mut ctx Context) lfatal(msg string) {
-	ctx.log(msg, log.Level.fatal)
+	lock ctx.logger {
+		ctx.logger.fatal(msg)
+	}
 }
 
 // lerror create a log message with the error level
 pub fn (mut ctx Context) lerror(msg string) {
-	ctx.log(msg, log.Level.error)
+	lock ctx.logger {
+		ctx.logger.error(msg)
+	}
 }
 
 // lwarn create a log message with the warn level
 pub fn (mut ctx Context) lwarn(msg string) {
-	ctx.log(msg, log.Level.warn)
+	lock ctx.logger {
+		ctx.logger.warn(msg)
+	}
 }
 
 // linfo create a log message with the info level
 pub fn (mut ctx Context) linfo(msg string) {
-	ctx.log(msg, log.Level.info)
+	lock ctx.logger {
+		ctx.logger.info(msg)
+	}
 }
 
 // ldebug create a log message with the debug level
 pub fn (mut ctx Context) ldebug(msg string) {
-	ctx.log(msg, log.Level.debug)
+	lock ctx.logger {
+		ctx.logger.debug(msg)
+	}
 }

@@ -3,7 +3,6 @@ module server
 import web
 import net.urllib
 import web.response { new_data_response, new_response }
-import db
 import time
 import os
 import util
@@ -13,7 +12,7 @@ import models { BuildLog, BuildLogFilter }
 // optionally be added to limit the list of build logs to that repository.
 ['/api/v1/logs'; auth; get; markused]
 fn (mut app App) v1_get_logs() web.Result {
-	filter := models.from_params<BuildLogFilter>(app.query) or {
+	filter := models.from_params[BuildLogFilter](app.query) or {
 		return app.json(.bad_request, new_response('Invalid query parameters.'))
 	}
 	logs := app.db.get_build_logs(filter)
@@ -101,7 +100,7 @@ fn (mut app App) v1_post_log() web.Result {
 	// Create the logs directory of it doesn't exist
 	if !os.exists(os.dir(log_file_path)) {
 		os.mkdir_all(os.dir(log_file_path)) or {
-			app.lerror('Error while creating log file: $err.msg()')
+			app.lerror('Error while creating log file: ${err.msg()}')
 
 			return app.status(.internal_server_error)
 		}
@@ -109,7 +108,7 @@ fn (mut app App) v1_post_log() web.Result {
 
 	if length := app.req.header.get(.content_length) {
 		util.reader_to_file(mut app.reader, length.int(), log_file_path) or {
-			app.lerror('An error occured while receiving logs: $err.msg()')
+			app.lerror('An error occured while receiving logs: ${err.msg()}')
 
 			return app.status(.internal_server_error)
 		}
@@ -127,7 +126,7 @@ fn (mut app App) v1_delete_log(id int) web.Result {
 	full_path := os.join_path(app.conf.data_dir, logs_dir_name, log.path())
 
 	os.rm(full_path) or {
-		app.lerror('Failed to remove log file $full_path: $err.msg()')
+		app.lerror('Failed to remove log file ${full_path}: ${err.msg()}')
 
 		return app.status(.internal_server_error)
 	}

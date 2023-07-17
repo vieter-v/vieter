@@ -71,7 +71,7 @@ pub fn (mut m ImageManager) up_to_date(base_image string) bool {
 fn (mut m ImageManager) refresh_image(base_image string) ! {
 	// TODO use better image tags for built images
 	new_image := build.create_build_image(base_image) or {
-		return error('Failed to build builder image from base image $base_image')
+		return error('Failed to build builder image from base image ${base_image}')
 	}
 
 	m.images[base_image] << new_image
@@ -99,7 +99,7 @@ fn (mut m ImageManager) clean_old_images() {
 			// wasn't deleted. Therefore, we move the index over. If the function
 			// returns true, the array's length has decreased by one so we don't
 			// move the index.
-			dd.remove_image(m.images[image][i]) or {
+			dd.image_remove(m.images[image][i]) or {
 				// The image was removed by an external event
 				if err.code() == 404 {
 					m.images[image].delete(i)

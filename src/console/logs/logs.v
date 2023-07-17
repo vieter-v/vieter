@@ -74,7 +74,7 @@ pub fn cmd() cli.Command {
 				]
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					mut filter := BuildLogFilter{}
 
@@ -146,7 +146,7 @@ pub fn cmd() cli.Command {
 
 					raw := cmd.flags.get_bool('raw')!
 
-					list(conf, filter, raw)!
+					list(conf_, filter, raw)!
 				}
 			},
 			cli.Command{
@@ -156,9 +156,9 @@ pub fn cmd() cli.Command {
 				description: 'Remove a build log that matches the given id.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
-					remove(conf, cmd.args[0])!
+					remove(conf_, cmd.args[0])!
 				}
 			},
 			cli.Command{
@@ -168,10 +168,10 @@ pub fn cmd() cli.Command {
 				description: 'Show all info for a specific build log.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					id := cmd.args[0].int()
-					info(conf, id)!
+					info(conf_, id)!
 				}
 			},
 			cli.Command{
@@ -181,10 +181,10 @@ pub fn cmd() cli.Command {
 				description: 'Output the content of a build log to stdout.'
 				execute: fn (cmd cli.Command) ! {
 					config_file := cmd.flags.get_string('config-file')!
-					conf := vconf.load<Config>(prefix: 'VIETER_', default_path: config_file)!
+					conf_ := vconf.load[Config](prefix: 'VIETER_', default_path: config_file)!
 
 					id := cmd.args[0].int()
-					content(conf, id)!
+					content(conf_, id)!
 				}
 			},
 		]
@@ -204,16 +204,16 @@ fn print_log_list(logs []BuildLog, raw bool) ! {
 }
 
 // list prints a list of all build logs.
-fn list(conf Config, filter BuildLogFilter, raw bool) ! {
-	c := client.new(conf.address, conf.api_key)
+fn list(conf_ Config, filter BuildLogFilter, raw bool) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	logs := c.get_build_logs(filter)!
 
 	print_log_list(logs, raw)!
 }
 
 // info print the detailed info for a given build log.
-fn info(conf Config, id int) ! {
-	c := client.new(conf.address, conf.api_key)
+fn info(conf_ Config, id int) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	log := c.get_build_log(id)!
 
 	print(log)
@@ -221,15 +221,15 @@ fn info(conf Config, id int) ! {
 
 // content outputs the contents of the log file for a given build log to
 // stdout.
-fn content(conf Config, id int) ! {
-	c := client.new(conf.address, conf.api_key)
+fn content(conf_ Config, id int) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	content := c.get_build_log_content(id)!
 
 	println(content)
 }
 
 // remove removes a build log from the server's list.
-fn remove(conf Config, id string) ! {
-	c := client.new(conf.address, conf.api_key)
+fn remove(conf_ Config, id string) ! {
+	c := client.new(conf_.address, conf_.api_key)
 	c.remove_build_log(id.int())!
 }
